@@ -14,6 +14,10 @@ class Caja extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'estado' => 'boolean',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
