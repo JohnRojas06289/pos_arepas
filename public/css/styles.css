@@ -10905,12 +10905,34 @@ body {
     margin-left: 0;
     transition: margin 0.15s ease-in-out;
   }
+  
   .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
-    transform: translateX(-225px);
+    transform: translateX(0);
+    width: 0;
+    overflow: hidden;
   }
+  
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .sb-sidenav-menu-heading,
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .nav-link-text,
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .sb-sidenav-collapse-arrow,
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .sb-sidenav-footer {
+    display: none !important;
+  }
+
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .nav-link {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav .sb-nav-link-icon {
+    margin-right: 0;
+  }
+
   .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
     margin-left: -225px;
   }
+  
   .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content:before {
     display: none;
   }
@@ -11279,4 +11301,15 @@ body {
 .datatable-pagination-list-item-link:hover{
   background-color: #0061f2 !important;
   color: #fff !important;
+}
+
+/* Override for sb-nav-fixed layout to completely hide sidebar */
+.sb-nav-fixed.sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+    width: 0 !important;
+    transform: translateX(-225px);
+}
+
+.sb-nav-fixed.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
 }

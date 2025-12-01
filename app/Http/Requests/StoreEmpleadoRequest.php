@@ -24,7 +24,7 @@ class StoreEmpleadoRequest extends FormRequest
         return [
             'razon_social' => 'required|max:255',
             'cargo' => 'required|max:50',
-            'img' => 'nullable|image|mimes:png,jpg,jpeg|max:2048'
+            'img' => 'nullable|image|mimes:png,jpg,jpeg,webp,avif,gif,svg,bmp|max:2048'
         ];
     }
 }

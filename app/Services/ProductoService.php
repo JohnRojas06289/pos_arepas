@@ -57,6 +57,7 @@ class ProductoService
     private function handleUploadImage(UploadedFile $image, $img_path = null): string
     {
         if ($img_path) {
+            // Remove 'storage/' prefix if it exists for backward compatibility
             $relative_path = str_replace('storage/', '', $img_path);
 
             if (Storage::disk('public')->exists($relative_path)) {
@@ -65,7 +66,8 @@ class ProductoService
         }
 
         $name = uniqid() . '.' . $image->getClientOriginalExtension();
-        $path = 'storage/' . $image->storeAs('productos', $name);
+        // Store only the relative path without 'storage/' prefix
+        $path = $image->storeAs('productos', $name, 'public');
         return $path;
     }
 }

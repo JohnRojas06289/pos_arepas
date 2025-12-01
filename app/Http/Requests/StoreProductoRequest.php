@@ -25,7 +25,7 @@ class StoreProductoRequest extends FormRequest
             'codigo' => 'nullable|unique:productos,codigo|max:50',
             'nombre' => 'required|unique:productos,nombre|max:255',
             'descripcion' => 'nullable|max:255',
-            'img_path' => 'nullable|image|mimes:png,jpg,jpeg',
+            'img_path' => 'nullable|image|mimes:png,jpg,jpeg,webp,avif,gif,svg,bmp',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'required|integer|exists:presentaciones,id',
             'categoria_id' => 'nullable|integer|exists:categorias,id'
