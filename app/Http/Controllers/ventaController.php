@@ -138,7 +138,7 @@ class ventaController extends Controller
 
             DB::commit();
             ActivityLogService::log('Creación de una venta', 'Ventas', $request->validated());
-            return redirect()->route('movimientos.index', ['caja_id' => $venta->caja_id])
+            return redirect()->route('ventas.create')
                 ->with('success', 'Venta registrada');
         } catch (Throwable $e) {
             DB::rollBack();

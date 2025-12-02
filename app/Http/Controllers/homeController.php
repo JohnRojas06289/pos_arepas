@@ -70,6 +70,15 @@ class homeController extends Controller
             ->limit(5)
             ->get();
 
+        // Productos con Menos Stock (Top 5)
+        $productosMenosStock = DB::table('productos')
+            ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
+            ->where('inventario.cantidad', '>', 0)
+            ->orderBy('inventario.cantidad', 'asc')
+            ->select('productos.nombre', 'inventario.cantidad')
+            ->limit(5)
+            ->get();
+
         // Productos con Stock Bajo (Top 5)
         $productosStockBajo = DB::table('productos')
             ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
@@ -96,6 +105,7 @@ class homeController extends Controller
             'productosMasVendidos', 
             'productosMenosVendidos',
             'productosMasStock',
+            'productosMenosStock',
             'productosStockBajo',
             'ultimasVentas',
             'fechaInicio',

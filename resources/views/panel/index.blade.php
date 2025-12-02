@@ -21,6 +21,16 @@
         border-radius: 10px;
         font-size: 1.5rem;
     }
+    @media (min-width: 1200px) {
+        .col-custom-40 {
+            flex: 0 0 40%;
+            max-width: 40%;
+        }
+        .col-custom-30 {
+            flex: 0 0 30%;
+            max-width: 30%;
+        }
+    }
 </style>
 @endpush
 
@@ -128,36 +138,55 @@
 
     <!-- Gráficos -->
     <div class="row">
-        <!-- Gráfico de Ventas -->
-        <div class="col-xl-8 col-lg-7">
-            <div class="card shadow mb-4">
+        <!-- Gráfico de Ventas (40%) -->
+        <div class="col-custom-40 col-lg-12 mb-4">
+            <div class="card shadow h-100">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Resumen de Ventas</h6>
                 </div>
                 <div class="card-body">
-                    <div class="chart-area" style="height: 300px;">
+                    <div class="chart-area" style="height: 350px;">
                         <canvas id="ventasChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Estadísticas de Productos -->
-        <div class="col-xl-4 col-lg-5">
-            <div class="card shadow mb-4">
+        <!-- Estadísticas de Inventario (30%) -->
+        <div class="col-custom-30 col-lg-6 mb-4">
+            <div class="card shadow h-100">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas de Productos</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas de Inventario</h6>
                 </div>
                 <div class="card-body">
                     <div class="mb-3 text-center">
-                        <div class="btn-group" role="group" aria-label="Filtros Productos">
-                            <button type="button" class="btn btn-sm btn-outline-primary active" onclick="updateProductChart('masVendidos', this)">Más Vendidos</button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="updateProductChart('menosVendidos', this)">Menos Vendidos</button>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="updateProductChart('masStock', this)">Más Stock</button>
+                        <div class="btn-group" role="group" aria-label="Filtros Inventario">
+                            <button type="button" class="btn btn-sm btn-outline-primary active" onclick="updateStockChart('masStock', this)">Más Stock</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="updateStockChart('menosStock', this)">Menos Stock</button>
                         </div>
                     </div>
-                    <div class="chart-pie pt-2 pb-2" style="height: 250px;">
-                        <canvas id="dynamicProductChart"></canvas>
+                    <div class="chart-bar pt-2 pb-2" style="height: 300px;">
+                        <canvas id="dynamicStockChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas de Ventas (30%) -->
+        <div class="col-custom-30 col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas de Ventas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 text-center">
+                        <div class="btn-group" role="group" aria-label="Filtros Ventas">
+                            <button type="button" class="btn btn-sm btn-outline-primary active" onclick="updateSalesChart('masVendidos', this)">Más Vendidos</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="updateSalesChart('menosVendidos', this)">Menos Vendidos</button>
+                        </div>
+                    </div>
+                    <div class="chart-pie pt-2 pb-2" style="height: 300px;">
+                        <canvas id="dynamicSalesChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -227,7 +256,7 @@
     Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
     Chart.defaults.global.defaultFontColor = '#858796';
 
-    // Gráfico de Ventas
+    // --- Gráfico de Ventas ---
     let datosVenta = @json($totalVentasPorDia);
     const fechas = datosVenta.map(venta => {
         const [year, month, day] = venta.fecha.split('-');
@@ -294,31 +323,80 @@
         }
     });
 
-    // Datos para el gráfico dinámico de productos
+    // --- Gráfico de Inventario (Stock) ---
+    const dataMasStock = @json($productosMasStock);
+    const dataMenosStock = @json($productosMenosStock);
+    let stockChartInstance = null;
+
+    function renderStockChart(data, label) {
+        const ctx = document.getElementById('dynamicStockChart');
+        if (stockChartInstance) stockChartInstance.destroy();
+
+        stockChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(p => p.nombre),
+                datasets: [{
+                    label: label,
+                    data: data.map(p => p.cantidad),
+                    backgroundColor: "#4e73df",
+                    hoverBackgroundColor: "#2e59d9",
+                    borderColor: "#4e73df",
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                layout: { padding: { left: 10, right: 25, top: 25, bottom: 0 } },
+                scales: {
+                    xAxes: [{ gridLines: { display: false, drawBorder: false }, ticks: { maxTicksLimit: 6 } }],
+                    yAxes: [{ ticks: { beginAtZero: true, maxTicksLimit: 5, padding: 10 }, gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
+                },
+                legend: { display: false },
+                tooltips: {
+                    backgroundColor: "rgb(255,255,255)",
+                    bodyFontColor: "#858796",
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6e707e',
+                    titleFontSize: 14,
+                    borderColor: '#dddfeb',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                },
+            }
+        });
+    }
+
+    renderStockChart(dataMasStock, 'Stock');
+
+    window.updateStockChart = function(type, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (type === 'masStock') renderStockChart(dataMasStock, 'Stock');
+        else if (type === 'menosStock') renderStockChart(dataMenosStock, 'Stock');
+    };
+
+    // --- Gráfico de Ventas (Productos) ---
     const dataMasVendidos = @json($productosMasVendidos);
     const dataMenosVendidos = @json($productosMenosVendidos);
-    const dataMasStock = @json($productosMasStock);
+    let salesChartInstance = null;
 
-    let productChartInstance = null;
+    function renderSalesChart(data, label, type = 'doughnut') {
+        const ctx = document.getElementById('dynamicSalesChart');
+        if (salesChartInstance) salesChartInstance.destroy();
 
-    function renderProductChart(data, label, type = 'doughnut') {
-        const ctx = document.getElementById('dynamicProductChart');
-        
-        if (productChartInstance) {
-            productChartInstance.destroy();
-        }
-
-        // Colores para el gráfico
         const colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'];
         const hoverColors = ['#2e59d9', '#17a673', '#2c9faf', '#dda20a', '#be2617'];
 
-        productChartInstance = new Chart(ctx, {
+        salesChartInstance = new Chart(ctx, {
             type: type,
             data: {
                 labels: data.map(p => p.nombre),
                 datasets: [{
                     label: label,
-                    data: data.map(p => p.total_vendido || p.cantidad), // Usa total_vendido o cantidad según el dataset
+                    data: data.map(p => p.total_vendido),
                     backgroundColor: colors.slice(0, data.length),
                     hoverBackgroundColor: hoverColors.slice(0, data.length),
                     hoverBorderColor: "rgba(234, 236, 244, 1)",
@@ -336,37 +414,23 @@
                     displayColors: false,
                     caretPadding: 10,
                 },
-                legend: { display: false }, // Ocultar leyenda para ahorrar espacio o mostrarla si se prefiere
+                legend: { display: false },
                 cutoutPercentage: type === 'doughnut' ? 80 : 0,
-                scales: type === 'bar' ? {
-                    yAxes: [{
-                        ticks: { beginAtZero: true }
-                    }]
-                } : {}
+                scales: type === 'bar' ? { yAxes: [{ ticks: { beginAtZero: true } }] } : {}
             },
         });
     }
 
-    // Inicializar con "Más Vendidos"
-    renderProductChart(dataMasVendidos, 'Vendidos');
+    renderSalesChart(dataMasVendidos, 'Vendidos', 'bar');
 
-    // Función para actualizar el gráfico desde los botones
-    window.updateProductChart = function(type, btn) {
-        // Actualizar estado activo de los botones
-        document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+    window.updateSalesChart = function(type, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
-        if (type === 'masVendidos') {
-            renderProductChart(dataMasVendidos, 'Vendidos', 'doughnut');
-        } else if (type === 'menosVendidos') {
-            renderProductChart(dataMenosVendidos, 'Vendidos', 'bar'); // Bar chart para comparar mejor los bajos números
-        } else if (type === 'masStock') {
-            renderProductChart(dataMasStock, 'Stock', 'bar'); // Bar chart para stock
-        }
+        if (type === 'masVendidos') renderSalesChart(dataMasVendidos, 'Vendidos', 'bar');
+        else if (type === 'menosVendidos') renderSalesChart(dataMenosVendidos, 'Vendidos', 'bar');
     };
 
-
-    // Gráfico de Stock Bajo
+    // --- Gráfico de Stock Bajo (Alert) ---
     let stockBajo = @json($productosStockBajo);
     new Chart(document.getElementById('productosStockBajoChart'), {
         type: 'horizontalBar',
@@ -384,13 +448,8 @@
             maintainAspectRatio: false,
             layout: { padding: { left: 10, right: 25, top: 25, bottom: 0 } },
             scales: {
-                xAxes: [{
-                    ticks: { beginAtZero: true },
-                    gridLines: { display: false, drawBorder: false }
-                }],
-                yAxes: [{
-                    gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] }
-                }],
+                xAxes: [{ ticks: { beginAtZero: true }, gridLines: { display: false, drawBorder: false } }],
+                yAxes: [{ gridLines: { color: "rgb(234, 236, 244)", zeroLineColor: "rgb(234, 236, 244)", drawBorder: false, borderDash: [2], zeroLineBorderDash: [2] } }],
             },
             legend: { display: false },
             tooltips: {

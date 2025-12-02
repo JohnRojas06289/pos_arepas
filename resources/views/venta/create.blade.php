@@ -518,6 +518,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Auto-collapse sidebar with animation
+        if (!document.body.classList.contains('sb-sidenav-toggled')) {
+            setTimeout(function() {
+                document.body.classList.add('sb-sidenav-toggled');
+            }, 500); // Delay to show animation
+        }
+
         // Auto-focus en búsqueda
         const searchInput = document.getElementById('searchInput');
         searchInput.focus();
