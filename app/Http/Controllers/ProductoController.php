@@ -77,7 +77,7 @@ class ProductoController extends Controller
             return redirect()->route('productos.index')->with('success', 'Producto registrado');
         } catch (Throwable $e) {
             Log::error('Error al crear el producto', ['error' => $e->getMessage()]);
-            return redirect()->route('productos.index')->with('error', 'Ups, algo falló');
+            return redirect()->route('productos.index')->with('error', 'Error: ' . $e->getMessage());
         }
     }
 
@@ -123,7 +123,7 @@ class ProductoController extends Controller
             return redirect()->route('productos.index')->with('success', 'Producto editado');
         } catch (Throwable $e) {
             Log::error('Error al editar el producto', ['error' => $e->getMessage()]);
-            return redirect()->route('productos.index')->with('error', 'Ups, algo falló');
+            return redirect()->route('productos.index')->with('error', 'Error: ' . $e->getMessage());
         }
     }
 
