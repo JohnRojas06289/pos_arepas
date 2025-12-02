@@ -133,17 +133,16 @@
                     <td>{{$detalle->pivot->cantidad}}</td>
                     <td>{{$detalle->presentacione->sigla}}</td>
                     <td>{{$detalle->nombre}}</td>
-                    <td>{{$detalle->pivot->precio_venta}}</td>
-                    <td>{{$detalle->pivot->cantidad * $detalle->pivot->precio_venta}}</td>
+                    <td>{{number_format($detalle->pivot->precio_venta, 0, ',', '.')}}</td>
+                    <td>{{number_format($detalle->pivot->cantidad * $detalle->pivot->precio_venta, 0, ',', '.')}}</td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
 
         <div class="datos">
-            <div><strong>Subtotal:</strong> {{$venta->subtotal}} {{$empresa->moneda->simbolo}}</div>
-            <div><strong>{{$empresa->abreviatura_impuesto}}:</strong> {{$venta->impuesto}} {{$empresa->moneda->simbolo}}</div>
-            <div><strong>Total:</strong> {{$venta->total}} {{$empresa->moneda->simbolo}}</div>
+            <div><strong>Subtotal:</strong> {{number_format($venta->subtotal, 0, ',', '.')}} {{$empresa->moneda->simbolo}}</div>
+            <div><strong>Total:</strong> {{number_format($venta->total, 0, ',', '.')}} {{$empresa->moneda->simbolo}}</div>
             <div><strong>Modalidad de Pago:</strong> {{$venta->metodo_pago}}</div>
             <div><strong>Cajero:</strong> {{$venta->user->empleado->razon_social ?? $venta->user->name}}</div>
         </div>

@@ -73,15 +73,28 @@ class InventarioControlller extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $inventario = Inventario::with('producto')->findOrFail($id);
+        $producto = $inventario->producto;
+        return view('inventario.edit', compact('inventario', 'producto'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StoreInventarioRequest $request, string $id)
     {
-        //
+        $inventario = Inventario::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $inventario->update($request->validated());
+            DB::commit();
+            ActivityLogService::log('Actualización de inventario', 'Inventario', $request->validated());
+            return redirect()->route('inventario.index')->with('success', 'Inventario actualizado');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar el inventario', ['error' => $e->getMessage()]);
+            return redirect()->route('inventario.index')->with('error', 'Ups, algo falló');
+        }
     }
 
     /**
@@ -89,6 +102,17 @@ class InventarioControlller extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $inventario = Inventario::findOrFail($id);
+        DB::beginTransaction();
+        try {
+            $inventario->delete();
+            DB::commit();
+            ActivityLogService::log('Eliminación de inventario', 'Inventario', ['id' => $id]);
+            return redirect()->route('inventario.index')->with('success', 'Inventario eliminado');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar el inventario', ['error' => $e->getMessage()]);
+            return redirect()->route('inventario.index')->with('error', 'Ups, algo falló');
+        }
     }
 }

@@ -73,7 +73,7 @@
                             {{$item->pivot->precio_venta}}
                         </td>
                         <td class="td-subtotal">
-                            {{($item->pivot->cantidad) * ($item->pivot->precio_venta)}}
+                            {{ number_format(($item->pivot->cantidad) * ($item->pivot->precio_venta), 0, ',', '.') }}
                         </td>
                     </tr>
                     @endforeach
@@ -85,19 +85,14 @@
                     <tr>
                         <th colspan="4">Sumas:</th>
                         <th>
-                            {{$venta->subtotal}} {{$empresa->moneda->simbolo}}
+                            {{ number_format($venta->subtotal, 0, ',', '.') }} {{$empresa->moneda->simbolo}}
                         </th>
                     </tr>
-                    <tr>
-                        <th colspan="4">{{$empresa->abreviatura_impuesto}} ({{$empresa->porcentaje_impuesto}}%):</th>
-                        <th>
-                            {{$venta->impuesto}} {{$empresa->moneda->simbolo}}
-                        </th>
-                    </tr>
+
                     <tr>
                         <th colspan="4">Total:</th>
                         <th>
-                            {{$venta->total}} {{$empresa->moneda->simbolo}}
+                            {{ number_format($venta->total, 0, ',', '.') }} {{$empresa->moneda->simbolo}}
                         </th>
                     </tr>
                 </tfoot>

@@ -75,7 +75,7 @@
                             {{$item->pivot->fecha_vencimiento}}
                         </td>
                         <td class="td-subtotal">
-                            {{($item->pivot->cantidad) * ($item->pivot->precio_compra)}}
+                            {{ number_format(($item->pivot->cantidad) * ($item->pivot->precio_compra), 0, ',', '.') }}
                         </td>
                     </tr>
                     @endforeach
@@ -91,10 +91,7 @@
                             <span>{{$empresa->moneda->simbolo}}</span>
                         </th>
                     </tr>
-                    <tr>
-                        <th colspan="5">{{$empresa->abreviatura_impuesto}}:</th>
-                        <th>{{$compra->impuesto}} {{$empresa->moneda->simbolo}}</th>
-                    </tr>
+
                     <tr>
                         <th colspan="5">Total:</th>
                         <th>{{$compra->total}} {{$empresa->moneda->simbolo}}</th>

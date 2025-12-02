@@ -74,10 +74,10 @@
                             @endif
                         </td>
                         <td>
-                            {{$item->saldo_inicial}}
+                            {{number_format($item->saldo_inicial, 0, ',', '.')}}
                         </td>
                         <td>
-                            {{$item->saldo_final}}
+                            {{number_format($item->saldo_final, 0, ',', '.')}}
                         </td>
                         <td>
                             <span class="badge rounded-pill {{ $item->estado == 1 ? 'text-bg-success' : 'text-bg-danger' }}">

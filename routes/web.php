@@ -53,7 +53,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('roles', roleController::class)->except('show');
     Route::resource('profile', profileController::class)->only('index', 'update');
     Route::resource('activityLog', ActivityLogController::class)->only('index');
-    Route::resource('inventario', InventarioControlller::class)->only('index', 'create', 'store');
+    Route::resource('inventario', InventarioControlller::class)->except('show');
     Route::resource('kardex', KardexController::class)->only('index');
     Route::resource('empresa', EmpresaController::class)->only('index', 'update');
     Route::resource('empleados', EmpleadoController::class)->except('show');

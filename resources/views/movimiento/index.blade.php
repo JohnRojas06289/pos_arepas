@@ -33,10 +33,10 @@
                 Cierre: {{$caja->fecha_cierre}} - {{$caja->hora_cierre}}</h6>
             @endif
             <h6 class="card-subtitle mb-2 text-body-secondary">
-                Saldo inicial: {{$caja->saldo_inicial}}</h6>
+                Saldo inicial: {{number_format($caja->saldo_inicial, 0, ',', '.')}}</h6>
             @if ($caja->saldo_final)
             <h6 class="card-subtitle mb-2 text-body-secondary">
-                Saldo final: {{$caja->saldo_final}}</h6>
+                Saldo final: {{number_format($caja->saldo_final, 0, ',', '.')}}</h6>
             @endif
 
             <hr>
@@ -91,7 +91,7 @@
                             {{$item->descripcion}}
                         </td>
                         <td>
-                            {{$item->monto}}
+                            {{number_format($item->monto, 0, ',', '.')}}
                         </td>
                         <td>
                             {{$item->metodo_pago->value}}

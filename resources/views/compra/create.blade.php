@@ -212,14 +212,7 @@
                                                 <span>{{$empresa->moneda->simbolo}}</span>
                                             </th>
                                         </tr>
-                                        <tr>
-                                            <th colspan="5">{{$empresa->abreviatura_impuesto}} %</th>
-                                            <th colspan="2">
-                                                <input type="hidden" name="impuesto" value="0" id="inputImpuesto">
-                                                <span id="igv">0</span>
-                                                <span>{{$empresa->moneda->simbolo}}</span>
-                                            </th>
-                                        </tr>
+
                                         <tr>
                                             <th colspan="5">Total</th>
                                             <th colspan="2">
@@ -376,7 +369,7 @@
                     //Calcular valores
                     subtotal[cont] = round(cantidad * precioCompra);
                     sumas = round(sumas + subtotal[cont]);
-                    igv = round(sumas / 100 * impuesto);
+                    igv = 0;
                     total = round(sumas + igv);
 
                     //Crear la fila

@@ -41,7 +41,6 @@ class ventaController extends Controller
     public function index(): View
     {
         $ventas = Venta::with(['comprobante', 'cliente.persona', 'user'])
-            ->where('user_id', Auth::id())
             ->latest()
             ->get();
 

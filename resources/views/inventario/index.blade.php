@@ -19,14 +19,7 @@
         <x-breadcrumb.item active='true' content="Inventario" />
     </x-breadcrumb.template>
 
-    <div class="mb-4">
-        <button type="button"
-            class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#verPlanoModal">
-            Ver plano
-        </button>
-    </div>
+
 
     <div class="card">
         <div class="card-header">
@@ -39,7 +32,7 @@
                     <tr>
                         <th>Producto</th>
                         <th>Stock</th>
-                        <th>Ubicación</th>
+
                         <th>Fecha de Vencimiento</th>
                         <th>Acciones</th>
                     </tr>
@@ -53,14 +46,20 @@
                         <td>
                             {{$item->cantidad}}
                         </td>
-                        <td>
-                            {{$item->ubicacione->nombre}}
-                        </td>
+
                         <td>
                             {{$item->fecha_vencimiento_format ?? $item->fecha_vencimiento_format}}
                         </td>
                         <td>
-
+                            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                                <a href="{{ route('inventario.edit', $item->id) }}" class="btn btn-warning">Editar</a>
+                                <form action="{{ route('inventario.destroy', $item->id) }}" method="POST"
+                                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar este elemento?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -70,31 +69,7 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="verPlanoModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Plano de Ubicaciones</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-12 text-center">
-                            <img src="{{ asset('assets/img/plano.png')}}" alt="Plano de ubicaciones"
-                                class="img-fluid img-thumbail border rounded">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
 </div>
 @endsection
