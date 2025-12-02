@@ -85,9 +85,8 @@ Route::post('/login', [loginController::class, 'login'])->name('login.login');
 
 Route::get('/debug-config', function () {
     return [
-        'FILESYSTEM_DISK (env)' => env('FILESYSTEM_DISK'),
-        'config(filesystems.default)' => config('filesystems.default'),
-        'config(filesystems.disks.s3)' => config('filesystems.disks.s3'),
-        'AWS_URL (env)' => env('AWS_URL'),
+        '1_DISK_FROM_ENV' => env('FILESYSTEM_DISK'),
+        '2_DISK_FROM_CONFIG' => config('filesystems.default'),
+        '3_AWS_URL' => env('AWS_URL'),
     ];
 });

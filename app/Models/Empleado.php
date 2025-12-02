@@ -24,13 +24,13 @@ class Empleado extends Model
         if ($img_path) {
             $relative_path = str_replace('storage/', '', $img_path);
 
-            if (Storage::disk('public')->exists($relative_path)) {
-                Storage::disk('public')->delete($relative_path);
+            if (Storage::disk(config('filesystems.default'))->exists($relative_path)) {
+                Storage::disk(config('filesystems.default'))->delete($relative_path);
             }
         }
 
         $name = uniqid() . '.' . $image->getClientOriginalExtension();
-        $path = 'storage/' . $image->storeAs('empleados', $name);
+        $path = $image->storeAs('empleados', $name, config('filesystems.default'));
         return $path;
     }
 }
