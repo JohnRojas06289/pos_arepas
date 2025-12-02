@@ -50,15 +50,10 @@
             </div>
 
             <div class="col-12">
-                <label for="moneda_id" class="form-label">Moneda seleccionada:</label>
-                <select name="moneda_id" id="moneda_id" class="form-select">
-                    @foreach ($monedas as $moneda)
-                    <option value="{{$moneda->id}}"
-                        {{$empresa->moneda_id == $moneda->id || old('moneda_id') == $moneda->id  ? 'selected' : ''}}>
-                        {{$moneda->nombre_completo}}
-                    </option>
-                    @endforeach
-                </select>
+
+                <label for="moneda_display" class="form-label">Moneda seleccionada:</label>
+                <input type="text" id="moneda_display" class="form-control" value="COP - Peso Colombiano" readonly>
+                <input type="hidden" name="moneda_id" value="{{$moneda->id}}">
                 @error('moneda_id')
                 <small class="text-danger">{{'* .$messsage'}}</small>
                 @enderror

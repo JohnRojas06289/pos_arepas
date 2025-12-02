@@ -21,8 +21,8 @@ class EmpresaController extends Controller
     public function index(): View
     {
         $empresa = Empresa::first();
-        $monedas = Moneda::where('estandar_iso', 'COP')->get();
-        return view('empresa.index', compact('empresa', 'monedas'));
+        $moneda = Moneda::where('estandar_iso', 'COP')->first();
+        return view('empresa.index', compact('empresa', 'moneda'));
     }
 
     /**

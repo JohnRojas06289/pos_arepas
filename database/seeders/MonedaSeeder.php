@@ -44,6 +44,11 @@ class MonedaSeeder extends Seeder
                 'nombre_completo' => 'Peso Chileno',
                 'simbolo' => '$'
             ],
+            [
+                'estandar_iso' => 'COP',
+                'nombre_completo' => 'Peso Colombiano',
+                'simbolo' => '$'
+            ],
         ]);
     }
 }

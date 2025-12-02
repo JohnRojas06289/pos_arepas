@@ -65,6 +65,15 @@
 
     inputImagen.addEventListener('change', function() {
         if (this.files && this.files[0]) {
+            // Validar tamaño del archivo (4MB)
+            if (this.files[0].size > 4 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. El tamaño máximo permitido es 4MB.');
+                this.value = ''; // Limpiar el input
+                imagenPreview.style.display = 'none';
+                imagenDefault.style.display = 'block';
+                return;
+            }
+
             const reader = new FileReader();
 
             reader.onload = function(e) {
