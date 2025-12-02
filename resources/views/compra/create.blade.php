@@ -419,14 +419,14 @@
     function eliminarProducto(indice, idProducto) {
         //Calcular valores
         sumas -= round(subtotal[indice]);
-        igv = round(sumas / 100 * impuesto);
+        igv = 0;
         total = round(sumas + igv);
 
         //Mostrar los campos calculados
         $('#sumas').html(sumas);
-        $('#igv').html(igv);
+
         $('#total').html(total);
-        $('#inputImpuesto').val(igv);
+
         $('#inputSubtotal').val(sumas);
         $('#inputTotal').val(total);
 

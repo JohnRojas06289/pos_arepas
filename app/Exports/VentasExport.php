@@ -35,7 +35,7 @@ class VentasExport implements FromCollection, WithMapping, WithHeadings, ShouldA
             Carbon::parse($venta->fecha_hora)->format('d/m/Y'),
             Carbon::parse($venta->fecha_hora)->format('h:i A'),
             $venta->subtotal,
-            $venta->impuesto,
+
             $venta->total
         ];
     }
@@ -51,7 +51,7 @@ class VentasExport implements FromCollection, WithMapping, WithHeadings, ShouldA
             'Fecha',
             'Hora',
             'Subtotal',
-            'Impuesto',
+
             'Total'
         ];
     }

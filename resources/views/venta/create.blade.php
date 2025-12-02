@@ -431,7 +431,7 @@
                 </div>
                 
                 <input type="hidden" name="subtotal" id="inputSubtotal" value="0">
-                <input type="hidden" name="impuesto" id="inputImpuesto" value="0">
+
                 <input type="hidden" name="total" id="inputTotal" value="0">
 
                 <div class="mb-2">
@@ -837,7 +837,7 @@
         document.getElementById('totalDisplay').innerText = formatNumber(total);
         document.getElementById('inputTotal').value = total;
         document.getElementById('inputSubtotal').value = total;
-        document.getElementById('inputImpuesto').value = 0;
+
         document.getElementById('cartCount').innerText = cart.reduce(function(acc, item) { return acc + item.cantidad; }, 0);
 
         calculateChange();

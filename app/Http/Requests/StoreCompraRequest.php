@@ -31,7 +31,7 @@ class StoreCompraRequest extends FormRequest
             'metodo_pago' => ['required', new Enum(MetodoPagoEnum::class)],
             'fecha_hora' => 'required|date|date_format:Y-m-d\TH:i',
             'subtotal' => 'required|min:1',
-            'impuesto' => 'required|min:0',
+
             'total' => 'required|min:1'
         ];
     }

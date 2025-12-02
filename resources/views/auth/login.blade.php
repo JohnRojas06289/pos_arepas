@@ -82,15 +82,7 @@
         </div>
     </div>
     
-    <div id="layoutAuthentication_footer" class="mt-auto">
-        <footer class="py-4 bg-black bg-opacity-25 mt-auto text-secondary">
-            <div class="container-fluid px-4">
-                <div class="d-flex align-items-center justify-content-center small">
-                    <div class="text-muted">© {{ date('Y') }} POS Arepas. Sistema de uso interno.</div>
-                </div>
-            </div>
-        </footer>
-    </div>
+
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 </body>

@@ -28,22 +28,14 @@
             </div>
 
             <div class="col-md-6">
-                <x-forms.input id="ruc" required='true' :defaultValue='$empresa->ruc' />
+                <x-forms.input id="nit" required='true' :defaultValue='$empresa->nit' />
             </div>
 
             <div class="col-md-6">
                 <x-forms.input id="direccion" required='true' :defaultValue='$empresa->direccion' />
             </div>
 
-            <div class="col-md-6">
-                <x-forms.input id="porcentaje_impuesto" required='true' :defaultValue='$empresa->porcentaje_impuesto'
-                    type='number' labelText='Porcentaje del impuesto (%)' />
-            </div>
 
-            <div class="col-md-6">
-                <x-forms.input id="abreviatura_impuesto" required='true' :defaultValue='$empresa->abreviatura_impuesto'
-                    labelText='Abreviatura del impuesto' />
-            </div>
 
             <div class="col-md-4">
                 <x-forms.input id="correo" :defaultValue='$empresa->correo' type='email' />

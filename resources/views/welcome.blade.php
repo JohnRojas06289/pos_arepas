@@ -111,11 +111,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="text-center text-secondary py-4 bg-black bg-opacity-25 mt-auto">
-        <div class="container">
-            <small>© {{ date('Y') }} POS Arepas. Sistema de uso interno.</small>
-        </div>
-    </footer>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 </body>

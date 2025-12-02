@@ -25,8 +25,7 @@ class UpdateEmpresaRequest extends FormRequest
             'nombre' => 'required|max:255',
             'propietario' => 'required|max:255',
             'ruc' => 'required|max:50',
-            'porcentaje_impuesto' => 'required|numeric',
-            'abreviatura_impuesto' => 'required|max:5',
+
             'direccion' => 'required|max:255',
             'correo' => 'nullable|max:255',
             'telefono' => 'nullable|max:255',
