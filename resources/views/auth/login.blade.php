@@ -61,9 +61,14 @@
                                             <input autofocus autocomplete="off" value="invitado@gmail.com" class="form-control" name="email" id="inputEmail" type="email" placeholder="name@example.com" />
                                             <label for="inputEmail">Correo electrónico</label>
                                         </div>
-                                        <div class="form-floating mb-3 text-dark">
-                                            <input class="form-control" name="password" value="12345678" id="inputPassword" type="password" placeholder="Password" />
-                                            <label for="inputPassword">Contraseña</label>
+                                        <div class="input-group mb-3">
+                                            <div class="form-floating text-dark flex-grow-1">
+                                                <input class="form-control" name="password" value="12345678" id="inputPassword" type="password" placeholder="Password" />
+                                                <label for="inputPassword">Contraseña</label>
+                                            </div>
+                                            <button class="btn btn-outline-secondary bg-white border-start-0" type="button" id="togglePassword" style="border-color: #ced4da;">
+                                                <i class="fa-solid fa-eye text-muted"></i>
+                                            </button>
                                         </div>
                                         
                                         <div class="d-grid gap-2 mt-4 mb-0">
@@ -85,6 +90,22 @@
 
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script>
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('inputPassword');
+            const icon = this.querySelector('i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    </script>
 </body>
 
 </html>

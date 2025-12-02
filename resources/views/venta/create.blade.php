@@ -355,12 +355,10 @@
             </div>
             <button type="button" class="category-btn active" onclick="filterCategory('all', this)">
                 <i class="fa-solid fa-border-all"></i> Todo
-                <span class="shortcut-hint">F1</span>
             </button>
             @foreach ($categorias as $cat)
             <button type="button" class="category-btn" onclick="filterCategory('{{$cat->id}}', this)">
                 <i class="fa-solid fa-tag"></i> {{$cat->caracteristica->nombre}}
-                <span class="shortcut-hint">F{{$loop->iteration + 1}}</span>
             </button>
             @endforeach
         </div>
@@ -563,17 +561,7 @@
 
         // Atajos de teclado globales
         document.addEventListener('keydown', function(e) {
-            // F1-F8: Categorías
-            if (e.key >= 'F1' && e.key <= 'F8') {
-                e.preventDefault();
-                const categoryButtons = document.querySelectorAll('.category-btn');
-                const index = parseInt(e.key.substring(1)) - 1;
-                if (categoryButtons[index]) {
-                    categoryButtons[index].click();
-                    showKeyboardHint('Categoría: ' + categoryButtons[index].textContent.trim());
-                }
-                return;
-            }
+
 
             // F9: Pago exacto
             if (e.key === 'F9') {
