@@ -75,6 +75,11 @@ class ProductoService
         // Store only the relative path without 'storage/' prefix
         try {
             $path = $image->storeAs('productos', $name, config('filesystems.default'));
+            
+            if ($path === false) {
+                throw new \Exception('El almacenamiento devolvió false. Verifique permisos de escritura en el bucket.');
+            }
+
             \Illuminate\Support\Facades\Log::info('Imagen subida exitosamente', ['path' => $path]);
             return $path;
         } catch (\Exception $e) {
