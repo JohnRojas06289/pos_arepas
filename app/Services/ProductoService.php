@@ -56,18 +56,30 @@ class ProductoService
      */
     private function handleUploadImage(UploadedFile $image, $img_path = null): string
     {
+        \Illuminate\Support\Facades\Log::info('Inicio de subida de imagen', [
+            'original_name' => $image->getClientOriginalName(),
+            'disk' => config('filesystems.default'),
+        ]);
+
         if ($img_path) {
             // Remove 'storage/' prefix if it exists for backward compatibility
             $relative_path = str_replace('storage/', '', $img_path);
 
             if (Storage::disk(config('filesystems.default'))->exists($relative_path)) {
                 Storage::disk(config('filesystems.default'))->delete($relative_path);
+                \Illuminate\Support\Facades\Log::info('Imagen anterior eliminada', ['path' => $relative_path]);
             }
         }
 
         $name = uniqid() . '.' . $image->getClientOriginalExtension();
         // Store only the relative path without 'storage/' prefix
-        $path = $image->storeAs('productos', $name, config('filesystems.default'));
-        return $path;
+        try {
+            $path = $image->storeAs('productos', $name, config('filesystems.default'));
+            \Illuminate\Support\Facades\Log::info('Imagen subida exitosamente', ['path' => $path]);
+            return $path;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error al subir imagen', ['error' => $e->getMessage()]);
+            throw $e;
+        }
     }
 }
