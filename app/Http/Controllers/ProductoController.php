@@ -71,6 +71,9 @@ class ProductoController extends Controller
      */
     public function store(StoreProductoRequest $request): RedirectResponse
     {
+        // DEBUG: Verificar si llega el archivo
+        dd('DEBUG STORE', $request->all(), $request->file('img_path'), $_FILES);
+
         try {
             $this->productoService->crearProducto($request->validated());
             ActivityLogService::log('Creación de producto', 'Productos', $request->validated());
@@ -117,6 +120,9 @@ class ProductoController extends Controller
      */
     public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
     {
+        // DEBUG: Verificar si llega el archivo
+        dd('DEBUG UPDATE', $request->all(), $request->file('img_path'), $_FILES);
+
         try {
             $this->productoService->editarProducto($request->validated(), $producto);
             ActivityLogService::log('Edición de producto', 'Productos', $request->validated());
