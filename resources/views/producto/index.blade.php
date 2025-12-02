@@ -134,7 +134,7 @@
                                             <p class="fw-bolder">Imagen:</p>
                                             <div>
                                                 @if (!empty($item->img_path))
-                                                <img src="{{ asset('storage/'.$item->img_path) }}" alt="{{ $item->nombre }}"
+                                                <img src="{{ Storage::url($item->img_path) }}" alt="{{ $item->nombre }}"
                                                     class="img-fluid img-thumbnail border border-4 rounded">
                                                 @else
                                                 <p>Sin imagen</p>

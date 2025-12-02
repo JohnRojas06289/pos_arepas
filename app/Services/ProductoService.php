@@ -60,14 +60,14 @@ class ProductoService
             // Remove 'storage/' prefix if it exists for backward compatibility
             $relative_path = str_replace('storage/', '', $img_path);
 
-            if (Storage::disk('public')->exists($relative_path)) {
-                Storage::disk('public')->delete($relative_path);
+            if (Storage::disk(config('filesystems.default'))->exists($relative_path)) {
+                Storage::disk(config('filesystems.default'))->delete($relative_path);
             }
         }
 
         $name = uniqid() . '.' . $image->getClientOriginalExtension();
         // Store only the relative path without 'storage/' prefix
-        $path = $image->storeAs('productos', $name, 'public');
+        $path = $image->storeAs('productos', $name, config('filesystems.default'));
         return $path;
     }
 }
