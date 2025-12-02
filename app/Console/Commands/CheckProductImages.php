@@ -1,4 +1,4 @@
-&lt;?php
+<?php
 
 namespace App\Console\Commands;
 
@@ -13,31 +13,31 @@ class CheckProductImages extends Command
 
     public function handle()
     {
-        $this-&gt;info('=== Checking Products and Images ===');
-        $this-&gt;newLine();
+        $this->info('=== Checking Products and Images ===');
+        $this->newLine();
 
         // Get all products
-        $productos = DB::table('productos')-&gt;select('id', 'nombre', 'img_path')-&gt;get();
+        $productos = DB::table('productos')->select('id', 'nombre', 'img_path')->get();
 
-        $this-&gt;info('Products in database:');
-        $this-&gt;table(
+        $this->info('Products in database:');
+        $this->table(
             ['ID', 'Name', 'img_path'],
-            $productos-&gt;map(fn($p) =&gt; [$p-&gt;id, $p-&gt;nombre, $p-&gt;img_path ?? 'NULL'])
+            $productos->map(fn($p) => [$p->id, $p->nombre, $p->img_path ?? 'NULL'])
         );
 
-        $this-&gt;newLine();
-        $this-&gt;info('Images in storage/app/public/productos:');
+        $this->newLine();
+        $this->info('Images in storage/app/public/productos:');
         
-        $files = Storage::disk('public')-&gt;files('productos');
+        $files = Storage::disk('public')->files('productos');
         foreach ($files as $file) {
-            $this-&gt;line('- ' . basename($file));
+            $this->line('- ' . basename($file));
         }
 
-        $this-&gt;newLine();
-        $this-&gt;warn('=== Important Information ===');
-        $this-&gt;line('The img_path in the database should store the path relative to storage/app/public/');
-        $this-&gt;line('Example: "productos/692dd2d4d2916.webp"');
-        $this-&gt;line('NOT: "storage/productos/692dd2d4d2916.webp"');
+        $this->newLine();
+        $this->warn('=== Important Information ===');
+        $this->line('The img_path in the database should store the path relative to storage/app/public/');
+        $this->line('Example: "productos/692dd2d4d2916.webp"');
+        $this->line('NOT: "storage/productos/692dd2d4d2916.webp"');
         
         return 0;
     }

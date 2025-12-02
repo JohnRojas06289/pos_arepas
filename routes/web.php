@@ -83,24 +83,4 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
 Route::get('/login', [loginController::class, 'index'])->name('login.index');
 Route::post('/login', [loginController::class, 'login'])->name('login.login');
 
-Route::get('/debug-config', function () {
-    $lastProduct = \App\Models\Producto::latest('updated_at')->first();
-    return [
-        '1_DISK_FROM_ENV' => env('FILESYSTEM_DISK'),
-        '2_DISK_FROM_CONFIG' => config('filesystems.default'),
-        '3_AWS_URL' => env('AWS_URL'),
-        '4_LAST_PRODUCT_IMG_PATH' => $lastProduct ? $lastProduct->img_path : 'No products',
-        '5_GENERATED_URL' => $lastProduct ? \Illuminate\Support\Facades\Storage::url($lastProduct->img_path) : 'N/A',
-    ];
-});
 
-Route::get('/debug-logs', function () {
-    $logFile = storage_path('logs/laravel.log');
-    if (!file_exists($logFile)) {
-        return 'No log file found.';
-    }
-    $content = file_get_contents($logFile);
-    $lines = explode("\n", $content);
-    $lastLines = array_slice($lines, -50);
-    return implode("\n", $lastLines);
-});
