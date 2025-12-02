@@ -82,3 +82,12 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
 
 Route::get('/login', [loginController::class, 'index'])->name('login.index');
 Route::post('/login', [loginController::class, 'login'])->name('login.login');
+
+Route::get('/debug-config', function () {
+    return [
+        'FILESYSTEM_DISK (env)' => env('FILESYSTEM_DISK'),
+        'config(filesystems.default)' => config('filesystems.default'),
+        'config(filesystems.disks.s3)' => config('filesystems.disks.s3'),
+        'AWS_URL (env)' => env('AWS_URL'),
+    ];
+});
