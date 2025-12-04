@@ -27,7 +27,7 @@ class StoreProductoRequest extends FormRequest
             'descripcion' => 'nullable|max:255',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg,webp,avif,gif,svg,bmp',
             'marca_id' => 'nullable|integer|exists:marcas,id',
-            'presentacione_id' => 'required|integer|exists:presentaciones,id',
+            'presentacione_id' => 'nullable|exists:presentaciones,id',
             'categoria_id' => 'nullable|integer|exists:categorias,id'
         ];
     }

@@ -67,26 +67,19 @@ class Venta extends Model
     /**
      * Generar el número de venta
      */
-    public function generarNumeroVenta(int $cajaId, string $tipoComprobante): string
+    public function generarNumeroVenta(string $cajaId, string $tipoComprobante): string
     {
         // Determinar el prefijo según el tipo de comprobante
         $prefijo = strtoupper(substr($tipoComprobante, 0, 1)); // "B" para Boleta, "F" para Factura
 
-        // Obtener la última venta de la caja
-        $ultimaVenta = Venta::where('caja_id', $cajaId)
-            ->latest('id') // Ordenar por la más reciente
-            ->first();
-
-        // Extraer la parte numérica del número de venta o comenzar desde 1
-        $ultimoNumero = $ultimaVenta
-            ? (int) substr($ultimaVenta->numero_comprobante, 7) // "0000001" -> 1
-            : 0;
-
+        // Contar cuántas ventas tiene esta caja para generar el número secuencial
+        $totalVentas = Venta::where('caja_id', $cajaId)->count();
+        
         // Incrementar el número
-        $nuevoNumero = $ultimoNumero + 1;
+        $nuevoNumero = $totalVentas + 1;
 
-        // Formatear el número de venta
-        $numeroVenta = sprintf("%s%03d - %07d", $prefijo, $cajaId, $nuevoNumero);
+        // Formatear el número de venta (Prefijo + Número secuencial de 7 dígitos)
+        $numeroVenta = sprintf("%s-%07d", $prefijo, $nuevoNumero);
 
         return $numeroVenta;
     }

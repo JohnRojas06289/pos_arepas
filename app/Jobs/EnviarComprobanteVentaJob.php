@@ -15,13 +15,12 @@ class EnviarComprobanteVentaJob implements ShouldQueue
 {
     use Queueable;
 
-    protected $ventaId;
     /**
      * Create a new job instance.
      */
-    public function __construct(int $ventaId)
+    public function __construct(public string $ventaId)
     {
-        $this->ventaId = $ventaId;
+        //
     }
 
     /**

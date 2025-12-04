@@ -56,11 +56,11 @@ class ventaController extends Controller
         $productos = Producto::join('inventario as i', function ($join) {
             $join->on('i.producto_id', '=', 'productos.id');
         })
-            ->join('presentaciones as p', function ($join) {
+            ->leftJoin('presentaciones as p', function ($join) {
                 $join->on('p.id', '=', 'productos.presentacione_id');
             })
             ->select(
-                'p.sigla',
+                DB::raw('COALESCE(p.sigla, "UND") as sigla'),
                 'productos.nombre',
                 'productos.codigo',
                 'productos.id',
@@ -117,6 +117,7 @@ class ventaController extends Controller
             while ($cont < $siseArray) {
                 $venta->productos()->syncWithoutDetaching([
                     $arrayProducto_id[$cont] => [
+                        'id' => \Illuminate\Support\Str::uuid()->toString(),
                         'cantidad' => $arrayCantidad[$cont],
                         'precio_venta' => $arrayPrecioVenta[$cont],
                     ]
@@ -143,7 +144,7 @@ class ventaController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al crear la venta', ['error' => $e->getMessage()]);
-            return redirect()->route('ventas.index')->with('error', 'Ups, algo falló');
+            return redirect()->route('ventas.create')->with('error', 'Ups, algo falló: ' . $e->getMessage());
         }
     }
 

@@ -105,7 +105,7 @@ class Kardex extends Model
     /**
      * Obtener el precio de Venta según el costo del Producto
      */
-    public function calcularPrecioVenta(int $producto_id): float
+    public function calcularPrecioVenta(string $producto_id): float
     {
         $costoUltimoRegistro = $this->where('producto_id', $producto_id)
             ->latest('id')

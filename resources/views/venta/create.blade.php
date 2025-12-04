@@ -377,7 +377,7 @@
                 <div class="col-6 col-md-4 col-lg-3 product-item" 
                      data-category="{{$item->categoria_id}}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
-                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart({{$item->id}}, '{{addslashes($item->nombre)}}', {{$item->precio}}, {{$item->cantidad}}, '{{$item->sigla}}')">
+                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, {{$item->cantidad}}, '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
                             @if($item->img_path)
                                 <img src="{{ Storage::url($item->img_path) }}" class="product-img" alt="{{$item->nombre}}" onerror="this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'">

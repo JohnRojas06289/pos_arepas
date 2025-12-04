@@ -39,7 +39,7 @@ if not exist "%DESKTOP%" (
 )
 
 REM Crear acceso directo usando PowerShell
-powershell -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP%\%SHORTCUT_NAME%'); $Shortcut.TargetPath = '%TARGET%'; $Shortcut.WorkingDirectory = '%SCRIPT_DIR%'; $Shortcut.Description = 'POS Arepas Boyacenses - Sistema de Punto de Venta'; $Shortcut.Save()"
+powershell -Command "$WshShell = New-Object -ComObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%DESKTOP%\%SHORTCUT_NAME%'); $Shortcut.TargetPath = '%TARGET%'; $Shortcut.WorkingDirectory = '%SCRIPT_DIR%'; $Shortcut.Description = 'POS Arepas Boyacenses - Sistema de Punto de Venta'; $Shortcut.IconLocation = '%SCRIPT_DIR%pos_arepas_icon.png'; $Shortcut.Save()"
 
 if %errorlevel% equ 0 (
     echo [OK] Acceso directo creado exitosamente en:

@@ -17,6 +17,7 @@ class EnviarEmailClienteVentaListener
      */
     public function handle(CreateVentaEvent $event): void
     {
-        EnviarComprobanteVentaJob::dispatch($event->venta->id)->afterCommit();
+        // Deshabilitado temporalmente - requiere configuración de servidor de correo y tabla jobs con UUIDs
+        // EnviarComprobanteVentaJob::dispatch($event->venta->id)->afterCommit();
     }
 }
