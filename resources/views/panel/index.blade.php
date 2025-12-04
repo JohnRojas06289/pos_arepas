@@ -3,8 +3,8 @@
 @section('title','Panel')
 
 @push('css')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" />
+<script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 <style>
     .card-metric {
         transition: transform 0.2s;
@@ -247,8 +247,8 @@
 @endsection
 
 @push('js')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
+<script src="{{ asset('js/Chart.min.js') }}"></script>
+<script src="{{ asset('js/simple-datatables.min.js') }}" crossorigin="anonymous"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 
 <script>
@@ -259,8 +259,22 @@
     // --- Gráfico de Ventas ---
     let datosVenta = @json($totalVentasPorDia);
     const fechas = datosVenta.map(venta => {
-        const [year, month, day] = venta.fecha.split('-');
-        return `${day}/${month}/${year}`;
+        if (!venta.fecha) return 'Sin fecha';
+        
+        // Convertir a string si no lo es
+        let fechaStr = typeof venta.fecha === 'string' ? venta.fecha : venta.fecha.toString();
+        
+        // Extraer solo la parte de fecha si viene con hora (YYYY-MM-DD HH:MM:SS)
+        fechaStr = fechaStr.split(' ')[0];
+        
+        // Dividir por guión
+        const partes = fechaStr.split('-');
+        if (partes.length === 3) {
+            const [year, month, day] = partes;
+            return `${day}/${month}/${year}`;
+        }
+        
+        return fechaStr; // Si no se puede parsear, devolver como está
     });
     const montos = datosVenta.map(venta => parseFloat(venta.total));
 

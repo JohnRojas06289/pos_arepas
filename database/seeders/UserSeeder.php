@@ -16,7 +16,6 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $userId = \Illuminate\Support\Str::uuid()->toString();
-        $roleId = \Illuminate\Support\Str::uuid()->toString();
 
         \Illuminate\Support\Facades\DB::table('users')->insert([
             'id' => $userId,
@@ -27,9 +26,8 @@ class UserSeeder extends Seeder
             'updated_at' => now()
         ]);
 
-        //Usuario administrador
-        \Illuminate\Support\Facades\DB::table('roles')->insert([
-            'id' => $roleId,
+        //Usuario administrador - crear rol sin especificar ID (auto-increment)
+        $roleId = \Illuminate\Support\Facades\DB::table('roles')->insertGetId([
             'name' => 'administrador',
             'guard_name' => 'web',
             'created_at' => now(),

@@ -390,7 +390,7 @@
                         </div>
                         <div class="card-body p-2 text-center">
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
-                            <div class="product-price">{{$empresa->moneda->simbolo}} {{ number_format($item->precio, 0, ',', '.') }}</div>
+                            <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio, 0, ',', '.') }}</div>
                             <small class="text-{{ $item->cantidad > 5 ? 'success' : 'danger' }} d-block" style="font-size: 0.7rem;">
                                 Stock: {{$item->cantidad}}
                             </small>
@@ -425,7 +425,7 @@
             <div class="cart-footer">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="fs-6 fw-bold text-secondary">TOTAL:</span>
-                    <span class="total-display">{{$empresa->moneda->simbolo}} <span id="totalDisplay">0</span></span>
+                    <span class="total-display">{{$empresa->moneda->simbolo ?? '$'}} <span id="totalDisplay">0</span></span>
                 </div>
                 
                 <input type="hidden" name="subtotal" id="inputSubtotal" value="0">

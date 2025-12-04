@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 class compraController extends Controller
@@ -100,6 +101,7 @@ class compraController extends Controller
             while ($cont < $siseArray) {
                 $compra->productos()->syncWithoutDetaching([
                     $arrayProducto_id[$cont] => [
+                        'id' => Str::uuid()->toString(),
                         'cantidad' => $arrayCantidad[$cont],
                         'precio_compra' => $arrayPrecioCompra[$cont],
                         'fecha_vencimiento' => $arrayFechaVencimiento[$cont]

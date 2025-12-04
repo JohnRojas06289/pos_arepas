@@ -3,7 +3,7 @@
 @section('title','Registro de actividad')
 
 @push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" type="text/css">
 @endpush
 
 @push('css')
@@ -58,6 +58,6 @@
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 @endpush

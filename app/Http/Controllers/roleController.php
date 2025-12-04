@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Throwable;
@@ -54,10 +55,13 @@ class roleController extends Controller
 
         try {
             DB::beginTransaction();
+            
             //Crear rol
             $rol = Role::create(['name' => $request->name]);
-            //Asignar permisos
-            $rol->syncPermissions(array_map(fn($value) => $value, $request->permission));
+            
+            //Asignar permisos - convertir a enteros
+            $permissions = array_map('intval', $request->permission);
+            $rol->syncPermissions($permissions);
 
             DB::commit();
             ActivityLogService::log('Creación de rol', 'Roles', $request->all());
@@ -100,8 +104,9 @@ class roleController extends Controller
             DB::beginTransaction();
             //Actualizar rol
             $role->update(['name' => $request->name]);
-            //Actualizar permisos
-            $role->syncPermissions(array_map(fn($value) => (int)$value, $request->permission));
+            //Actualizar permisos - convertir a enteros
+            $permissions = array_map('intval', $request->permission);
+            $role->syncPermissions($permissions);
 
             DB::commit();
             ActivityLogService::log('Edición de rol', 'Roles', $request->all());

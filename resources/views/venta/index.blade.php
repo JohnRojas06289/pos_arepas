@@ -3,10 +3,10 @@
 @section('title','ventas')
 
 @push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" type="text/css">
 @endpush
 @push('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 <style>
     .row-not-space {
         width: 110px;
@@ -119,7 +119,7 @@
 @endsection
 
 @push('js')
-<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script>
     // Simple-DataTables
     // https://github.com/fiduswriter/Simple-DataTables/wiki

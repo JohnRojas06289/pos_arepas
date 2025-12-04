@@ -72,8 +72,8 @@ class Venta extends Model
         // Determinar el prefijo según el tipo de comprobante
         $prefijo = strtoupper(substr($tipoComprobante, 0, 1)); // "B" para Boleta, "F" para Factura
 
-        // Contar cuántas ventas tiene esta caja para generar el número secuencial
-        $totalVentas = Venta::where('caja_id', $cajaId)->count();
+        // Contar el total de ventas globalmente (no solo por caja) para evitar duplicados
+        $totalVentas = Venta::count();
         
         // Incrementar el número
         $nuevoNumero = $totalVentas + 1;

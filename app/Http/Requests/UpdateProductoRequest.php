@@ -27,9 +27,9 @@ class UpdateProductoRequest extends FormRequest
             'nombre' => 'required|unique:productos,nombre,'.$producto->id.'|max:255',
             'descripcion' => 'nullable|max:255',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg,webp,avif,gif,svg,bmp',
-            'marca_id' => 'nullable|integer|exists:marcas,id',
+            'marca_id' => 'nullable|exists:marcas,id',
             'presentacione_id' => 'nullable|exists:presentaciones,id',
-            'categoria_id' => 'nullable|integer|exists:categorias,id'
+            'categoria_id' => 'nullable|exists:categorias,id'
         ];
     }
 

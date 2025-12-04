@@ -29,7 +29,7 @@ class StorePersonaRequest extends FormRequest
             'telefono' => 'nullable|max:15',
             'tipo' => ['required', new Enum(TipoPersonaEnum::class)],
             'email' => 'nullable|max:255|email',
-            'documento_id' => 'required|integer|exists:documentos,id',
+            'documento_id' => 'required|exists:documentos,id',
             'numero_documento' => 'required|max:20|unique:personas,numero_documento'
         ];
     }
