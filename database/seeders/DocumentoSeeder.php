@@ -14,15 +14,19 @@ class DocumentoSeeder extends Seeder
     {
         Documento::insert([
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'DNI',
             ],
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'Pasaporte',
             ],
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'RUC',
             ],
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'Carnet Extranjería',
             ],
         ]);

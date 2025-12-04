@@ -15,17 +15,41 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::create([
+        $userId = \Illuminate\Support\Str::uuid()->toString();
+        $roleId = \Illuminate\Support\Str::uuid()->toString();
+
+        \Illuminate\Support\Facades\DB::table('users')->insert([
+            'id' => $userId,
             'name' => 'Sak Noel',
             'email' => 'admin@gmail.com',
-            'password' => bcrypt('12345678')
+            'password' => bcrypt('12345678'),
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
 
         //Usuario administrador
-        $rol = Role::create(['name' => 'administrador']);
-        $permisos = Permission::pluck('id','id')->all();
-        $rol->syncPermissions($permisos);
-        //$user = User::find(1);
-        $user->assignRole('administrador'); 
+        \Illuminate\Support\Facades\DB::table('roles')->insert([
+            'id' => $roleId,
+            'name' => 'administrador',
+            'guard_name' => 'web',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+        
+        $permisos = \Illuminate\Support\Facades\DB::table('permissions')->get();
+        
+        foreach($permisos as $permiso) {
+            \Illuminate\Support\Facades\DB::table('role_has_permissions')->insert([
+                'permission_id' => $permiso->id,
+                'role_id' => $roleId
+            ]);
+        }
+        
+        // Manual assignment to avoid foreign key issues with UUIDs in SQLite
+        \Illuminate\Support\Facades\DB::table('model_has_roles')->insert([
+            'role_id' => $roleId,
+            'model_type' => \App\Models\User::class,
+            'model_id' => $userId
+        ]);
     }
 }

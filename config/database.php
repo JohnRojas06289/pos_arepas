@@ -81,6 +81,24 @@ return [
             ],
         ],
 
+        'cloud' => [
+            'driver' => 'pgsql',
+            'url' => env('CLOUD_DATABASE_URL'),
+            'host' => env('CLOUD_DB_HOST', '127.0.0.1'),
+            'port' => env('CLOUD_DB_PORT', '5432'),
+            'database' => env('CLOUD_DB_DATABASE', 'forge'),
+            'username' => env('CLOUD_DB_USERNAME', 'forge'),
+            'password' => env('CLOUD_DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+            'options' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),

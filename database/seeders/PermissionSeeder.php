@@ -106,7 +106,10 @@ class PermissionSeeder extends Seeder
         ];
 
         foreach ($permisos as $permiso) {
-            Permission::create(['name' => $permiso]);
+            Permission::create([
+                'id' => \Illuminate\Support\Str::uuid(),
+                'name' => $permiso
+            ]);
         }
     }
 }

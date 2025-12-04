@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('empresa', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('nombre');
             $table->string('propietario');
             $table->string('ruc', 50);
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('correo')->nullable();
             $table->string('telefono')->nullable();
             $table->string('ubicacion')->nullable();
-            $table->foreignId('moneda_id')->unique()->constrained()->cascadeOnDelete();
+            $table->foreignUuid('moneda_id')->unique()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

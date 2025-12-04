@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cajas', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('nombre', 50);
             $table->dateTime('fecha_hora_apertura');
             $table->dateTime('fecha_hora_cierre')->nullable();
             $table->decimal('saldo_inicial');
             $table->decimal('saldo_final')->nullable();
-            $table->boolean('estado')->default(true);
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->tinyInteger('estado')->default(1);
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

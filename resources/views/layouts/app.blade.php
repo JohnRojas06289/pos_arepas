@@ -12,7 +12,7 @@
     @stack('css-datatable')
     <!--link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous"--->
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet" />
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/fontawesome.js') }}" crossorigin="anonymous"></script>
     @stack('css')
 </head>
 
@@ -36,7 +36,7 @@
 
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -62,6 +62,34 @@
                     .catch(error => console.error('Error al marcar notificaciones como leídas:', error));
             });
 
+        });
+
+        document.getElementById('btnSync').addEventListener('click', function() {
+            const btn = this;
+            const icon = btn.querySelector('i');
+            
+            // Disable button and spin icon
+            btn.disabled = true;
+            icon.classList.add('fa-spin');
+
+            fetch("{{ route('sync') }}")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Sincronización completada exitosamente.');
+                    } else {
+                        alert('Error en la sincronización: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al intentar sincronizar.');
+                })
+                .finally(() => {
+                    // Re-enable button and stop spin
+                    btn.disabled = false;
+                    icon.classList.remove('fa-spin');
+                });
         });
     </script>
     @stack('js')

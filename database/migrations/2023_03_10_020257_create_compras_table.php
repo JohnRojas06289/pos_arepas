@@ -14,10 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::create('compras', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('comprobante_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('proveedore_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('comprobante_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('proveedore_id')->constrained()->cascadeOnDelete();
             $table->string('numero_comprobante')->nullable()->unique();
             $table->string('comprobante_path', 2048)->nullable();
             $table->enum('metodo_pago', ['EFECTIVO', 'TARJETA']);

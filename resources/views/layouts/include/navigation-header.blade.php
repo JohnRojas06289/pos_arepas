@@ -16,6 +16,9 @@ $empresa = Empresa::first();
             <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
         </div>
     </form>
+    <button class="btn btn-outline-light me-3" id="btnSync" title="Sincronizar">
+        <i class="fas fa-sync-alt"></i>
+    </button>
     <div class="nav-item dropdown me-3">
         <a class="nav-link dropdown-toggle" href="#" role="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fas fa-bell"></i>

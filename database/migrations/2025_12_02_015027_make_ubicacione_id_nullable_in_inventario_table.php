@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inventario', function (Blueprint $table) {
-            $table->foreignId('ubicacione_id')->nullable()->change();
+            $table->foreignUuid('ubicacione_id')->nullable()->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inventario', function (Blueprint $table) {
-            $table->foreignId('ubicacione_id')->nullable(false)->change();
+            $table->foreignUuid('ubicacione_id')->nullable(false)->change();
         });
     }
 };

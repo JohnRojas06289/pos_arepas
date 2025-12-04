@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kardex', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('producto_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('producto_id')->constrained()->cascadeOnDelete();
             $table->enum('tipo_transaccion', ['COMPRA', 'VENTA', 'AJUSTE', 'APERTURA']);
             $table->string('descripcion_transaccion');
             $table->integer('entrada')->nullable();

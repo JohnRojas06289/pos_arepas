@@ -13,12 +13,14 @@ class EmpresaSeeder extends Seeder
      */
     public function run(): void
     {
+        $moneda = \App\Models\Moneda::where('estandar_iso', 'COP')->first();
         Empresa::insert([
+            'id' => \Illuminate\Support\Str::uuid(),
             'nombre' => 'Arepas',
             'propietario' => 'Jairo Rojas',
             'ruc' => '11111111',
             'direccion' => 'CC Lo Nuestro',
-            'moneda_id' => 1
+            'moneda_id' => $moneda->id
         ]);
     }
 }

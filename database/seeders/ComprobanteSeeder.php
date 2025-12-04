@@ -15,9 +15,11 @@ class ComprobanteSeeder extends Seeder
     {
         Comprobante::insert([
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'Boleta'
             ],
             [
+                'id' => \Illuminate\Support\Str::uuid(),
                 'nombre' => 'Factura'
             ]
         ]);

@@ -6,12 +6,14 @@ use App\Observers\CajaObserver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy(CajaObserver::class)]
 class Caja extends Model
 {
+    use HasUuids;
     protected $guarded = ['id'];
 
     protected $casts = [

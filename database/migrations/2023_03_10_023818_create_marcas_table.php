@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('marcas', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('caracteristica_id')->unique()->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('caracteristica_id')->unique()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

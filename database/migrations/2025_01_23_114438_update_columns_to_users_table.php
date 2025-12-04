@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->tinyInteger('estado')->default(1)->after('remember_token');
-            $table->foreignId('empleado_id')
+            $table->foreignUuid('empleado_id')
                 ->after('remember_token')
                 ->unique()
                 ->nullable()

@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('movimientos', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->enum('tipo', ['VENTA', 'RETIRO']);
             $table->string('descripcion');
             $table->decimal('monto');
             $table->enum('metodo_pago', ['EFECTIVO', 'TARJETA']);
-            $table->foreignId('caja_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('caja_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

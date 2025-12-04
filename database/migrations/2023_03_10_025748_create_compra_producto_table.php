@@ -14,9 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('compra_producto', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('compra_id')->constrained()->onDelete('cascade');
-            $table->foreignId('producto_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('compra_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('producto_id')->constrained()->onDelete('cascade');
             $table->integer('cantidad')->unsigned();
             $table->decimal('precio_compra', 10, 2, true);
             $table->date('fecha_vencimiento')->nullable();

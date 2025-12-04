@@ -57,7 +57,7 @@ class roleController extends Controller
             //Crear rol
             $rol = Role::create(['name' => $request->name]);
             //Asignar permisos
-            $rol->syncPermissions(array_map(fn($value) => (int)$value, $request->permission));
+            $rol->syncPermissions(array_map(fn($value) => $value, $request->permission));
 
             DB::commit();
             ActivityLogService::log('Creación de rol', 'Roles', $request->all());

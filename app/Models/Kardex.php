@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\TipoTransaccionEnum;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
 class Kardex extends Model
 {
+    use HasUuids;
     protected $guarded = ['id'];
 
     protected $table = 'kardex';

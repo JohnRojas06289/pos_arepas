@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('proveedores', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('persona_id')->unique()->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('persona_id')->unique()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
