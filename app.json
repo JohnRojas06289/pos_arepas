@@ -1,0 +1,24 @@
+{
+    "name": "POS Arepas Boyacenses",
+    "description": "Sistema POS para Arepas Boyacenses",
+    "buildpacks": [
+        {
+            "url": "heroku/php"
+        },
+        {
+            "url": "heroku/nodejs"
+        }
+    ],
+    "env": {
+        "APP_KEY": {
+            "description": "Laravel application key",
+            "required": true
+        },
+        "DB_CONNECTION": {
+            "value": "pgsql"
+        },
+        "LOG_CHANNEL": {
+            "value": "stderr"
+        }
+    }
+}
