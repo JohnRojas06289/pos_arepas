@@ -64,33 +64,7 @@
 
         });
 
-        document.getElementById('btnSync').addEventListener('click', function() {
-            const btn = this;
-            const icon = btn.querySelector('i');
-            
-            // Disable button and spin icon
-            btn.disabled = true;
-            icon.classList.add('fa-spin');
 
-            fetch("{{ route('sync') }}")
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('Sincronización completada exitosamente.');
-                    } else {
-                        alert('Error en la sincronización: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Ocurrió un error al intentar sincronizar.');
-                })
-                .finally(() => {
-                    // Re-enable button and stop spin
-                    btn.disabled = false;
-                    icon.classList.remove('fa-spin');
-                });
-        });
     </script>
     @stack('js')
 
