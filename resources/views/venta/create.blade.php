@@ -36,16 +36,17 @@
     .category-btn { 
         width: 100%; 
         text-align: left; 
-        padding: 18px 20px; 
+        padding: 12px 15px; 
         background: transparent; 
         border: none; 
         border-bottom: 1px solid #343a40; 
         color: #adb5bd; 
         transition: all 0.3s ease; 
         font-weight: 500; 
-        font-size: 1rem;
+        font-size: 0.95rem;
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
     }
     
     .category-btn::before {
@@ -350,7 +351,7 @@
         
         <!-- Column 1: Categories -->
         <div class="col-auto category-sidebar d-none d-md-block">
-            <div class="p-3 text-white border-bottom border-secondary">
+            <div class="p-2 text-white border-bottom border-secondary">
                 <h5 class="m-0"><i class="fa-solid fa-layer-group me-2"></i>Categorías</h5>
             </div>
             <button type="button" class="category-btn active" onclick="filterCategory('all', this)">
