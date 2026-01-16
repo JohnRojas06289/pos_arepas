@@ -29,7 +29,12 @@ class categoriaController extends Controller
      */
     public function index(): View
     {
-        $categorias = Categoria::with('caracteristica')->latest()->get();
+        $categorias = Categoria::with('caracteristica')
+            ->whereHas('caracteristica', function($query) {
+                $query->where('estado', 1);
+            })
+            ->latest()
+            ->get();
         return view('categoria.index', ['categorias' => $categorias]);
     }
 

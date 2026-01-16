@@ -12,14 +12,30 @@
     <!-- Page Header -->
     <div class="page-header">
         <h1><i class="fas fa-box-open"></i> Productos</h1>
-        @can('crear-producto')
-        <a href="{{route('productos.create')}}">
-            <button type="button" class="btn-action-large btn-success">
-                <i class="fas fa-plus-circle"></i>
-                <span>Nuevo Producto</span>
+        <div class="d-flex gap-2">
+            @can('ver-producto')
+            <a href="{{route('productos.export')}}">
+                <button type="button" class="btn-action-large btn-primary">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Exportar a Excel</span>
+                </button>
+            </a>
+            @endcan
+            @can('crear-producto')
+            <button type="button" class="btn-action-large btn-info" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="fas fa-file-upload"></i>
+                <span>Importar desde Excel</span>
             </button>
-        </a>
-        @endcan
+            @endcan
+            @can('crear-producto')
+            <a href="{{route('productos.create')}}">
+                <button type="button" class="btn-action-large btn-success">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Nuevo Producto</span>
+                </button>
+            </a>
+            @endcan
+        </div>
     </div>
 
     <!-- Filters and Controls -->
@@ -332,4 +348,56 @@
         }
     }
 </script>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">
+                    <i class="fas fa-file-upload"></i> Importar Productos desde Excel
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('productos.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Archivo CSV:</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv,.txt" required>
+                        <small class="text-muted">Tamaño máximo: 2MB</small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong><i class="fas fa-info-circle"></i> Formato del archivo:</strong>
+                        <p class="mb-1">El archivo CSV debe tener las siguientes columnas en este orden:</p>
+                        <code>Código, Nombre, Descripción, Precio, Categoría, Marca, Presentación, Stock, Estado</code>
+                        
+                        <hr>
+                        <p class="mb-1"><strong>Notas importantes:</strong></p>
+                        <ul class="mb-0">
+                            <li><strong>Código:</strong> Opcional (se genera automáticamente si está vacío)</li>
+                            <li><strong>Nombre:</strong> Requerido</li>
+                            <li><strong>Precio:</strong> Requerido (número)</li>
+                            <li><strong>Categoría, Marca, Presentación:</strong> Deben existir en el sistema</li>
+                            <li><strong>Stock:</strong> Número (0 por defecto)</li>
+                            <li><strong>Estado:</strong> "Activo" o "Inactivo"</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <i class="fas fa-lightbulb"></i> <strong>Consejo:</strong> 
+                        Puedes usar el botón "Exportar a Excel" para descargar un archivo de ejemplo con el formato correcto.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Importar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endpush

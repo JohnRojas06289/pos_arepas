@@ -46,6 +46,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('categorias', categoriaController::class)->except('show');
     Route::resource('presentaciones', presentacioneController::class)->except('show');
     Route::resource('marcas', marcaController::class)->except('show');
+    Route::get('productos/export', [ProductoController::class, 'export'])->name('productos.export');
+    Route::post('productos/import', [ProductoController::class, 'import'])->name('productos.import');
     Route::resource('productos', ProductoController::class)->except('show', 'destroy');
     Route::resource('clientes', clienteController::class)->except('show');
     Route::resource('proveedores', proveedorController::class)->except('show');

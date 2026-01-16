@@ -68,7 +68,10 @@
                             <!----Codigo---->
                             <div class="col-12">
                                 <label for="codigo" class="form-label">Código:</label>
-                                <input type="text" name="codigo" id="codigo" class="form-control" value="{{old('codigo')}}">
+                                <input type="text" name="codigo" id="codigo" class="form-control" 
+                                       value="{{old('codigo')}}" 
+                                       placeholder="Sugerido: {{ $codigoSugerido }}">
+                                <small class="text-muted">Código sugerido: {{ $codigoSugerido }} (puedes cambiarlo si lo deseas)</small>
                                 @error('codigo')
                                 <small class="text-danger">{{'*'.$message}}</small>
                                 @enderror
@@ -172,15 +175,6 @@
 
     inputImagen.addEventListener('change', function() {
         if (this.files && this.files[0]) {
-            // Validar tamaño del archivo (4MB)
-            if (this.files[0].size > 4 * 1024 * 1024) {
-                alert('El archivo es demasiado grande. El tamaño máximo permitido es 4MB.');
-                this.value = ''; // Limpiar el input
-                imagenPreview.style.display = 'none';
-                imagenDefault.style.display = 'block';
-                return;
-            }
-
             const reader = new FileReader();
 
             reader.onload = function(e) {
