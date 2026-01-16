@@ -1,14 +1,23 @@
 <?php
 use Illuminate\Support\Facades\Route;
 
-Route::get('/debug-php', function () {
+    try {
+        $write = \Illuminate\Support\Facades\Storage::disk('cloudinary')->put('debug_test.txt', 'Hello World');
+        $url = \Illuminate\Support\Facades\Storage::disk('cloudinary')->url('debug_test.txt');
+        $exists = \Illuminate\Support\Facades\Storage::disk('cloudinary')->exists('debug_test.txt');
+    } catch (\Exception $e) {
+        $write = $e->getMessage();
+        $url = 'error';
+        $exists = false;
+    }
+
     $debug = [
         'filesystem_default' => config('filesystems.default'),
         'disk_config' => config('filesystems.disks.cloudinary'),
-        'env_url' => env('CLOUDINARY_URL'),
-        'test_url' => \Illuminate\Support\Facades\Storage::url('test.jpg'),
-        'php_upload_max' => ini_get('upload_max_filesize'),
-        'php_post_max' => ini_get('post_max_size'),
+        'write_status' => $write,
+        'generated_url' => $url,
+        'file_exists' => $exists,
+        'adapter_class' => get_class(\Illuminate\Support\Facades\Storage::disk('cloudinary')->getAdapter()),
     ];
     return response()->json($debug);
 });
