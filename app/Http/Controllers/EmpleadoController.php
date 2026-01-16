@@ -36,12 +36,13 @@ class EmpleadoController extends Controller
     {
         try {
             $empleado = new Empleado();
-            $request->merge([
-                'img_path' => isset($request->img)
-                    ? $empleado->handleUploadImage($request->img)
-                    : null
-            ]);
-            $empleado->create($request->all());
+            $data = $request->all();
+            
+            if (isset($request->img)) {
+                $data['img_path'] = $empleado->handleUploadImage($request->img);
+            }
+            
+            Empleado::create($data);
 
             ActivityLogService::log('Creación de empleado', 'Empleados', $request->validated());
             return redirect()->route('empleados.index')->with('success', 'Empleado registrado');

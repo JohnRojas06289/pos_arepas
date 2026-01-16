@@ -24,7 +24,7 @@ class UpdateEmpresaRequest extends FormRequest
         return [
             'nombre' => 'required|max:255',
             'propietario' => 'required|max:255',
-            'ruc' => 'required|max:50',
+            'nit' => 'required|max:50',
 
             'direccion' => 'required|max:255',
             'correo' => 'nullable|max:255',

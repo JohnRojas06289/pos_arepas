@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Storage;
 class Empleado extends Model
 {
     use HasUuids;
+    
+    protected $fillable = [
+        'razon_social',
+        'cargo',
+        'img_path'
+    ];
+    
     protected $guarded = ['id'];
 
     public function user(): HasOne

@@ -19,48 +19,74 @@ Sistema de Punto de Venta completo para restaurante de arepas, con soporte para 
 
 ## 🚀 Inicio Rápido
 
-### Opción 1: Acceso Directo (Recomendado)
+### Iniciar el Servidor
 
-1. **Ejecuta una sola vez:**
-   ```
-   crear-acceso-directo.bat
-   ```
+```bash
+# Iniciar el servidor de desarrollo
+C:\xampp\php\php.exe artisan serve
+```
 
-2. **Desde ahora, inicia el sistema desde el escritorio:**
-   - Doble clic en el ícono "POS Arepas" en tu escritorio
-
-### Opción 2: Manual
-
-1. **Doble clic en:**
-   ```
-   start-pos.bat
-   ```
-
-El sistema se iniciará automáticamente y abrirá en tu navegador.
+Luego abre tu navegador en: **http://127.0.0.1:8000**
 
 ## 📋 Requisitos
 
-- ✅ **PHP 8.2+** - [Descargar](https://windows.php.net/download/)
+- ✅ **PHP 8.2+** (XAMPP recomendado) - [Descargar](https://www.apachefriends.org/download.html)
 - ✅ **Composer** - [Descargar](https://getcomposer.org/download/)
-- ❌ **NO necesitas XAMPP** - Usamos SQLite local
+- ✅ **Extensiones PHP requeridas:** `zip`, `gd`, `pdo_sqlite`
 
 ## 🔧 Instalación (Primera Vez)
 
+### 1. Instalar dependencias
+
 ```bash
-# 1. Instalar dependencias
-composer install
+# Si no tienes composer en PATH, descarga composer.phar
+powershell -Command "Invoke-WebRequest -Uri https://getcomposer.org/composer.phar -OutFile composer.phar"
 
-# 2. Configurar entorno
-copy .env.sqlite .env
-
-# 3. Generar clave
-php artisan key:generate
-
-# 4. Iniciar sistema
-start-pos.bat
+# Instalar dependencias (ignorar requisitos de plataforma si es necesario)
+C:\xampp\php\php.exe composer.phar install --ignore-platform-reqs
 ```
 
-¡Listo! El sistema creará automáticamente la base de datos y cargará los datos iniciales.
+### 2. Configurar entorno
+
+```bash
+# Copiar archivo de configuración
+copy .env.example .env
+```
+
+Edita el archivo `.env` y asegúrate de tener:
+```env
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+DB_CONNECTION=sqlite
+```
+
+### 3. Habilitar extensiones PHP
+
+Edita `C:\xampp\php\php.ini` y descomenta (quita el `;`):
+```ini
+extension=zip
+extension=gd
+extension=pdo_sqlite
+```
+
+### 4. Generar clave y base de datos
+
+```bash
+# Generar clave de aplicación
+C:\xampp\php\php.exe artisan key:generate
+
+# Crear base de datos y cargar datos iniciales
+C:\xampp\php\php.exe artisan migrate:fresh --seed
+```
+
+### 5. Iniciar servidor
+
+```bash
+C:\xampp\php\php.exe artisan serve
+```
+
+¡Listo! Abre **http://127.0.0.1:8000** en tu navegador.
 
 ## 🗄️ Arquitectura de Base de Datos
 

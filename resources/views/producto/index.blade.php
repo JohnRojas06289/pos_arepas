@@ -10,8 +10,8 @@
 
 <div class="container-fluid px-4">
     <!-- Page Header -->
-    <div class="page-header" style="background: var(--color-primary); color: white;">
-        <h1 style="color: white;"><i class="fas fa-box-open"></i> Productos</h1>
+    <div class="page-header">
+        <h1><i class="fas fa-box-open"></i> Productos</h1>
         @can('crear-producto')
         <a href="{{route('productos.create')}}">
             <button type="button" class="btn-action-large btn-success">
