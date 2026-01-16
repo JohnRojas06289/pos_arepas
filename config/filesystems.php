@@ -52,15 +52,16 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => true,
-            'throw' => true,
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => false,
         ],
 
         'cloudinary' => [
             'driver' => 'cloudinary',
-            'api_key' => env('CLOUDINARY_API_KEY'),
-            'api_secret' => env('CLOUDINARY_API_SECRET'),
-            'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+            'api_key' => env('CLOUDINARY_API_KEY') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[1] : null),
+            'api_secret' => env('CLOUDINARY_API_SECRET') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[2] : null),
+            'cloud_name' => env('CLOUDINARY_CLOUD_NAME') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[3] : null),
+            'secure' => true,
         ],
 
     ],
