@@ -349,7 +349,7 @@
     <div class="row g-0 pos-container">
         
         <!-- Column 1: Categories -->
-        <div class="col-md-2 category-sidebar d-none d-md-block">
+        <div class="col-auto category-sidebar d-none d-md-block">
             <div class="p-3 text-white border-bottom border-secondary">
                 <h5 class="m-0"><i class="fa-solid fa-layer-group me-2"></i>Categorías</h5>
             </div>
@@ -364,7 +364,7 @@
         </div>
 
         <!-- Column 2: Products -->
-        <div class="col-md-6 col-lg-7 product-grid">
+        <div class="col-12 col-md product-grid">
             <div class="sticky-top bg-light pb-3 pt-1 mb-2" style="z-index: 10;">
                 <div class="input-group input-group-lg shadow-sm">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
