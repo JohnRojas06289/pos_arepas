@@ -14,6 +14,9 @@
         background: linear-gradient(180deg, #1a1d23 0%, #212529 100%);
         border-right: 2px solid #343a40; 
         box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        width: max-content !important;
+        min-width: 0 !important;
+        flex: 0 0 auto !important;
     }
     
     .product-grid { 
@@ -351,7 +354,7 @@
         
         <!-- Column 1: Categories -->
         <div class="col-auto category-sidebar d-none d-md-block">
-            <div class="p-3 text-white border-bottom border-secondary">
+            <div class="p-2 text-white border-bottom border-secondary">
                 <h5 class="m-0"><i class="fa-solid fa-layer-group me-2"></i>Categorías</h5>
             </div>
             <button type="button" class="category-btn active" onclick="filterCategory('all', this)">
