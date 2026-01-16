@@ -403,7 +403,7 @@
         </div>
 
         <!-- Column 3: Cart -->
-        <div class="col-md-4 col-lg-3 cart-section shadow-lg">
+        <div class="col-md-3 cart-section shadow-lg">
             <div class="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
                 <h5 class="m-0"><i class="fa-solid fa-cart-shopping me-2"></i>Carrito</h5>
                 <span class="badge bg-warning text-dark" id="cartCount">0</span>
