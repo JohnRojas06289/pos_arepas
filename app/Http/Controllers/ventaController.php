@@ -50,9 +50,22 @@ class ventaController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(ComprobanteService $comprobanteService): View
+    public function create(ComprobanteService $comprobanteService): View|RedirectResponse
     {
+        // Verificar que existe una empresa
+        $empresa = $this->empresaService->obtenerEmpresa();
+        
+        // Verificar que existen clientes
+        $clientes = Cliente::whereHas('persona', function ($query) {
+            $query->where('estado', 1);
+        })->get();
+        
+        if ($clientes->isEmpty()) {
+            return redirect()->route('panel')
+                ->with('error', 'Debe crear al menos un cliente antes de realizar ventas. Vaya a Clientes > Nuevo Cliente.');
+        }
 
+        // Verificar productos (sin bloquear si está vacío)
         $productos = Producto::join('inventario as i', function ($join) {
             $join->on('i.producto_id', '=', 'productos.id');
         })
@@ -60,7 +73,7 @@ class ventaController extends Controller
                 $join->on('p.id', '=', 'productos.presentacione_id');
             })
             ->select(
-                DB::raw('COALESCE(p.sigla, "UND") as sigla'),
+                DB::raw("COALESCE(p.sigla, 'UND') as sigla"),
                 'productos.nombre',
                 'productos.codigo',
                 'productos.id',
@@ -73,16 +86,14 @@ class ventaController extends Controller
             ->where('i.cantidad', '>', 0)
             ->get();
 
+        // ELIMINADO EL BLOQUEO DE INVENTARIO VACÍO POR SOLICITUD DEL USUARIO
+        
         $categorias = Categoria::whereHas('caracteristica', function ($query) {
             $query->where('estado', 1);
         })->get();
 
-        $clientes = Cliente::whereHas('persona', function ($query) {
-            $query->where('estado', 1);
-        })->get();
         $comprobantes = $comprobanteService->obtenerComprobantes();
         $optionsMetodoPago = MetodoPagoEnum::cases();
-        $empresa = $this->empresaService->obtenerEmpresa();
 
         return view('venta.create', compact(
             'productos',

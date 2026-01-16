@@ -1,10 +1,6 @@
 @extends('layouts.app')
 
-@section('title','clientes')
-
-@push('css-datatable')
-<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" type="text/css">
-@endpush
+@section('title','Clientes')
 
 @push('css')
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
@@ -13,132 +9,226 @@
 @section('content')
 
 <div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Clientes</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item active">Clientes</li>
-    </ol>
-
-    @can('crear-cliente')
-    <div class="mb-4">
+    <!-- Page Header -->
+    <div class="page-header" style="background: var(--color-primary); color: white;">
+        <h1 style="color: white;"><i class="fas fa-users"></i> Clientes</h1>
+        @can('crear-cliente')
         <a href="{{route('clientes.create')}}">
-            <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
+            <button type="button" class="btn-action-large btn-success">
+                <i class="fas fa-user-plus"></i>
+                <span>Nuevo Cliente</span>
+            </button>
         </a>
+        @endcan
     </div>
-    @endcan
 
-    <div class="card">
-        <div class="card-header">
-            <i class="fas fa-table me-1"></i>
-            Tabla clientes
+    <!-- Search Bar -->
+    <div class="search-bar-large">
+        <input type="text" id="searchClients" placeholder="Buscar cliente por nombre o documento..." onkeyup="searchClients()">
+        <button onclick="document.getElementById('searchClients').value = ''; searchClients();">
+            <i class="fas fa-times me-2"></i> Limpiar
+        </button>
+    </div>
+
+    <!-- Clients List -->
+    <div id="clientsList">
+        @forelse ($clientes as $item)
+        <div class="item-card" data-search="{{ strtolower($item->persona->razon_social . ' ' . $item->persona->numero_documento) }}">
+            <!-- Client Icon -->
+            <div class="item-image d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);">
+                <i class="fas fa-user fa-3x text-white"></i>
+            </div>
+
+            <!-- Client Info -->
+            <div class="item-info">
+                <h3>{{ $item->persona->razon_social }}</h3>
+                <div class="d-flex gap-4 mt-2">
+                    <span class="text-muted">
+                        <i class="fas fa-id-card me-1"></i>
+                        <strong>{{ $item->persona->tipo_documento }}:</strong> {{ $item->persona->numero_documento }}
+                    </span>
+                    @if($item->persona->direccion)
+                    <span class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        {{ $item->persona->direccion }}
+                    </span>
+                    @endif
+                </div>
+                <div class="d-flex gap-4 mt-2">
+                    @if($item->persona->telefono)
+                    <span class="text-muted">
+                        <i class="fas fa-phone me-1"></i>
+                        {{ $item->persona->telefono }}
+                    </span>
+                    @endif
+                    @if($item->persona->email)
+                    <span class="text-muted">
+                        <i class="fas fa-envelope me-1"></i>
+                        {{ $item->persona->email }}
+                    </span>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="item-actions">
+                @can('ver-cliente')
+                <button class="btn-icon-large btn-view" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#verModal-{{$item->id}}"
+                        title="Ver detalles">
+                    <i class="fas fa-eye"></i>
+                </button>
+                @endcan
+
+                @can('editar-cliente')
+                <a href="{{route('clientes.edit',['cliente' => $item])}}">
+                    <button class="btn-icon-large btn-edit" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </a>
+                @endcan
+
+                @can('eliminar-cliente')
+                <button class="btn-icon-large btn-delete" 
+                        onclick="confirmDelete({{$item->id}})"
+                        title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <form action="{{ route('clientes.destroy',['cliente'=>$item->id]) }}" 
+                      method="post" 
+                      id="delete-form-{{$item->id}}" 
+                      style="display: none;">
+                    @method('DELETE')
+                    @csrf
+                </form>
+                @endcan
+            </div>
         </div>
-        <div class="card-body">
-            <table id="datatablesSimple" class="table table-striped fs-6">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Dirección</th>
-                        <th>Documento</th>
-                        <th>Tipo de persona</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($clientes as $item)
-                    <tr>
-                        <td>
-                            {{$item->persona->razon_social}}
-                        </td>
-                        <td>
-                            {{$item->persona->direccion}}
-                        </td>
-                        <td>
-                            <p class="fw-semibold mb-1">{{$item->persona->documento->nombre}}</p>
-                            <p class="text-muted mb-0">{{$item->persona->numero_documento}}</p>
-                        </td>
-                        <td>
-                            {{$item->persona->tipo->value}}
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill text-bg-{{ $item->persona->estado ? 'success' : 'danger' }}">
-                                {{ $item->persona->estado ? 'Activo' : 'Eliminado'}}</span>
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-around">
 
-                                <div>
-                                    <button title="Opciones" class="btn btn-datatable btn-icon btn-transparent-dark me-2" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <svg class="svg-inline--fa fa-ellipsis-vertical" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="ellipsis-vertical" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M56 472a56 56 0 1 1 0-112 56 56 0 1 1 0 112zm0-160a56 56 0 1 1 0-112 56 56 0 1 1 0 112zM0 96a56 56 0 1 1 112 0A56 56 0 1 1 0 96z"></path>
-                                        </svg>
-                                    </button>
-                                    <ul class="dropdown-menu text-bg-light" style="font-size: small;">
-                                        <!-----Editar cliente--->
-                                        @can('editar-cliente')
-                                        <li><a class="dropdown-item" href="{{route('clientes.edit',['cliente'=>$item])}}">Editar</a></li>
-                                        @endcan
-                                    </ul>
+        <!-- Modal Ver Cliente -->
+        <div class="modal fade" id="verModal-{{$item->id}}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); color: white;">
+                        <h1 class="modal-title fs-4">
+                            <i class="fas fa-user me-2"></i>
+                            Información del Cliente
+                        </h1>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="form-group-large">
+                                    <label>Nombre / Razón Social</label>
+                                    <div class="p-3 bg-light rounded">{{ $item->persona->razon_social }}</div>
                                 </div>
-
-                                <div> <!----Separador----->
-                                    <div class="vr"></div>
-                                </div>
-
-                                <div> <!------Eliminar cliente---->
-                                    @can('eliminar-cliente')
-                                    @if ($item->persona->estado == 1)
-                                    <button title="Eliminar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$item->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <svg class="svg-inline--fa fa-trash-can" aria-hidden="true" focusable="false" data-prefix="far" data-icon="trash-can" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" data-fa-i2svg="">
-                                            <path fill="currentColor" d="M170.5 51.6L151.5 80h145l-19-28.4c-1.5-2.2-4-3.6-6.7-3.6H177.1c-2.7 0-5.2 1.3-6.7 3.6zm147-26.6L354.2 80H368h48 8c13.3 0 24 10.7 24 24s-10.7 24-24 24h-8V432c0 44.2-35.8 80-80 80H112c-44.2 0-80-35.8-80-80V128H24c-13.3 0-24-10.7-24-24S10.7 80 24 80h8H80 93.8l36.7-55.1C140.9 9.4 158.4 0 177.1 0h93.7c18.7 0 36.2 9.4 46.6 24.9zM80 128V432c0 17.7 14.3 32 32 32H336c17.7 0 32-14.3 32-32V128H80zm80 64V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16zm80 0V400c0 8.8-7.2 16-16 16s-16-7.2-16-16V192c0-8.8 7.2-16 16-16s16 7.2 16 16z"></path>
-                                        </svg>
-                                    </button>
-                                    @else
-                                    <button title="Restaurar" data-bs-toggle="modal" data-bs-target="#confirmModal-{{$item->id}}" class="btn btn-datatable btn-icon btn-transparent-dark">
-                                        <i class="fa-solid fa-rotate"></i>
-                                    </button>
-                                    @endif
-                                    @endcan
-                                </div>
-
                             </div>
-                        </td>
-                    </tr>
-
-                    <!-- Modal de confirmación-->
-                    <div class="modal fade" id="confirmModal-{{$item->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Mensaje de confirmación</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div class="col-md-6">
+                                <div class="form-group-large">
+                                    <label>Documento</label>
+                                    <div class="p-3 bg-light rounded">
+                                        {{ $item->persona->tipo_documento }}: {{ $item->persona->numero_documento }}
+                                    </div>
                                 </div>
-                                <div class="modal-body">
-                                    {{ $item->persona->estado == 1 ? '¿Seguro que quieres eliminar el cliente?' : '¿Seguro que quieres restaurar el cliente?' }}
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-large">
+                                    <label>Teléfono</label>
+                                    <div class="p-3 bg-light rounded">{{ $item->persona->telefono ?? 'No registrado' }}</div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                    <form action="{{ route('clientes.destroy',['cliente'=>$item->persona->id]) }}" method="post">
-                                        @method('DELETE')
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">Confirmar</button>
-                                    </form>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-large">
+                                    <label>Email</label>
+                                    <div class="p-3 bg-light rounded">{{ $item->persona->email ?? 'No registrado' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group-large">
+                                    <label>Dirección</label>
+                                    <div class="p-3 bg-light rounded">{{ $item->persona->direccion ?? 'No registrada' }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    @endforeach
-                </tbody>
-            </table>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-modern-primary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        @empty
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>No hay clientes registrados</h3>
+            <p>Comienza agregando tu primer cliente</p>
+            @can('crear-cliente')
+            <a href="{{route('clientes.create')}}">
+                <button class="btn-action-large btn-success">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Crear Primer Cliente</span>
+                </button>
+            </a>
+            @endcan
+        </div>
+        @endforelse
     </div>
 
-
-
+    <!-- No Results Message -->
+    <div id="noResults" class="empty-state" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>No se encontraron clientes</h3>
+        <p>Intenta con otro término de búsqueda</p>
+    </div>
 </div>
+
 @endsection
 
 @push('js')
-<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
+<script>
+    function searchClients() {
+        const searchTerm = document.getElementById('searchClients').value.toLowerCase();
+        const clients = document.querySelectorAll('.item-card');
+        let visibleCount = 0;
+
+        clients.forEach(client => {
+            const searchData = client.getAttribute('data-search');
+            if (searchData.includes(searchTerm)) {
+                client.style.display = 'flex';
+                visibleCount++;
+            } else {
+                client.style.display = 'none';
+            }
+        });
+
+        document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'btn btn-danger btn-lg me-2',
+                cancelButton: 'btn btn-secondary btn-lg'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-form-' + id).submit();
+            }
+        });
+    }
+</script>
 @endpush

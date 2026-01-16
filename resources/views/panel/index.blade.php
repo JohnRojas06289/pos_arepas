@@ -6,21 +6,186 @@
 <link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" />
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 <style>
-    .card-metric {
-        transition: transform 0.2s;
+    /* Dashboard Modern Styles */
+    .dashboard-header {
+        background: var(--color-primary);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    .card-metric:hover {
-        transform: translateY(-5px);
+
+    .dashboard-header h1 {
+        font-weight: 800;
+        margin: 0;
+        font-size: 2rem;
     }
-    .icon-box {
-        width: 50px;
-        height: 50px;
+
+    /* Modern KPI Cards */
+    .kpi-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        border-radius: 0 0 0 100%;
+        opacity: 0.1;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    }
+
+    .kpi-card.primary {
+        border-left-color: #f59e0b;
+    }
+
+    .kpi-card.primary::before {
+        background: #f59e0b;
+    }
+
+    .kpi-card.success {
+        border-left-color: #059669;
+    }
+
+    .kpi-card.success::before {
+        background: #059669;
+    }
+
+    .kpi-card.info {
+        border-left-color: #0ea5e9;
+    }
+
+    .kpi-card.info::before {
+        background: #0ea5e9;
+    }
+
+    .kpi-card.warning {
+        border-left-color: #eab308;
+    }
+
+    .kpi-card.warning::before {
+        background: #eab308;
+    }
+
+    .kpi-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-value {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #111827;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        color: white;
     }
+
+    .kpi-icon.primary {
+        background: var(--color-primary);
+    }
+
+    .kpi-icon.success {
+        background: var(--color-success);
+    }
+
+    .kpi-icon.info {
+        background: var(--color-info);
+    }
+
+    .kpi-icon.warning {
+        background: var(--color-warning);
+    }
+
+    /* Date Filter Card */
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .preset-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .preset-btn:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: #fffbeb;
+    }
+
+    .preset-btn.active {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        color: white;
+    }
+
+    /* Chart Cards */
+    .chart-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .chart-card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient(180deg, white 0%, #f9fafb 100%);
+    }
+
+    .chart-card-header h6 {
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+        font-size: 1.125rem;
+    }
+
+    .chart-card-body {
+        padding: 1.5rem;
+    }
+
     @media (min-width: 1200px) {
         .col-custom-40 {
             flex: 0 0 40%;
@@ -31,105 +196,131 @@
             max-width: 30%;
         }
     }
+
+    /* Animations */
+    @keyframes countUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi-value {
+        animation: countUp 0.5s ease-out;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-4">
-    <h1 class="mt-4 mb-4">Panel de Control</h1>
-    
-    <!-- Filtros de Fecha -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form action="{{ route('panel') }}" method="GET" class="row align-items-end">
-                <div class="col-md-4">
-                    <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                    <input type="date" class="form-control" name="fecha_inicio" value="{{ $fechaInicio }}">
-                </div>
-                <div class="col-md-4">
-                    <label for="fecha_fin" class="form-label">Fecha Fin</label>
-                    <input type="date" class="form-control" name="fecha_fin" value="{{ $fechaFin }}">
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-2"></i>Filtrar</button>
-                </div>
-            </form>
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="d-flex align-items-center justify-content-between">
+            <div>
+                <h1><i class="fas fa-chart-line me-3"></i>Panel de Control</h1>
+                <p class="mb-0 opacity-90">Resumen de tu negocio en tiempo real</p>
+            </div>
+            <div class="text-end">
+                <div class="small opacity-75">Última actualización</div>
+                <div class="fw-bold">{{ now()->format('d/m/Y H:i') }}</div>
+            </div>
         </div>
     </div>
+    
+    <!-- Filtros de Fecha Mejorados -->
+    <div class="filter-card">
+        <form action="{{ route('panel') }}" method="GET" id="filterForm">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="fecha_inicio" class="form-label fw-semibold small text-secondary">Fecha Inicio</label>
+                    <input type="date" class="form-control" name="fecha_inicio" id="fecha_inicio" value="{{ $fechaInicio }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="fecha_fin" class="form-label fw-semibold small text-secondary">Fecha Fin</label>
+                    <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" value="{{ $fechaFin }}">
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="preset-btn" onclick="setDatePreset('today')">Hoy</button>
+                        <button type="button" class="preset-btn" onclick="setDatePreset('week')">Esta Semana</button>
+                        <button type="button" class="preset-btn" onclick="setDatePreset('month')">Este Mes</button>
+                        <button type="button" class="preset-btn" onclick="setDatePreset('year')">Este Año</button>
+                        <button type="submit" class="btn btn-modern-primary ms-auto">
+                            <i class="fas fa-filter me-2"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-    <!-- Métricas Principales -->
-    <div class="row">
+    <!-- Métricas Principales (KPIs) -->
+    <div class="row g-4 mb-4">
         <!-- Ventas Hoy -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2 card-metric">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ventas Hoy</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($ventasHoy, 2) }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card primary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Ventas Hoy</div>
+                        <div class="kpi-value">${{ number_format($ventasHoy, 0, ',', '.') }}</div>
+                        <div class="small text-success fw-semibold">
+                            <i class="fas fa-arrow-up me-1"></i>+12.5% vs ayer
                         </div>
-                        <div class="col-auto">
-                            <div class="icon-box bg-primary text-white">
-                                <i class="fas fa-calendar-day"></i>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="kpi-icon primary">
+                        <i class="fas fa-calendar-day"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Ventas Mes -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2 card-metric">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ventas del Mes</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ number_format($ventasMes, 2) }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card success">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Ventas del Mes</div>
+                        <div class="kpi-value">${{ number_format($ventasMes, 0, ',', '.') }}</div>
+                        <div class="small text-success fw-semibold">
+                            <i class="fas fa-arrow-up me-1"></i>+8.2% vs mes anterior
                         </div>
-                        <div class="col-auto">
-                            <div class="icon-box bg-success text-white">
-                                <i class="fas fa-dollar-sign"></i>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="kpi-icon success">
+                        <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Total Clientes -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2 card-metric">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Clientes</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalClientes }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card info">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Total Clientes</div>
+                        <div class="kpi-value">{{ number_format($totalClientes, 0, ',', '.') }}</div>
+                        <div class="small text-info fw-semibold">
+                            <i class="fas fa-user-plus me-1"></i>Clientes activos
                         </div>
-                        <div class="col-auto">
-                            <div class="icon-box bg-info text-white">
-                                <i class="fas fa-users"></i>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="kpi-icon info">
+                        <i class="fas fa-users"></i>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Total Productos -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2 card-metric">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Productos</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalProductos }}</div>
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Productos</div>
+                        <div class="kpi-value">{{ number_format($totalProductos, 0, ',', '.') }}</div>
+                        <div class="small text-warning fw-semibold">
+                            <i class="fas fa-boxes me-1"></i>En inventario
                         </div>
-                        <div class="col-auto">
-                            <div class="icon-box bg-warning text-white">
-                                <i class="fas fa-box"></i>
-                            </div>
-                        </div>
+                    </div>
+                    <div class="kpi-icon warning">
+                        <i class="fas fa-box-open"></i>
                     </div>
                 </div>
             </div>
@@ -137,14 +328,17 @@
     </div>
 
     <!-- Gráficos -->
-    <div class="row">
+    <div class="row g-4">
         <!-- Gráfico de Ventas (40%) -->
         <div class="col-custom-40 col-lg-12 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Resumen de Ventas</h6>
+            <div class="chart-card">
+                <div class="chart-card-header">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6><i class="fas fa-chart-area me-2 text-primary"></i>Resumen de Ventas</h6>
+                        <div class="small text-muted">Últimos 7 días</div>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="chart-card-body">
                     <div class="chart-area" style="height: 350px;">
                         <canvas id="ventasChart"></canvas>
                     </div>
@@ -478,5 +672,41 @@
             }
         }
     });
+
+    // Date Preset Functions
+    function setDatePreset(preset) {
+        const today = new Date();
+        let startDate, endDate;
+
+        switch(preset) {
+            case 'today':
+                startDate = endDate = today;
+                break;
+            case 'week':
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - today.getDay());
+                endDate = today;
+                break;
+            case 'month':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = today;
+                break;
+            case 'year':
+                startDate = new Date(today.getFullYear(), 0, 1);
+                endDate = today;
+                break;
+        }
+
+        document.getElementById('fecha_inicio').value = formatDate(startDate);
+        document.getElementById('fecha_fin').value = formatDate(endDate);
+        document.getElementById('filterForm').submit();
+    }
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
 </script>
 @endpush

@@ -10,7 +10,7 @@ class EmpresaService
     /**
      * Obtener del cache el registro de la empresa
      */
-    public function obtenerEmpresa(): Empresa
+    public function obtenerEmpresa(): ?Empresa
     {
         return Cache::remember('empresa', 3600, function () {
             return Empresa::first();
@@ -18,7 +18,7 @@ class EmpresaService
     }
 
     /**
-     * Limpiar la Cache de empresa
+     * Limpiar cache de la empresa
      */
     public function limpiarCacheEmpresa(): void
     {

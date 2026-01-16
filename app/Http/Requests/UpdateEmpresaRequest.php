@@ -30,7 +30,7 @@ class UpdateEmpresaRequest extends FormRequest
             'correo' => 'nullable|max:255',
             'telefono' => 'nullable|max:255',
             'ubicacion' => 'nullable|max:255',
-            'moneda_id' => 'required|integer|exists:monedas,id'
+            'moneda_id' => 'required|exists:monedas,id'
         ];
     }
 }

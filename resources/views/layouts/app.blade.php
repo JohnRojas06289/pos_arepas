@@ -36,7 +36,7 @@
 
         </div>
     </div>
-    <script src="{{ asset('js/bootstrap.bundle.min.js') }}" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

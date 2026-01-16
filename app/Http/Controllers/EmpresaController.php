@@ -21,7 +21,16 @@ class EmpresaController extends Controller
     public function index(): View
     {
         $empresa = Empresa::first();
-        $moneda = Moneda::where('estandar_iso', 'COP')->first();
+        // Buscar o crear la moneda por defecto
+        $moneda = Moneda::firstOrCreate(
+            ['estandar_iso' => 'COP'],
+            [
+                'nombre' => 'Peso Colombiano',
+                'simbolo' => '$',
+                'pais' => 'Colombia',
+            ]
+        );
+        
         return view('empresa.index', compact('empresa', 'moneda'));
     }
 

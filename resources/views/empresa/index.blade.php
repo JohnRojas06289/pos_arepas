@@ -55,7 +55,7 @@
                 <input type="text" id="moneda_display" class="form-control" value="COP - Peso Colombiano" readonly>
                 <input type="hidden" name="moneda_id" value="{{$moneda->id}}">
                 @error('moneda_id')
-                <small class="text-danger">{{'* .$messsage'}}</small>
+                <small class="text-danger">{{$message}}</small>
                 @enderror
             </div>
 
