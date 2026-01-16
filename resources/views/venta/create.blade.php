@@ -14,6 +14,7 @@
         background: linear-gradient(180deg, #1a1d23 0%, #212529 100%);
         border-right: 2px solid #343a40; 
         box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        max-width: 15%;
     }
     
     .product-grid { 
