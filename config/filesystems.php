@@ -58,10 +58,7 @@ return [
 
         'cloudinary' => [
             'driver' => 'cloudinary',
-            'api_key' => env('CLOUDINARY_API_KEY') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[1] : null),
-            'api_secret' => env('CLOUDINARY_API_SECRET') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[2] : null),
-            'cloud_name' => env('CLOUDINARY_CLOUD_NAME') ?: (preg_match('/cloudinary:\/\/(\w+):(\w+)@(\w+)/', env('CLOUDINARY_URL'), $m) ? $m[3] : null),
-            'secure' => true,
+            'notification_url' => env('CLOUDINARY_NOTIFICATION_URL'),
         ],
 
     ],
