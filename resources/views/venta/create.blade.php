@@ -36,7 +36,7 @@
     .category-btn { 
         width: 100%; 
         text-align: left; 
-        padding: 8px 10px; 
+        padding: 6px 8px; 
         background: transparent; 
         border: none; 
         border-bottom: 1px solid #343a40; 
@@ -73,10 +73,10 @@
     }
     
     .category-btn i { 
-        width: 30px; 
+        width: 20px; 
         text-align: center; 
-        margin-right: 12px; 
-        font-size: 1.1rem;
+        margin-right: 4px; 
+        font-size: 0.9rem;
     }
     
     .category-btn .shortcut-hint {
