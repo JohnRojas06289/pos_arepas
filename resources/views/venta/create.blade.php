@@ -36,7 +36,7 @@
     .category-btn { 
         width: 100%; 
         text-align: left; 
-        padding: 12px 15px; 
+        padding: 8px 10px; 
         background: transparent; 
         border: none; 
         border-bottom: 1px solid #343a40; 
