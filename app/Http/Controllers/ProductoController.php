@@ -125,6 +125,14 @@ class ProductoController extends Controller
     public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
     {
         try {
+            \Illuminate\Support\Facades\Log::info('Producto update request', [
+                'has_file' => $request->hasFile('img_path'),
+                'file_valid' => $request->hasFile('img_path') ? $request->file('img_path')->isValid() : false,
+                'file_error' => $request->hasFile('img_path') ? $request->file('img_path')->getError() : 'N/A',
+                'file_size' => $request->hasFile('img_path') ? $request->file('img_path')->getSize() : 'N/A',
+                'post_data' => $request->except(['img_path']),
+            ]);
+
             $this->productoService->editarProducto($request->validated(), $producto);
             ActivityLogService::log('Edición de producto', 'Productos', $request->validated());
             return redirect()->route('productos.index')->with('success', 'Producto editado');

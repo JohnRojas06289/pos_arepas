@@ -1,5 +1,7 @@
 <?php
 
+require __DIR__ . '/debug.php';
+
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\categoriaController;

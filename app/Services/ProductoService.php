@@ -58,7 +58,9 @@ class ProductoService
     {
         \Illuminate\Support\Facades\Log::info('Inicio de subida de imagen', [
             'original_name' => $image->getClientOriginalName(),
+            'size' => $image->getSize(),
             'disk' => config('filesystems.default'),
+            'cloudinary_config' => config('filesystems.disks.cloudinary'),
         ]);
 
         if ($img_path) {
