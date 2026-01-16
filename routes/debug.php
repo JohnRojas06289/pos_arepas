@@ -17,25 +17,24 @@ Route::get('/debug-php', function () {
         $results['storage_error'] = $e->getMessage();
     }
 
-    // Test 2: Direct Facade
+    // Test 2: Helper
     try {
-        // UploadFile matches the signature better or simple upload
+        $results['helper_url'] = cloudinary()->getUrl('storage_test.txt');
+    } catch (\Throwable $e) {
+        $results['helper_error'] = $e->getMessage();
+    }
+
+    // Test 3: Direct Facade Upload
+    try {
         $upload = Cloudinary::upload($tmpFile, [
             'folder' => 'debug', 
             'public_id' => 'direct_test_' . time(),
             'resource_type' => 'auto'
         ]);
         $results['direct_url'] = $upload->getSecurePath();
-        $results['direct_result'] = $upload->getArrayCopy();
     } catch (\Throwable $e) {
         $results['direct_error'] = $e->getMessage();
-        // $results['direct_trace'] = $e->getTraceAsString();
     }
-
-    $results['env_check'] = [
-        'has_url' => !empty(env('CLOUDINARY_URL')),
-        'url_len' => strlen(env('CLOUDINARY_URL')),
-    ];
 
     return response()->json($results);
 });
