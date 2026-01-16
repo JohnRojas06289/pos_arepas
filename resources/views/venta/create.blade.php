@@ -350,7 +350,7 @@
     <div class="row g-0 pos-container">
         
         <!-- Column 1: Categories -->
-        <div class="col-auto category-sidebar d-none d-md-block">
+        <div class="col-md-2 category-sidebar d-none d-md-block">
             <div class="p-3 text-white border-bottom border-secondary">
                 <h5 class="m-0"><i class="fa-solid fa-layer-group me-2"></i>Categorías</h5>
             </div>
