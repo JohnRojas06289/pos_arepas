@@ -84,4 +84,32 @@ class Producto extends Model
     {
         return "Código: {$this->codigo} - {$this->nombre} - Presentación: {$this->presentacione->sigla}";
     }
+
+    public function getImageUrlAttribute(): string
+    {
+        if (empty($this->img_path)) {
+            return '';
+        }
+
+        // If path is already a URL, return it
+        if (str_starts_with($this->img_path, 'http')) {
+            return $this->img_path;
+        }
+
+        // Check if using Cloudinary
+        if (config('filesystems.default') === 'cloudinary') {
+            $cloudName = config('filesystems.disks.cloudinary.cloud_name');
+            // Fallback if config is missing but env is present (should be handled by config, but safe check)
+            if (!$cloudName) {
+                 $cloudName = parse_url(env('CLOUDINARY_URL'), PHP_URL_HOST);
+            }
+            
+            if ($cloudName) {
+                return "https://res.cloudinary.com/{$cloudName}/image/upload/{$this->img_path}";
+            }
+        }
+
+        // Fallback to Storage::url
+        return \Illuminate\Support\Facades\Storage::url($this->img_path);
+    }
 }

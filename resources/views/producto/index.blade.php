@@ -117,7 +117,7 @@
             <!-- Product Image -->
             <div class="product-image-container">
                 @if (!empty($item->img_path))
-                <img src="{{ Storage::url($item->img_path) }}" alt="{{ $item->nombre }}" class="product-image">
+                <img src="{{ $item->image_url }}" alt="{{ $item->nombre }}" class="product-image">
                 @else
                 <div class="product-image product-image-placeholder">
                     <i class="fas fa-image fa-3x text-muted"></i>
@@ -243,7 +243,7 @@
                                     <label>Imagen del Producto</label>
                                     <div class="text-center p-4 bg-light rounded">
                                         @if (!empty($item->img_path))
-                                        <img src="{{ Storage::url($item->img_path) }}" alt="{{ $item->nombre }}"
+                                        <img src="{{ $item->image_url }}" alt="{{ $item->nombre }}"
                                             class="img-fluid rounded shadow" style="max-height: 400px;">
                                         @else
                                         <div class="empty-state py-5">
