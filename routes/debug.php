@@ -1,44 +1,41 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 Route::get('/debug-php', function () {
     $results = [];
-    
+    $tmpFile = '/tmp/debug_direct.txt';
+    file_put_contents($tmpFile, 'Direct Upload Test ' . time());
+
+    // Test 1: Storage Disk
     try {
-        $timestamp = time();
-        $filename = "debug_{$timestamp}.txt";
-        
-        $write = Storage::disk('cloudinary')->put($filename, 'Hello World ' . $timestamp);
-        $results['write'] = $write;
-        
-        $url = Storage::disk('cloudinary')->url($filename);
-        $results['url'] = $url;
-        
-        $exists = Storage::disk('cloudinary')->exists($filename);
-        $results['exists'] = $exists;
-        
+        $write = Storage::disk('cloudinary')->put('storage_test.txt', 'Storage Test ' . time());
+        $results['storage_write'] = $write;
+        $results['storage_url'] = Storage::disk('cloudinary')->url('storage_test.txt');
     } catch (\Throwable $e) {
-        $results['error'] = $e->getMessage();
-        $results['file'] = $e->getFile();
-        $results['line'] = $e->getLine();
+        $results['storage_error'] = $e->getMessage();
     }
 
-    $debug = [
-        'filesystem_default' => config('filesystems.default'),
-        'disk_config' => config('filesystems.disks.cloudinary'),
-        'write_test' => $results,
-        'php_upload_max' => ini_get('upload_max_filesize'),
+    // Test 2: Direct Facade
+    try {
+        // UploadFile matches the signature better or simple upload
+        $upload = Cloudinary::upload($tmpFile, [
+            'folder' => 'debug', 
+            'public_id' => 'direct_test_' . time(),
+            'resource_type' => 'auto'
+        ]);
+        $results['direct_url'] = $upload->getSecurePath();
+        $results['direct_result'] = $upload->getArrayCopy();
+    } catch (\Throwable $e) {
+        $results['direct_error'] = $e->getMessage();
+        // $results['direct_trace'] = $e->getTraceAsString();
+    }
+
+    $results['env_check'] = [
+        'has_url' => !empty(env('CLOUDINARY_URL')),
+        'url_len' => strlen(env('CLOUDINARY_URL')),
     ];
-    
-    // Add adapter info safe check
-    try {
-        $adapter = Storage::disk('cloudinary')->getAdapter();
-        $debug['adapter_class'] = get_class($adapter);
-    } catch (\Throwable $e) {
-        $debug['adapter_error'] = $e->getMessage();
-    }
 
-    return response()->json($debug);
+    return response()->json($results);
 });
