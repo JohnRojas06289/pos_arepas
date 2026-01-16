@@ -23,14 +23,3 @@ Route::get('/debug-php', function () {
 
     return response()->json($results);
 });
-
-Route::get('/debug-empleado', function () {
-    try {
-        if (!Auth::check()) {
-            return "User not logged in. Please login first.";
-        }
-        return view('empleado.create')->render();
-    } catch (\Throwable $e) {
-        return "Error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\nStack: " . $e->getTraceAsString();
-    }
-})->middleware('web', 'auth');
