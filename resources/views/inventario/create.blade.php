@@ -44,6 +44,11 @@
               <div class="col-md-6">
                 <x-forms.input id="costo_unitario" type='number' labelText='Costo unitario' required='true'/>
             </div>
+
+             <!-----Precio de Venta----->
+             <div class="col-md-6">
+                <x-forms.input id="precio_venta" type='number' labelText='Precio de venta' required='true'/>
+            </div>
         </div>
 
         <x-slot name='footer'>
