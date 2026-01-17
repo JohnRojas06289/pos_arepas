@@ -2,134 +2,130 @@
 
 @section('title','Ventas')
 
+@push('css-datatable')
+<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" type="text/css">
+@endpush
 @push('css')
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
+<style>
+    .row-not-space {
+        width: 110px;
+    }
+</style>
 @endpush
 
 @section('content')
 
 <div class="container-fluid px-4">
-    <!-- Page Header -->
-    <div class="page-header" style="background: var(--color-primary); color: white;">
-        <h1 style="color: white;"><i class="fas fa-cash-register"></i> Historial de Ventas</h1>
-        <div class="d-flex gap-3">
-            @can('crear-venta')
-            <a href="{{route('ventas.create')}}">
-                <button type="button" class="btn-action-large btn-success">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Nueva Venta</span>
-                </button>
-            </a>
-            <a href="{{ route('export.excel-ventas-all') }}">
-                <button type="button" class="btn-action-large btn-info">
-                    <i class="fas fa-file-excel"></i>
-                    <span>Exportar Excel</span>
-                </button>
-            </a>
-            @endcan
+    <h1 class="mt-4 text-center">Ventas</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
+        <li class="breadcrumb-item active">Ventas</li>
+    </ol>
+
+    @can('crear-venta')
+    <div class="mb-4">
+        <a href="{{route('ventas.create')}}">
+            <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
+        </a>
+    </div>
+    @endcan
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            Tabla ventas
+        </div>
+        <div class="card-body">
+            <table id="datatablesSimple" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Comprobante</th>
+                        <th>Cliente</th>
+                        <th>Fecha y hora</th>
+                        <th>Vendedor</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($ventas as $item)
+                    <tr>
+                        <td>
+                            <p class="fw-semibold mb-1">{{$item->comprobante->tipo_comprobante}}</p>
+                            <p class="text-muted mb-0">{{$item->numero_comprobante}}</p>
+                        </td>
+                        <td>
+                            <p class="fw-semibold mb-1">{{ ucfirst($item->cliente->persona->tipo_persona ?? 'Cliente') }}</p>
+                            <p class="text-muted mb-0">{{$item->cliente->persona->razon_social}}</p>
+                        </td>
+                        <td>
+                            <div class="row-not-space">
+                                <p class="fw-semibold mb-1">
+                                    <span class="m-1"><i class="fa-solid fa-calendar-days"></i>
+                                    </span>{{$item->fecha}}
+                                </p>
+                                <p class="fw-semibold mb-0">
+                                    <span class="m-1"><i class="fa-solid fa-clock"></i>
+                                    </span>{{$item->hora}}
+                                </p>
+                            </div>
+                        </td>
+                        <td>
+                            {{$item->user->name}}
+                        </td>
+                        <td>
+                            {{$item->total}}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+
+                                @can('mostrar-venta')
+                                <form action="{{route('ventas.show', ['venta'=> $item]) }}" method="get">
+                                    <button type="submit" class="btn btn-success">
+                                        Ver
+                                    </button>
+                                </form>
+                                @endcan
+
+                                <!-- Button trigger modal -->
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verPDFModal-{{$item->id}}">
+                                    PDF
+                                </button>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="verPDFModal-{{$item->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">PDF de la venta</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <iframe src="{{ route('export.pdf-comprobante-venta', ['id' => Crypt::encrypt($item->id)]) }}" style="width: 100%; height:500px;" frameborder="0"></iframe>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="search-bar-large">
-        <input type="text" id="searchSales" placeholder="Buscar por cliente o número de comprobante..." onkeyup="searchSales()">
-        <button onclick="document.getElementById('searchSales').value = ''; searchSales();">
-            <i class="fas fa-times me-2"></i> Limpiar
-        </button>
-    </div>
-
-    <!-- Sales List -->
-    <div id="salesList">
-        @forelse ($ventas as $item)
-        <div class="item-card" data-search="{{ strtolower($item->cliente->persona->razon_social . ' ' . $item->numero_comprobante) }}">
-            <!-- Sale Icon -->
-            <div class="item-image d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
-                <i class="fas fa-receipt fa-3x text-white"></i>
-            </div>
-
-            <!-- Sale Info -->
-            <div class="item-info">
-                <h3>{{ $item->cliente->persona->razon_social }}</h3>
-                <p class="price">${{ number_format($item->total, 0, ',', '.') }}</p>
-                <div class="d-flex gap-4 mt-2">
-                    <span class="text-muted">
-                        <i class="fas fa-file-invoice me-1"></i>
-                        <strong>{{ $item->comprobante->tipo_comprobante }}:</strong> {{ $item->numero_comprobante }}
-                    </span>
-                    <span class="text-muted">
-                        <i class="fas fa-calendar me-1"></i>
-                        {{ $item->fecha }} {{ $item->hora }}
-                    </span>
-                    <span class="text-muted">
-                        <i class="fas fa-user me-1"></i>
-                        {{ $item->user->name }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="item-actions">
-                @can('mostrar-venta')
-                <form action="{{route('ventas.show', ['venta'=> $item]) }}" method="get" class="d-inline">
-                    <button type="submit" class="btn-icon-large btn-view" title="Ver detalle">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </form>
-                @endcan
-
-                <a href="{{ route('export.pdf-comprobante-venta',['id' => Crypt::encrypt($item->id)]) }}" target="_blank">
-                    <button class="btn-icon-large btn-info" title="Descargar PDF">
-                        <i class="fas fa-file-pdf"></i>
-                    </button>
-                </a>
-            </div>
-        </div>
-
-        @empty
-        <div class="empty-state">
-            <i class="fas fa-cash-register"></i>
-            <h3>No hay ventas registradas</h3>
-            <p>Las ventas aparecerán aquí</p>
-            @can('crear-venta')
-            <a href="{{route('ventas.create')}}">
-                <button class="btn-action-large btn-success">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Crear Primera Venta</span>
-                </button>
-            </a>
-            @endcan
-        </div>
-        @endforelse
-    </div>
-
-    <!-- No Results Message -->
-    <div id="noResults" class="empty-state" style="display: none;">
-        <i class="fas fa-search"></i>
-        <h3>No se encontraron ventas</h3>
-        <p>Intenta con otro término de búsqueda</p>
-    </div>
 </div>
 
 @endsection
 
 @push('js')
-<script>
-    function searchSales() {
-        const searchTerm = document.getElementById('searchSales').value.toLowerCase();
-        const sales = document.querySelectorAll('.item-card');
-        let visibleCount = 0;
-
-        sales.forEach(sale => {
-            const searchData = sale.getAttribute('data-search');
-            if (searchData.includes(searchTerm)) {
-                sale.style.display = 'flex';
-                visibleCount++;
-            } else {
-                sale.style.display = 'none';
-            }
-        });
-
-        document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
-    }
-</script>
+<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
+<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 @endpush
