@@ -1311,3 +1311,12 @@ textarea:focus-visible {
     }
 }
 
+
+/* Fix for layout vertical alignment */
+#layoutSidenav_content {
+    justify-content: flex-start !important;
+}
+
+#layoutSidenav_content > main {
+    flex-grow: 1;
+}
