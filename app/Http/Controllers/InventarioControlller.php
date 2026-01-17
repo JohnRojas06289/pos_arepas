@@ -102,9 +102,24 @@ class InventarioControlller extends Controller
     public function update(StoreInventarioRequest $request, string $id)
     {
         $inventario = Inventario::findOrFail($id);
+        
         DB::beginTransaction();
         try {
-            $inventario->update($request->validated());
+            // Updated Product Price
+            $producto = $inventario->producto;
+            if ($request->has('precio_venta')) {
+                $producto->update(['precio' => $request->precio_venta]);
+            }
+
+            // Update Inventory (excluding fields not in table)
+            // We use except() because validated() returns fields like costo_unitario/precio_venta that don't exist in 'inventario' table
+            $data = $request->safe()->except(['costo_unitario', 'precio_venta']);
+            $inventario->update($data);
+            
+            // Note: Costo Unitario updates typically require a new Kardex entry. 
+            // For now, we are prioritizing fixing the crash and price update.
+            // If cost needs adjustment, a specific Kardex flow should be triggered.
+
             DB::commit();
             ActivityLogService::log('Actualización de inventario', 'Inventario', $request->validated());
             return redirect()->route('inventario.index')->with('success', 'Inventario actualizado');
