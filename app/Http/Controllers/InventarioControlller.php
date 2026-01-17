@@ -27,8 +27,8 @@ class InventarioControlller extends Controller
      */
     public function index(): View
     {
-        $inventario = Inventario::join('productos', 'inventarios.producto_id', '=', 'productos.id')
-            ->select('inventarios.*')
+        $inventario = Inventario::join('productos', 'inventario.producto_id', '=', 'productos.id')
+            ->select('inventario.*')
             ->orderBy('productos.codigo', 'asc')
             ->with(['producto.presentacione']) // Eager load nested relationship for performance
             ->get();
