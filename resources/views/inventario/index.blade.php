@@ -105,5 +105,21 @@
 
 @push('js')
 <script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
+<script>
+    window.addEventListener('DOMContentLoaded', event => {
+        const datatablesSimple = document.getElementById('datatablesSimple');
+        if (datatablesSimple) {
+            new simpleDatatables.DataTable(datatablesSimple, {
+                paging: false,
+                labels: {
+                    placeholder: "Buscar...",
+                    perPage: "Registros por página:",
+                    noRows: "No se encontraron registros",
+                    info: "Mostrando {start} a {end} de {rows} registros",
+                    noResults: "No se encontraron resultados para tu búsqueda",
+                }
+            });
+        }
+    });
+</script>
 @endpush
