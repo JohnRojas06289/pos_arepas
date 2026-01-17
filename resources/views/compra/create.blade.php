@@ -108,6 +108,7 @@
                                         <td colspan="2">
                                             $ <span id="total">0</span>
                                             <input type="hidden" name="total" value="0" id="inputTotal">
+                                            <input type="hidden" name="subtotal" value="0" id="inputSubtotal">
                                         </td>
                                     </tr>
                                 </tfoot>
@@ -249,8 +250,7 @@
                         '<td><input type="hidden" name="arrayidproducto[]" value="' + idProducto + '">' + textProducto + '</td>' +
                         '<td><input type="hidden" name="arraycantidad[]" value="' + cantidad + '">' + cantidad + '</td>' +
                         '<td><input type="hidden" name="arraypreciocompra[]" value="' + precioCompra + '">$' + precioCompra + '</td>' +
-                        '<input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">' + 
-                        '<td>$' + subtotal[cont] + '</td>' +
+                        '<td><input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">$' + subtotal[cont] + '</td>' +
                         '<td><button class="btn btn-sm btn-danger" type="button" onClick="eliminarProducto(' + cont + ', ' + idProducto + ')"><i class="fas fa-trash"></i></button></td>' +
                         '</tr>';
 
@@ -286,6 +286,7 @@
     function updateTotals() {
         $('#total').html(total);
         $('#inputTotal').val(total);
+        $('#inputSubtotal').val(total); // Assuming subtotal = total as tax is 0
     }
 
     function limpiarCampos() {
