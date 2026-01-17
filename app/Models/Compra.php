@@ -21,7 +21,7 @@ class Compra extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'metodo_pago' => MetodoPagoEnum::class
+        
     ];
 
     public function proveedore(): BelongsTo
@@ -71,7 +71,7 @@ class Compra extends Model
     {
         // Crear un nombre único
         $name = uniqid() . '.' . $file->getClientOriginalExtension();
-        $path = $image->storeAs('compras', $name, config('filesystems.default'));
+        $path = $file->storeAs('compras', $name, config('filesystems.default'));
         return $path;
     }
 }
