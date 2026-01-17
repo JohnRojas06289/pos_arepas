@@ -82,17 +82,6 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
         return response()->json(['success' => true]);
     })->name('notifications.markAsRead');
 
-    Route::get('/debug-permissions', function () {
-        $user = Auth::user();
-        return [
-            'id' => $user->id,
-            'email' => $user->email,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
-            'can_ver_panel' => $user->can('ver-panel'),
-        ];
-    });
-
     Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 });
 
