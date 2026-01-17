@@ -21,6 +21,27 @@
 
 
 
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="{{ route('inventario.index') }}" method="GET" class="row align-items-end">
+                <div class="col-md-4">
+                    <label for="categoria_id" class="form-label">Filtrar por Categoría</label>
+                    <select name="categoria_id" id="categoria_id" class="form-select">
+                        <option value="">Todas las categorías</option>
+                        @foreach($categorias as $cat)
+                            <option value="{{ $cat->id }}" {{ request('categoria_id') == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->caracteristica->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <i class="fas fa-table me-1"></i>
@@ -39,30 +60,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($inventario as $item)
+                    @foreach ($productos as $item)
                     <tr>
                         <td>
-                            {{$item->producto->codigo}}
+                            {{$item->codigo}}
                         </td>
                         <td>
-                             {{$item->producto->nombre}} - Presentación: {{$item->producto->presentacione->sigla}}
+                             {{$item->nombre}} - Presentación: {{$item->presentacione->sigla}}
                         </td>
                         <td>
-                            {{$item->cantidad}}
+                            {{$item->inventario->cantidad ?? 0}}
                         </td>
 
                         <td>
-                            {{$item->fecha_vencimiento_format ?? $item->fecha_vencimiento_format}}
+                            {{$item->inventario?->fecha_vencimiento_format ?? 'N/A'}}
                         </td>
                         <td>
                             <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                                <a href="{{ route('inventario.edit', $item->id) }}" class="btn btn-warning">Editar</a>
-                                <form action="{{ route('inventario.destroy', $item->id) }}" method="POST"
-                                    onsubmit="return confirm('¿Estás seguro de que deseas eliminar este elemento?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Eliminar</button>
-                                </form>
+                                @if($item->inventario)
+                                    <a href="{{ route('inventario.edit', $item->inventario->id) }}" class="btn btn-warning">Editar</a>
+                                    <form action="{{ route('inventario.destroy', $item->inventario->id) }}" method="POST"
+                                        onsubmit="return confirm('¿Estás seguro de que deseas eliminar este elemento?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                    </form>
+                                @else
+                                    <span class="badge bg-secondary">Sin Inventario</span>
+                                @endif
                             </div>
                         </td>
                     </tr>

@@ -25,14 +25,18 @@ class InventarioControlller extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $inventario = Inventario::join('productos', 'inventario.producto_id', '=', 'productos.id')
-            ->select('inventario.*')
-            ->orderBy('productos.codigo', 'asc')
-            ->with(['producto.presentacione']) // Eager load nested relationship for performance
+        $categorias = \App\Models\Categoria::with('caracteristica')->get();
+        
+        $productos = Producto::with(['inventario', 'presentacione', 'categoria.caracteristica'])
+            ->when($request->categoria_id, function($query, $categoria_id) {
+                return $query->where('categoria_id', $categoria_id);
+            })
+            ->orderBy('nombre', 'asc')
             ->get();
-        return view('inventario.index', compact('inventario'));
+            
+        return view('inventario.index', compact('productos', 'categorias'));
     }
 
     /**
