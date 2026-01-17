@@ -23,22 +23,28 @@
 
     <div class="card mb-4">
         <div class="card-body">
-            <form action="{{ route('inventario.index') }}" method="GET" class="row align-items-end">
+            <div class="row align-items-end">
                 <div class="col-md-4">
-                    <label for="categoria_id" class="form-label">Filtrar por Categoría</label>
-                    <select name="categoria_id" id="categoria_id" class="form-select">
-                        <option value="">Todas las categorías</option>
-                        @foreach($categorias as $cat)
-                            <option value="{{ $cat->id }}" {{ request('categoria_id') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->caracteristica->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <form action="{{ route('inventario.index') }}" method="GET">
+                        <label for="categoria_id" class="form-label">Filtrar por Categoría</label>
+                        <div class="input-group">
+                            <select name="categoria_id" id="categoria_id" class="form-select">
+                                <option value="">Todas las categorías</option>
+                                @foreach($categorias as $cat)
+                                    <option value="{{ $cat->id }}" {{ request('categoria_id') == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->caracteristica->nombre }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-primary">Filtrar</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+                <div class="col-md-4 offset-md-4">
+                     <label for="searchInput" class="form-label">Buscar</label>
+                     <input type="text" id="searchInput" class="form-control" placeholder="Buscar...">
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -109,8 +115,9 @@
     window.addEventListener('DOMContentLoaded', event => {
         const datatablesSimple = document.getElementById('datatablesSimple');
         if (datatablesSimple) {
-            new simpleDatatables.DataTable(datatablesSimple, {
+            const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
                 paging: false,
+                searchable: true,
                 labels: {
                     placeholder: "Buscar...",
                     perPage: "Registros por página:",
@@ -119,6 +126,24 @@
                     noResults: "No se encontraron resultados para tu búsqueda",
                 }
             });
+
+            // Hide default search input container
+            // Simple-datatables puts the search input in a div with class 'datatable-search'
+            setTimeout(() => {
+                const searchWrapper = datatablesSimple.closest('.datatable-wrapper');
+                if(searchWrapper) {
+                     const defaultSearch = searchWrapper.querySelector('.datatable-search');
+                     if(defaultSearch) defaultSearch.style.display = 'none';
+                }
+            }, 100);
+
+            // Custom search input
+            const searchInput = document.getElementById('searchInput');
+            if(searchInput){
+                searchInput.addEventListener('keyup', function(e) {
+                    dataTable.search(e.target.value);
+                });
+            }
         }
     });
 </script>

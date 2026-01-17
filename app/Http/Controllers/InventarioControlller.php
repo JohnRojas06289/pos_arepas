@@ -88,7 +88,12 @@ class InventarioControlller extends Controller
     {
         $inventario = Inventario::with('producto')->findOrFail($id);
         $producto = $inventario->producto;
-        return view('inventario.edit', compact('inventario', 'producto'));
+        
+        // Fetch last cost from Kardex
+        $ultimoKardex = Kardex::where('producto_id', $producto->id)->latest('id')->first();
+        $costo_unitario = $ultimoKardex ? $ultimoKardex->costo_unitario : 0;
+
+        return view('inventario.edit', compact('inventario', 'producto', 'costo_unitario'));
     }
 
     /**

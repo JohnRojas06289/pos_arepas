@@ -33,12 +33,17 @@
 
             <!-----Fecha de vencimiento----->
             <div class="col-md-6">
-                <x-forms.input id="fecha_vencimiento" type='date' labelText='Fecha de Vencimiento' :value="$inventario->fecha_vencimiento" />
+                <x-forms.input id="fecha_vencimiento" type='date' labelText='Fecha de Vencimiento' :value="$inventario->fecha_vencimiento ? $inventario->fecha_vencimiento->format('Y-m-d') : ''" />
             </div>
 
               <!-----Costo Unitario----->
               <div class="col-md-6">
-                <x-forms.input id="costo_unitario" type='number' labelText='Costo unitario' required='true' :value="$inventario->producto->precio_compra" />
+                <x-forms.input id="costo_unitario" type='number' step="0.01" labelText='Costo unitario' required='true' :value="$costo_unitario" />
+            </div>
+
+            <!-----Precio Venta----->
+            <div class="col-md-6">
+                <x-forms.input id="precio_venta" type='number' step="0.01" labelText='Precio de Venta' required='true' :value="$producto->precio" />
             </div>
         </div>
 
