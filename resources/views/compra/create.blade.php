@@ -6,272 +6,184 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/css/bootstrap-select.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
+<style>
+    .card-custom {
+        border: none;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        border-radius: 10px;
+    }
+    .card-header-custom {
+        background: var(--color-primary);
+        color: white;
+        border-radius: 10px 10px 0 0 !important;
+        padding: 15px 20px;
+    }
+    .btn-add {
+        background: var(--color-secondary);
+        color: white;
+        font-weight: bold;
+    }
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+</style>
 @endpush
 
 @section('content')
 <div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Crear Compra</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('compras.index')}}">Compras</a></li>
-        <li class="breadcrumb-item active">Crear Compra</li>
-    </ol>
-</div>
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <div>
+            <h1>Crear Compra</h1>
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('compras.index')}}">Compras</a></li>
+                <li class="breadcrumb-item active">Nueva</li>
+            </ol>
+        </div>
+        <a href="{{ route('compras.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
 
-<form action="{{ route('compras.store') }}" method="post" enctype="multipart/form-data">
-    @csrf
+    <form action="{{ route('compras.store') }}" method="post" enctype="multipart/form-data">
+        @csrf
+        <div class="row">
+            <!-- Left Column: Products -->
+            <div class="col-lg-8">
+                <div class="card card-custom mb-4">
+                    <div class="card-header card-header-custom">
+                        <h5 class="mb-0"><i class="fas fa-boxes me-2"></i>Detalle de Productos</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Product Form -->
+                        <div class="row g-3 align-items-end mb-4 bg-light p-3 rounded">
+                            <div class="col-md-6">
+                                <label for="producto_id" class="form-label">Producto</label>
+                                <select id="producto_id" class="form-control selectpicker" data-live-search="true" title="Buscar producto...">
+                                    @foreach ($productos as $item)
+                                    <option value="{{$item->id}}">{{$item->nombre_completo}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="cantidad" class="form-label">Cantidad</label>
+                                <input type="number" id="cantidad" class="form-control" placeholder="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="precio_compra" class="form-label">Costo Unitario</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" id="precio_compra" class="form-control" step="0.1" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="fecha_vencimiento" class="form-label">Vencimiento</label>
+                                <input type="date" id="fecha_vencimiento" class="form-control">
+                            </div>
+                            <div class="col-md-3 ms-auto">
+                                <button id="btn_agregar" class="btn btn-add w-100" type="button">
+                                    <i class="fas fa-plus me-1"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
 
-    <div class="container-lg mt-4">
-        <div class="row gy-4">
-
-            <!-----Compra---->
-            <div class="col-12">
-                <div class="text-white bg-success p-1 text-center">
-                    Datos generales
+                        <!-- Table -->
+                        <div class="table-responsive">
+                            <table id="tabla_detalle" class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Cant.</th>
+                                        <th>Costo</th>
+                                        <th>Subtotal</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows added via JS -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="fw-bold fs-5">
+                                        <td colspan="3" class="text-end">Total:</td>
+                                        <td colspan="2">
+                                            $ <span id="total">0</span>
+                                            <input type="hidden" name="total" value="0" id="inputTotal">
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div class="p-3 border border-3 border-success">
-                    <div class="row g-4">
-                        <!--Proveedor-->
-                        <div class="col-12">
-                            <label for="proveedore_id" class="form-label">
-                                Proveedor:</label>
-                            <select name="proveedore_id"
-                                id="proveedore_id" required
-                                class="form-control selectpicker show-tick"
-                                data-live-search="true"
-                                title="Selecciona" data-size='2'>
+            </div>
+
+            <!-- Right Column: Info -->
+            <div class="col-lg-4">
+                <div class="card card-custom">
+                    <div class="card-header card-header-custom bg-secondary">
+                        <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Datos de Factura</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="proveedore_id" class="form-label">Proveedor <span class="text-danger">*</span></label>
+                            <select name="proveedore_id" id="proveedore_id" required class="form-control selectpicker show-tick" data-live-search="true" title="Seleccionar...">
                                 @foreach ($proveedores as $item)
                                 <option value="{{$item->id}}">{{$item->nombre_documento}}</option>
                                 @endforeach
                             </select>
-                            @error('proveedore_id')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
+                            @error('proveedore_id') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
-                        <!--Tipo de comprobante-->
-                        <div class="col-md-4">
-                            <label for="comprobante_id" class="form-label">
-                                Comprobante:</label>
-                            <select name="comprobante_id"
-                                id="comprobante_id" required
-                                class="form-control selectpicker"
-                                title="Selecciona">
-                                @foreach ($comprobantes as $item)
-                                <option value="{{$item->id}}">{{$item->nombre}}</option>
-                                @endforeach
-                            </select>
-                            @error('comprobante_id')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
+                        <div class="mb-3">
+                            <label for="fecha_hora" class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                            <input required type="datetime-local" name="fecha_hora" id="fecha_hora" class="form-control" value="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}">
+                            @error('fecha_hora') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
-                        <!--Numero de comprobante-->
-                        <div class="col-md-4">
-                            <label for="numero_comprobante" class="form-label">
-                                Numero de comprobante:</label>
-                            <input type="text"
-                                name="numero_comprobante"
-                                id="numero_comprobante"
-                                class="form-control">
-                            @error('numero_comprobante')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
+                        <div class="mb-3">
+                             <label for="metodo_pago" class="form-label">Método de Pago <span class="text-danger">*</span></label>
+                             <select required name="metodo_pago" id="metodo_pago" class="form-control selectpicker" title="Seleccionar...">
+                                 @foreach ($optionsMetodoPago as $item)
+                                 <option value="{{$item->value}}">{{$item->name}}</option>
+                                 @endforeach
+                             </select>
+                             @error('metodo_pago') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
-                        <!--Comprobante Path----->
-                        <div class="col-md-4">
-                            <label for="file_comprobante" class="form-label">
-                                Archivo:</label>
-                            <input type="file"
-                                name="file_comprobante"
-                                id="file_comprobante"
-                                class="form-control"
-                                accept=".pdf">
-                            @error('file_comprobante')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
-                        </div>
-
-                        <!----Metodo de Pago--->
-                        <div class="col-md-6">
-                            <label for="metodo_pago" class="form-label">
-                                Método de pago:</label>
-                            <select required name="metodo_pago"
-                                id="metodo_pago"
-                                class="form-control selectpicker"
-                                title="Selecciona">
-                                @foreach ($optionsMetodoPago as $item)
-                                <option value="{{$item->value}}">{{$item->name}}</option>
-                                @endforeach
-                            </select>
-                            @error('metodo_pago')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
-                        </div>
-
-                        <!--Fecha y hora--->
-                        <div class="col-sm-6">
-                            <label for="fecha_hora" class="form-label">
-                                Fecha y hora:</label>
-                            <input
-                                required
-                                type="datetime-local"
-                                name="fecha_hora"
-                                id="fecha_hora"
-                                class="form-control"
-                                value="">
-                            @error('fecha_hora')
-                            <small class="text-danger">{{ '*'.$message }}</small>
-                            @enderror
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!------Compra producto---->
-            <div class="col-12">
-                <div class="text-white bg-primary p-1 text-center">
-                    Detalles de la compra
-                </div>
-                <div class="p-3 border border-3 border-primary">
-                    <div class="row g-4">
-                        <!-----Producto---->
-                        <div class="col-12">
-                            <select id="producto_id"
-                                class="form-control selectpicker"
-                                data-live-search="true"
-                                data-size="1"
-                                title="Busque un producto aquí">
-                                @foreach ($productos as $item)
-                                <option value="{{$item->id}}">{{$item->nombre_completo}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-----Cantidad---->
-                        <div class="col-sm-4">
-                            <label for="cantidad" class="form-label">
-                                Cantidad:</label>
-                            <input type="number" id="cantidad" class="form-control">
-                        </div>
-
-                        <!-----Precio de compra---->
-                        <div class="col-sm-4">
-                            <label for="precio_compra" class="form-label">
-                                Precio de compra:</label>
-                            <input type="number" id="precio_compra" class="form-control" step="0.1">
-                        </div>
-
-                        <!-----Fecha de Vencimiento---->
-                        <div class="col-sm-4">
-                            <label for="fecha_vencimiento" class="form-label">
-                                Fecha de vencimiento:</label>
-                            <input type="date" id="fecha_vencimiento" class="form-control">
-                        </div>
-
-                        <!-----botón para agregar--->
-                        <div class="col-12 my-4 text-end">
-                            <button id="btn_agregar" class="btn btn-primary" type="button">
-                                Agregar</button>
-                        </div>
-
-                        <!-----Tabla para el detalle de la compra--->
-                        <div class="col-12">
-                            <div class="table-responsive">
-                                <table id="tabla_detalle" class="table table-hover">
-                                    <thead class="bg-primary">
-                                        <tr>
-                                            <th class="text-white">Producto</th>
-                                            <th class="text-white">Presentación</th>
-                                            <th class="text-white">Cantidad</th>
-                                            <th class="text-white">Precio</th>
-                                            <th class="text-white">Vencimiento</th>
-                                            <th class="text-white">Subtotal</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <th></th>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th colspan="5">Sumas</th>
-                                            <th colspan="2">
-                                                <input type="hidden" name="subtotal" value="0" id="inputSubtotal">
-                                                <span id="sumas">0</span>
-                                                <span>{{$empresa->moneda->simbolo}}</span>
-                                            </th>
-                                        </tr>
-
-                                        <tr>
-                                            <th colspan="5">Total</th>
-                                            <th colspan="2">
-                                                <input type="hidden" name="total" value="0" id="inputTotal">
-                                                <span id="total">0</span>
-                                                <span>{{$empresa->moneda->simbolo}}</span>
-                                            </th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="comprobante_id" class="form-label">Tipo Comp. <span class="text-danger">*</span></label>
+                                <select name="comprobante_id" id="comprobante_id" required class="form-control selectpicker" title="Tipo">
+                                    @foreach ($comprobantes as $item)
+                                    <option value="{{$item->id}}">{{$item->nombre}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="numero_comprobante" class="form-label">N° Comp.</label>
+                                <input type="text" name="numero_comprobante" id="numero_comprobante" class="form-control">
                             </div>
                         </div>
 
-                        <!--Boton para cancelar compra-->
-                        <div class="col-12 mt-2">
-                            <button id="cancelar"
-                                type="button"
-                                class="btn btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#exampleModal">
-                                Cancelar compra
-                            </button>
-                        </div>
+                         <div class="mb-4">
+                             <label for="file_comprobante" class="form-label">Adjuntar PDF</label>
+                             <input type="file" name="file_comprobante" id="file_comprobante" class="form-control" accept=".pdf">
+                         </div>
 
+                         <div class="d-grid gap-2">
+                             <button type="submit" class="btn btn-primary btn-lg" id="guardar">
+                                 <i class="fas fa-save me-2"></i> Registrar Compra
+                             </button>
+                             <button type="button" class="btn btn-outline-danger" id="cancelar" onclick="cancelarCompra()">
+                                 Cancelar
+                             </button>
+                         </div>
                     </div>
                 </div>
             </div>
-
-            <!--Botones--->
-            <div class="col-12 mt-4 text-center">
-                <button type="submit" class="btn btn-success" id="guardar">
-                    Realizar compra</button>
-            </div>
-
         </div>
-    </div>
-
-    <!-- Modal para cancelar la compra -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Advertencia</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    ¿Seguro que quieres cancelar la compra?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cerrar</button>
-                    <button id="btnCancelarCompra" type="button" class="btn btn-danger" data-bs-dismiss="modal">
-                        Confirmar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-</form>
+    </form>
+</div>
 @endsection
 
 @push('js')
@@ -282,10 +194,6 @@
             agregarProducto();
         });
 
-        $('#btnCancelarCompra').click(function() {
-            cancelarCompra();
-        });
-
         disableButtons();
     });
 
@@ -293,157 +201,95 @@
     let cont = 0;
     let subtotal = [];
     let sumas = 0;
-    let igv = 0;
     let total = 0;
     let arrayIdProductos = [];
 
-    //Constantes
-    const impuesto = 0;
-
     function cancelarCompra() {
-        //Elimar el tbody de la tabla
         $('#tabla_detalle tbody').empty();
-
-        //Añadir una nueva fila a la tabla
-        let fila = '<tr>' +
-            '<th></th>' +
-            '<td></td>' +
-            '<td></td>' +
-            '<td></td>' +
-            '<td></td>' +
-            '<td></td>' +
-            '<td></td>' +
-            '</tr>';
-        $('#tabla_detalle').append(fila);
-
-        //Reiniciar valores de las variables
         cont = 0;
         subtotal = [];
         sumas = 0;
-        igv = 0;
         total = 0;
         arrayIdProductos = [];
-
-        //Mostrar los campos calculados
-        $('#sumas').html(sumas);
-        $('#igv').html(igv);
-        $('#total').html(total);
-        $('#inputImpuesto').val(igv);
-        $('#inputSubtotal').val(sumas);
-        $('#inputTotal').val(total);
-
+        updateTotals();
         limpiarCampos();
         disableButtons();
     }
 
     function disableButtons() {
         if (total == 0) {
-            $('#guardar').hide();
-            $('#cancelar').hide();
+            $('#guardar').prop('disabled', true);
         } else {
-            $('#guardar').show();
-            $('#cancelar').show();
+            $('#guardar').prop('disabled', false);
         }
     }
 
     function agregarProducto() {
-        //Obtener valores de los campos
         let idProducto = $('#producto_id').val();
         let textProducto = $('#producto_id option:selected').text();
         let cantidad = $('#cantidad').val();
         let precioCompra = $('#precio_compra').val();
         let fechaVencimiento = $('#fecha_vencimiento').val();
 
-        //Validaciones 
-        //1.Para que los campos no esten vacíos
         if (textProducto != '' && textProducto != undefined && cantidad != '' && precioCompra != '') {
-
-            let nameProducto = textProducto.match(/-\s(.*?)\s-/)[1];
-            let presentacionProducto = textProducto.match(/Presentación:\s(.*)/)[1];
-
-            //2. Para que los valores ingresados sean los correctos
-            if (parseInt(cantidad) > 0 && (cantidad % 1 == 0) && parseFloat(precioCompra) > 0) {
-
-                //3. No permitir el ingreso del mismo producto 
+            // Extract simplified name if possible, otherwise use full text
+            let nameProducto = textProducto; 
+            try {
+                 nameProducto = textProducto.split('-')[1].trim(); 
+            } catch(e) {}
+            
+            // Simple validation
+            if (parseInt(cantidad) > 0 && parseFloat(precioCompra) > 0) {
                 if (!arrayIdProductos.includes(idProducto)) {
-                    //Calcular valores
                     subtotal[cont] = round(cantidad * precioCompra);
                     sumas = round(sumas + subtotal[cont]);
-                    igv = 0;
-                    total = round(sumas + igv);
+                    total = round(sumas);
 
-                    //Crear la fila
                     let fila = '<tr id="fila' + cont + '">' +
-                        '<td><input type="hidden" name="arrayidproducto[]" value="' + idProducto + '">' + nameProducto + '</td>' +
-                        '<td>' + presentacionProducto + '</td>' +
+                        '<td><input type="hidden" name="arrayidproducto[]" value="' + idProducto + '">' + textProducto + '</td>' +
                         '<td><input type="hidden" name="arraycantidad[]" value="' + cantidad + '">' + cantidad + '</td>' +
-                        '<td><input type="hidden" name="arraypreciocompra[]" value="' + precioCompra + '">' + precioCompra + '</td>' +
-                        '<td><input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">' + fechaVencimiento + '</td>' +
-                        '<td>' + subtotal[cont] + '</td>' +
-                        '<td><button class="btn btn-danger" type="button" onClick="eliminarProducto(' + cont + ', ' + idProducto + ')"><i class="fa-solid fa-trash"></i></button></td>' +
+                        '<td><input type="hidden" name="arraypreciocompra[]" value="' + precioCompra + '">$' + precioCompra + '</td>' +
+                        '<input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">' + 
+                        '<td>$' + subtotal[cont] + '</td>' +
+                        '<td><button class="btn btn-sm btn-danger" type="button" onClick="eliminarProducto(' + cont + ', ' + idProducto + ')"><i class="fas fa-trash"></i></button></td>' +
                         '</tr>';
 
-                    //Acciones después de añadir la fila
-                    $('#tabla_detalle').append(fila);
+                    $('#tabla_detalle tbody').append(fila);
                     limpiarCampos();
                     cont++;
-                    disableButtons();
-
-                    //Mostrar los campos calculados
-                    $('#sumas').html(sumas);
-                    $('#igv').html(igv);
-                    $('#total').html(total);
-                    $('#inputImpuesto').val(igv);
-                    $('#inputSubtotal').val(sumas);
-                    $('#inputTotal').val(total);
-
-                    //Agregar el id del producto al arreglo
+                    updateTotals();
                     arrayIdProductos.push(idProducto);
-
+                    disableButtons();
                 } else {
-                    showModal('Ya ha ingresado el producto');
+                    showModal('Este producto ya está en la lista. Elimínalo para modificarlo.', 'warning');
                 }
-
             } else {
-                showModal('Valores incorrectos');
+                showModal('Cantidad y Costo deben ser mayores a 0', 'warning');
             }
-
         } else {
-            showModal('Le faltan campos por llenar');
+            showModal('Por favor completa los campos del producto', 'warning');
         }
-
-
-
     }
 
     function eliminarProducto(indice, idProducto) {
-        //Calcular valores
         sumas -= round(subtotal[indice]);
-        igv = 0;
-        total = round(sumas + igv);
-
-        //Mostrar los campos calculados
-        $('#sumas').html(sumas);
-
-        $('#total').html(total);
-
-        $('#inputSubtotal').val(sumas);
-        $('#inputTotal').val(total);
-
-        //Eliminar el fila de la tabla
+        total = round(sumas);
         $('#fila' + indice).remove();
-
-        //Eliminar el id del arreglo
         let index = arrayIdProductos.indexOf(idProducto.toString());
-        arrayIdProductos.splice(index, 1);
-
+        if (index > -1) {
+            arrayIdProductos.splice(index, 1);
+        }
+        updateTotals();
         disableButtons();
+    }
 
+    function updateTotals() {
+        $('#total').html(total);
+        $('#inputTotal').val(total);
     }
 
     function limpiarCampos() {
-        let select = $('#producto_id');
-        select.selectpicker('val', '');
+        $('#producto_id').selectpicker('val', '');
         $('#cantidad').val('');
         $('#precio_compra').val('');
         $('#fecha_vencimiento').val('');
@@ -452,16 +298,12 @@
     function round(num, decimales = 2) {
         var signo = (num >= 0 ? 1 : -1);
         num = num * signo;
-        if (decimales === 0) //con 0 decimales
-            return signo * Math.round(num);
-        // round(x * 10 ^ decimales)
+        if (decimales === 0) return signo * Math.round(num);
         num = num.toString().split('e');
         num = Math.round(+(num[0] + 'e' + (num[1] ? (+num[1] + decimales) : decimales)));
-        // x * 10 ^ (-decimales)
         num = num.toString().split('e');
         return signo * (num[0] + 'e' + (num[1] ? (+num[1] - decimales) : -decimales));
     }
-    //Fuente: https://es.stackoverflow.com/questions/48958/redondear-a-dos-decimales-cuando-sea-necesario
 
     function showModal(message, icon = 'error') {
         const Toast = Swal.mixin({
@@ -470,16 +312,11 @@
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
-        })
-
+        });
         Toast.fire({
             icon: icon,
             title: message
-        })
+        });
     }
 </script>
 @endpush
