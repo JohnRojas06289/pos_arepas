@@ -40,7 +40,7 @@ class ProductoController extends Controller
             'marca.caracteristica',
             'presentacione.caracteristica'
         ])
-            ->orderByRaw('CAST(codigo AS INTEGER) ASC')
+            ->orderByRaw('CAST(codigo AS BIGINT) ASC')
             ->get();
 
         return view('producto.index', compact('productos'));
@@ -67,7 +67,7 @@ class ProductoController extends Controller
             ->get();
 
         // Get the last product code and suggest the next one (numeric sorting)
-        $ultimoProducto = Producto::orderByRaw('CAST(codigo AS INTEGER) DESC')->first();
+        $ultimoProducto = Producto::orderByRaw('CAST(codigo AS BIGINT) DESC')->first();
         $codigoSugerido = $ultimoProducto && $ultimoProducto->codigo ? (string)((int)$ultimoProducto->codigo + 1) : '1';
 
         return view('producto.create', compact('marcas', 'presentaciones', 'categorias', 'codigoSugerido'));
