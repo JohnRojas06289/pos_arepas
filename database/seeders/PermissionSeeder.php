@@ -17,6 +17,9 @@ class PermissionSeeder extends Seeder
             //Registro de actividad
             'ver-registro-actividad',
 
+            //Panel
+            'ver-panel',
+
             //Cajas
             'ver-caja',
             'aperturar-caja',

@@ -89,11 +89,12 @@
         <div class="sb-sidenav-menu">
             <div class="nav">
 
+                @can('ver-panel')
                 <x-nav.heading>Inicio</x-nav.heading>
-
                 <x-nav.nav-link content='Panel'
                     icon='fas fa-chart-line'
                     :href="route('panel')" />
+                @endcan
 
                 <x-nav.heading>Módulos</x-nav.heading>
 

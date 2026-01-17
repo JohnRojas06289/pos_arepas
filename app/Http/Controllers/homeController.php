@@ -21,6 +21,10 @@ class homeController extends Controller
             return view('welcome');
         }
 
+        if (!Auth::user()->can('ver-panel')) {
+            return redirect()->route('ventas.create');
+        }
+
         // Filtros de fecha para la gráfica de ventas
         $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subDays(7)->format('Y-m-d'));
         $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
