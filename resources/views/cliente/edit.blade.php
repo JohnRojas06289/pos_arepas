@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Editar cliente')
 
@@ -116,3 +116,4 @@
 @push('js')
 
 @endpush
+

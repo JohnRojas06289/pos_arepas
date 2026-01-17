@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Editar Producto')
 
@@ -218,3 +218,4 @@
     });
 </script>
 @endpush
+

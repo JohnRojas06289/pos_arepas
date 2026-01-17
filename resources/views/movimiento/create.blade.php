@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Crear movimiento')
 
@@ -64,3 +64,4 @@
 @push('js')
 
 @endpush
+

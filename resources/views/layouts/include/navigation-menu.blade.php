@@ -1,4 +1,4 @@
-<style>
+﻿<style>
     /* Modern Sidebar Styles */
     .sb-sidenav-dark {
         background: linear-gradient(180deg, #1f2937 0%, #111827 100%) !important;
@@ -222,3 +222,4 @@
         </div>
     </nav>
 </div>
+

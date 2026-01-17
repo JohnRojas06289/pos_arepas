@@ -1,4 +1,4 @@
-@if (session('success'))
+﻿@if (session('success'))
 <script>
     let message = "{{ session('success') }}";
     const Toast = Swal.mixin({
@@ -52,3 +52,4 @@
     });
 </script>
 @endif
+

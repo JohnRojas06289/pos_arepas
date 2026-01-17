@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Crear usuario')
 
@@ -169,3 +169,4 @@
 @push('js')
 
 @endpush
+

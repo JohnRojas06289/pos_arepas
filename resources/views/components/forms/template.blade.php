@@ -1,4 +1,4 @@
-@props([
+﻿@props([
 'action',
 'method',
 'patch' => false,
@@ -29,3 +29,4 @@
 
     </form>
 </div>
+

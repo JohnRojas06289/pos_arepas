@@ -1,4 +1,4 @@
-@props([
+﻿@props([
 'active' => false,
 'href' => null,
 'content'
@@ -13,3 +13,4 @@
     {{ $content }}
     @endif
 </li>
+

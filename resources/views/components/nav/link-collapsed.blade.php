@@ -1,4 +1,4 @@
-<a class="nav-link collapsed" href="#"
+﻿<a class="nav-link collapsed" href="#"
     data-bs-toggle="collapse"
     data-bs-target="#{{$id}}"
     aria-expanded="false"
@@ -14,3 +14,4 @@
         {{$slot}}
     </nav>
 </div>
+

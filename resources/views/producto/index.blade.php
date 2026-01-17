@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Productos')
 
@@ -401,3 +401,4 @@
     </div>
 </div>
 @endpush
+

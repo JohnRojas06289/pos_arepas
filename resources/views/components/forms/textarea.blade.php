@@ -1,4 +1,4 @@
-@props([
+﻿@props([
 'labelText' => null,
 'id',
 'required' => false,
@@ -18,3 +18,4 @@
 @error($id)
 <small class="text-danger">{{'*'.$message}}</small>
 @enderror
+

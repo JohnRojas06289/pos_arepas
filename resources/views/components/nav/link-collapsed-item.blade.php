@@ -1,3 +1,4 @@
-<a class="nav-link" href="{{ $href }}">
+﻿<a class="nav-link" href="{{ $href }}">
     {{$content}}
 </a>
+

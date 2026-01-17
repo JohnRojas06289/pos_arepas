@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use App\Models\Empresa;
 
@@ -189,3 +189,4 @@ if (!$empresa) {
         </li>
     </ul>
 </nav>
+

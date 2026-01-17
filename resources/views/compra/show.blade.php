@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Ver compra')
 
@@ -123,3 +123,4 @@
     }
 </script>
 @endpush
+

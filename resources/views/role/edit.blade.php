@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Editar rol')
 
@@ -72,3 +72,4 @@
 @push('js')
 
 @endpush
+

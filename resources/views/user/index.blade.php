@@ -1,9 +1,9 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','usuarios')
 
 @push('css-datatable')
-<link href="{{ asset('js/simple-datatables.min.js') }}/dist/style.css" rel="stylesheet" type="text/css">
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" type="text/css">
 @endpush
 
 @push('css')
@@ -135,3 +135,4 @@
 <script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 @endpush
+

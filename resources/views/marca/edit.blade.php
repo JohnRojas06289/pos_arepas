@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Editar marca')
 
@@ -58,3 +58,4 @@
 @push('js')
 
 @endpush
+

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title','Editar proveedor')
 
@@ -117,3 +117,4 @@
 @push('js')
 
 @endpush
+
