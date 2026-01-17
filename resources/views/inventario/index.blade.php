@@ -11,8 +11,8 @@
 
 @section('content')
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Inventario</h1>
+<div class="container-fluid px-2">
+    <h1 class="mt-1 text-center">Inventario</h1>
 
     <x-breadcrumb.template>
         <x-breadcrumb.item :href="route('panel')" content="Inicio" />
@@ -148,4 +148,5 @@
     });
 </script>
 @endpush
+
 

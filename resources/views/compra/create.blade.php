@@ -30,7 +30,7 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
+<div class="container-fluid px-2">
     <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
         <div>
             <h1>Crear Compra</h1>
@@ -321,4 +321,5 @@
     }
 </script>
 @endpush
+
 

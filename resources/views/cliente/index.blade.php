@@ -8,7 +8,7 @@
 
 @section('content')
 
-<div class="container-fluid px-4">
+<div class="container-fluid px-2">
     <!-- Page Header -->
     <div class="page-header" style="background: var(--color-primary); color: white;">
         <h1 style="color: white;"><i class="fas fa-users"></i> Clientes</h1>
@@ -232,4 +232,5 @@
     }
 </script>
 @endpush
+
 

@@ -12,8 +12,8 @@
 
 @section('content')
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Proveedores</h1>
+<div class="container-fluid px-2">
+    <h1 class="mt-1 text-center">Proveedores</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
         <li class="breadcrumb-item active">Proveedores</li>
@@ -138,4 +138,5 @@
 <script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 @endpush
+
 

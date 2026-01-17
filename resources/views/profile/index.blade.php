@@ -9,7 +9,7 @@
 @section('content')
 
 <div class="container-fluid">
-    <h1 class="mt-4 mb-4 text-center">Configurar perfil</h1>
+    <h1 class="mt-1 mb-4 text-center">Configurar perfil</h1>
 
     <div class="card">
         <div class="card-header">
@@ -65,4 +65,5 @@
 @push('js')
 
 @endpush
+
 

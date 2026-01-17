@@ -8,7 +8,7 @@
 
 @section('content')
 
-<div class="container-fluid px-4">
+<div class="container-fluid px-2">
     <!-- Page Header -->
     <div class="page-header">
         <h1><i class="fas fa-box-open"></i> Productos</h1>
@@ -401,4 +401,5 @@
     </div>
 </div>
 @endpush
+
 

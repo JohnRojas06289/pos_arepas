@@ -13,8 +13,8 @@
 
 @section('content')
 
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Kardex</h1>
+<div class="container-fluid px-2">
+    <h1 class="mt-1 text-center">Kardex</h1>
 
     <x-breadcrumb.template>
         <x-breadcrumb.item :href="route('panel')" content="Inicio" />
@@ -112,4 +112,5 @@
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta3/dist/js/bootstrap-select.min.js"></script>
 @endpush
+
 

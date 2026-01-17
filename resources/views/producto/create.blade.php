@@ -13,8 +13,8 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Crear Producto</h1>
+<div class="container-fluid px-2">
+    <h1 class="mt-1 text-center">Crear Producto</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
         <li class="breadcrumb-item"><a href="{{ route('productos.index')}}">Productos</a></li>
@@ -187,4 +187,5 @@
     });
 </script>
 @endpush
+
 

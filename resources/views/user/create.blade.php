@@ -7,8 +7,8 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4 text-center">Crear Usuario</h1>
+<div class="container-fluid px-2">
+    <h1 class="mt-1 text-center">Crear Usuario</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
         <li class="breadcrumb-item"><a href="{{ route('users.index')}}">Usuarios</a></li>
@@ -169,4 +169,5 @@
 @push('js')
 
 @endpush
+
 
