@@ -210,7 +210,7 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-4">
+<div class="container-fluid px-2">
 
     
     <!-- Filtros de Fecha Mejorados -->
