@@ -30,6 +30,7 @@
             <table id="datatablesSimple" class="table-striped fs-6">
                 <thead>
                     <tr>
+                        <th>Código</th>
                         <th>Producto</th>
                         <th>Stock</th>
 
@@ -41,7 +42,10 @@
                     @foreach ($inventario as $item)
                     <tr>
                         <td>
-                            {{$item->producto->nombre_completo}}
+                            {{$item->producto->codigo}}
+                        </td>
+                        <td>
+                             {{$item->producto->nombre}} - Presentación: {{$item->producto->presentacione->sigla}}
                         </td>
                         <td>
                             {{$item->cantidad}}
