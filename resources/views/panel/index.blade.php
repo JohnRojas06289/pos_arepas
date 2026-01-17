@@ -211,16 +211,7 @@
 
 @section('content')
 <div class="container-fluid px-4">
-    <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <div class="d-flex align-items-center justify-content-between">
 
-            <div class="text-end">
-                <div class="small opacity-75">Última actualización</div>
-                <div class="fw-bold">{{ now()->format('d/m/Y H:i') }}</div>
-            </div>
-        </div>
-    </div>
     
     <!-- Filtros de Fecha Mejorados -->
     <div class="filter-card">
