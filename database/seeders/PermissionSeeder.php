@@ -109,9 +109,15 @@ class PermissionSeeder extends Seeder
         ];
 
         foreach ($permisos as $permiso) {
-            Permission::create([
+            Permission::firstOrCreate([
                 'name' => $permiso
             ]);
+        }
+
+        // Asignar todos los permisos al rol de administrador
+        $role = \Spatie\Permission\Models\Role::where('name', 'administrador')->first();
+        if ($role) {
+            $role->syncPermissions(Permission::all());
         }
     }
 }
