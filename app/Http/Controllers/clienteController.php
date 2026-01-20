@@ -119,14 +119,16 @@ class clienteController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         try {
-            $persona = Persona::findOrfail($id);
+            $cliente = Cliente::findOrfail($id);
+            $persona = $cliente->persona;
 
             $nuevoEstado = $persona->estado == 1 ? 0 : 1;
             $persona->update(['estado' => $nuevoEstado]);
             $message = $nuevoEstado == 1 ? 'Cliente restaurado' : 'Cliente eliminado';
 
             ActivityLogService::log($message, 'Clientes', [
-                'persona_id' => $id,
+                'cliente_id' => $id,
+                'persona_id' => $persona->id,
                 'estado' => $nuevoEstado
             ]);
 
