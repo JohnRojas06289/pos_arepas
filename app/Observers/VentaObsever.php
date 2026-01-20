@@ -24,6 +24,14 @@ class VentaObsever
             }
             
             $tipoComprobante = Comprobante::findOrFail($venta->comprobante_id)->nombre;
+            
+            // Check if client is "Fiado"
+            $cliente = \App\Models\Cliente::find($venta->cliente_id);
+            if ($cliente && $cliente->isFiado()) {
+                $venta->pagado = false;
+            } else {
+                $venta->pagado = true;
+            }
 
             $venta->user_id = Auth::id();
             $venta->caja_id = $caja->id;

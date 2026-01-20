@@ -51,7 +51,11 @@ class clienteController extends Controller
         try {
             DB::beginTransaction();
             $persona = Persona::create($request->validated());
-            $persona->cliente()->create([]);
+            
+            // Validate and create Cliente with tipo_cliente
+            $clienteData = ['tipo_cliente' => $request->input('tipo_cliente', 'general')];
+            $persona->cliente()->create($clienteData);
+            
             DB::commit();
 
             ActivityLogService::log('Creacion de cliente', 'Clientes', $request->validated());
@@ -89,6 +93,12 @@ class clienteController extends Controller
     {
         try {
             $cliente->persona->update($request->validated());
+            
+            // Update tipo_cliente if present
+            if ($request->has('tipo_cliente')) {
+                $cliente->update(['tipo_cliente' => $request->input('tipo_cliente')]);
+            }
+            
             ActivityLogService::log('Edición de cliente', 'Clientes', $request->validated());
 
             return redirect()->route('clientes.index')->with('success', 'Cliente editado');

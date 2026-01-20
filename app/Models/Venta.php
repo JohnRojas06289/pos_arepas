@@ -18,6 +18,10 @@ class Venta extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'pagado' => 'boolean',
+    ];
+
     public function caja(): BelongsTo
     {
         return $this->belongsTo(Caja::class);
@@ -43,6 +47,22 @@ class Venta extends Model
         return $this->belongsToMany(Producto::class)
             ->withTimestamps()
             ->withPivot('cantidad', 'precio_venta');
+    }
+
+    /**
+     * Scope to filter paid sales
+     */
+    public function scopePagadas($query)
+    {
+        return $query->where('pagado', true);
+    }
+
+    /**
+     * Scope to filter unpaid (pending) sales
+     */
+    public function scopePendientes($query)
+    {
+        return $query->where('pagado', false);
     }
 
      /**

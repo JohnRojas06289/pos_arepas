@@ -41,7 +41,14 @@
 
             <!-- Client Info -->
             <div class="item-info">
-                <h3>{{ $item->persona->razon_social }}</h3>
+                <div class="d-flex align-items-center gap-2">
+                    <h3>{{ $item->persona->razon_social }}</h3>
+                    @if($item->tipo_cliente == 'fiado')
+                        <span class="badge bg-warning text-dark">Crédito</span>
+                    @else
+                        <span class="badge bg-success">Contado</span>
+                    @endif
+                </div>
                 <div class="d-flex gap-4 mt-2">
                     <span class="text-muted">
                         <i class="fas fa-id-card me-1"></i>

@@ -29,6 +29,18 @@
 
                     <!----Tipo de persona----->
                     <div class="col-md-6">
+                        <label for="tipo_cliente" class="form-label">Tipo de facturación:</label>
+                        <select class="form-select" name="tipo_cliente" id="tipo_cliente">
+                            <option value="general" {{ old('tipo_cliente') == 'general' ? 'selected' : '' }}>General (Contado)</option>
+                            <option value="fiado" {{ old('tipo_cliente') == 'fiado' ? 'selected' : '' }}>Fiado (Crédito)</option>
+                        </select>
+                        @error('tipo_cliente')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!----Tipo de persona (Juridica/Natural)----->
+                    <div class="col-md-6">
                         <label for="tipo" class="form-label">Tipo de cliente:</label>
                         <select class="form-select" name="tipo" id="tipo">
                             <option value="" selected disabled>Seleccione una opción</option>

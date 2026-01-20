@@ -25,6 +25,14 @@ class CreateMovimientoVentaCajaListener
      */
     public function handle(CreateVentaEvent $event): void
     {
+        if ($event->venta->metodo_pago === \App\Enums\MetodoPagoEnum::Cliente->value) {
+            return;
+        }
+        
+        // Prevent movement creation for unpaid (credit) sales
+        if (!$event->venta->pagado) {
+            return;
+        }
         $caja_id = Caja::where('user_id', Auth::id())->where('estado', 1)->first()->id;
 
         try {

@@ -28,8 +28,20 @@
 
                 <div class="row g-3">
 
+                    <!----Tipo de cliente----->
+                    <div class="col-md-6">
+                        <label for="tipo_cliente" class="form-label">Tipo de facturación:</label>
+                        <select class="form-select" name="tipo_cliente" id="tipo_cliente">
+                            <option value="general" {{ old('tipo_cliente', $cliente->tipo_cliente) == 'general' ? 'selected' : '' }}>General (Contado)</option>
+                            <option value="fiado" {{ old('tipo_cliente', $cliente->tipo_cliente) == 'fiado' ? 'selected' : '' }}>Fiado (Crédito)</option>
+                        </select>
+                        @error('tipo_cliente')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
                     <!-------Razón social------->
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label id="label-juridica" for="razon_social" class="form-label">
                             {{ $cliente->persona->tipo->value == 'NATURAL' ? 'Nombres y apellidos:' : 'Nombre de la empresa:'}}
                         </label>
