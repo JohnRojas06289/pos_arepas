@@ -100,7 +100,7 @@
 
                 @can('eliminar-cliente')
                 <button class="btn-icon-large btn-delete" 
-                        onclick="confirmDelete({{$item->id}})"
+                        onclick="confirmDelete('{{$item->id}}')"
                         title="Eliminar">
                     <i class="fas fa-trash"></i>
                 </button>
