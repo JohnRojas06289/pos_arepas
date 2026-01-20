@@ -54,6 +54,14 @@ class Cliente extends Model
             ->sum('total');
     }
 
+    /**
+     * Check if client is admin (internal consumption) type
+     */
+    public function isAdmin(): bool
+    {
+        return $this->tipo_cliente === 'admin';
+    }
+
      /**
      * Obtener la razon social, tipo y número de documento del cliente
      * @return string

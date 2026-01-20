@@ -513,6 +513,39 @@
             </div>
         </div>
     </div>
+    <!-- Mobile Cart Toggle Button -->
+    <button type="button" class="cart-toggle-mobile" id="cartToggleMobile" onclick="toggleMobileCart()">
+        <i class="fa-solid fa-shopping-cart"></i>
+        <span class="badge" id="cartCountMobile">0</span>
+    </button>
+    
+    <!-- Modal Clientes -->
+    <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title">Seleccionar Cliente</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente..." onkeyup="filterClients()">
+                    </div>
+                    <div class="list-group" id="clientListGroup" style="max-height: 400px; overflow-y: auto;">
+                        @foreach($clientes as $client)
+                            @if(strtolower($client->persona->razon_social) == 'indefinido' || $client->persona->numero_documento == '1111111111')
+                                @continue
+                            @endif
+                            <button type="button" class="list-group-item list-group-item-action client-item" 
+                                    onclick="selectClient('{{$client->id}}', '{{addslashes($client->persona->razon_social)}}')">
+                                {{$client->persona->razon_social}} <small class="text-muted">({{$client->persona->numero_documento}})</small>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </form>
 @endsection
 

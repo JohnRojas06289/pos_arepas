@@ -33,6 +33,7 @@
                         <select class="form-select" name="tipo_cliente" id="tipo_cliente">
                             <option value="general" {{ old('tipo_cliente') == 'general' ? 'selected' : '' }}>General (Contado)</option>
                             <option value="fiado" {{ old('tipo_cliente') == 'fiado' ? 'selected' : '' }}>Fiado (Crédito)</option>
+                            <option value="admin" {{ old('tipo_cliente') == 'admin' ? 'selected' : '' }}>Admin (Consumo Interno)</option>
                         </select>
                         @error('tipo_cliente')
                         <small class="text-danger">{{'*'.$message}}</small>

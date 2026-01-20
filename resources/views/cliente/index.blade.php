@@ -45,6 +45,8 @@
                     <h3>{{ $item->persona->razon_social }}</h3>
                     @if($item->tipo_cliente == 'fiado')
                         <span class="badge bg-warning text-dark">Crédito</span>
+                    @elseif($item->tipo_cliente == 'admin')
+                        <span class="badge bg-info text-dark">Consumo Interno</span>
                     @else
                         <span class="badge bg-success">Contado</span>
                     @endif

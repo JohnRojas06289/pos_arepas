@@ -25,10 +25,20 @@ class VentaObsever
             
             $tipoComprobante = Comprobante::findOrFail($venta->comprobante_id)->nombre;
             
-            // Check if client is "Fiado"
+            // Check client type logic
             $cliente = \App\Models\Cliente::find($venta->cliente_id);
-            if ($cliente && $cliente->isFiado()) {
-                $venta->pagado = false;
+            if ($cliente) {
+                if ($cliente->isAdmin()) {
+                    // Admin: Consumo interno. Pagado = true (no debt), Metodo = CLIENTE (no cash movement)
+                    $venta->pagado = true;
+                    $venta->metodo_pago = \App\Enums\MetodoPagoEnum::Cliente->value; // Force 'CLIENTE' method
+                } elseif ($cliente->isFiado()) {
+                    // Fiado: Credit sale. Pagado = false (debt), Metodo = defined by user (usually ignored/default)
+                    $venta->pagado = false;
+                } else {
+                    // General: Cash sale. Pagado = true, Metodo = defined by user
+                    $venta->pagado = true;
+                }
             } else {
                 $venta->pagado = true;
             }
