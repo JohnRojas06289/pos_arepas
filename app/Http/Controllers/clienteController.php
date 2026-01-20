@@ -29,7 +29,12 @@ class clienteController extends Controller
      */
     public function index(): View
     {
-        $clientes = Cliente::with('persona.documento')->latest()->get();
+        $clientes = Cliente::with('persona.documento')
+            ->whereHas('persona', function($query) {
+                $query->where('estado', 1);
+            })
+            ->latest()
+            ->get();
         return view('cliente.index', compact('clientes'));
     }
 
