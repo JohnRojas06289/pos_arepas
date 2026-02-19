@@ -16,10 +16,25 @@ class Venta extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'user_id',
+        'cliente_id',
+        'comprobante_id',
+        'numero_comprobante',
+        'metodo_pago',
+        'fecha_hora',
+        'subtotal',
+        'total',
+        'monto_recibido',
+        'vuelto_entregado',
+        'pagado',
+        'saldo_pendiente', // New column
+        'revertida'
+    ];
 
     protected $casts = [
-        'pagado' => 'boolean',
+        // 'pagado' => 'boolean', // Commented out to prevent int casting issue in PGSQL
+        'saldo_pendiente' => 'decimal:2',
     ];
 
     public function caja(): BelongsTo

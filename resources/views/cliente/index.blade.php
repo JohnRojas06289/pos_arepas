@@ -44,12 +44,18 @@
                 <div class="d-flex align-items-center gap-2">
                     <h3>{{ $item->persona->razon_social }}</h3>
                     @if($item->tipo_cliente == 'fiado')
-                        <span class="badge bg-warning text-dark">Crédito</span>
-                    @elseif($item->tipo_cliente == 'admin')
-                        <span class="badge bg-info text-dark">Consumo Interno</span>
+                    <span class="badge bg-warning text-dark">Crédito</span>
+                    @php $deuda = $item->getSaldoPendiente(); @endphp
+                    @if($deuda > 0)
+                        <span class="badge bg-danger ms-2">Deuda: ${{number_format($deuda, 0)}}</span>
                     @else
-                        <span class="badge bg-success">Contado</span>
+                        <span class="badge bg-success ms-2">Al día</span>
                     @endif
+                @elseif($item->tipo_cliente == 'admin')
+                    <span class="badge bg-info text-dark">Consumo Interno</span>
+                @else
+                    <span class="badge bg-success">Contado</span>
+                @endif
                 </div>
                 <div class="d-flex gap-4 mt-2">
                     <span class="text-muted">
@@ -81,6 +87,15 @@
 
             <!-- Actions -->
             <div class="item-actions">
+                @if($item->tipo_cliente == 'fiado' && $item->getSaldoPendiente() > 0)
+                <button class="btn-icon-large btn-primary" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#pagarModal-{{$item->id}}"
+                        title="Registrar Abono">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                </button>
+                @endif
+
                 @can('ver-cliente')
                 <button class="btn-icon-large btn-view" 
                         data-bs-toggle="modal" 
@@ -113,6 +128,47 @@
                 </form>
                 @endcan
             </div>
+        </div>
+
+        @if($item->tipo_cliente == 'fiado')
+        <!-- Modal Pagar Deuda -->
+        <div class="modal fade" id="pagarModal-{{$item->id}}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h1 class="modal-title fs-5">Registrar Abono - {{$item->persona->razon_social}}</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('clientes.pagarDeuda', $item) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Deuda Actual:</label>
+                                <div class="fs-4 text-danger">${{ number_format($item->getSaldoPendiente(), 0) }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="monto-{{$item->id}}" class="form-label">Monto a Abonar</label>
+                                <input type="number" class="form-control" name="monto" id="monto-{{$item->id}}" required min="1" max="{{$item->getSaldoPendiente()}}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="metodo-{{$item->id}}" class="form-label">Método de Pago</label>
+                                <select class="form-select" name="metodo_pago" id="metodo-{{$item->id}}" required>
+                                    <option value="EFECTIVO">Efectivo</option>
+                                    <option value="TARJETA">Tarjeta</option>
+                                    <option value="NEQUI">Nequi</option>
+                                    <option value="DAVIPLATA">Daviplata</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Registrar Pago</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endif
         </div>
 
         <!-- Modal Ver Cliente -->

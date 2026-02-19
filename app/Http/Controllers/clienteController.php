@@ -11,6 +11,13 @@ use App\Models\Persona;
 use App\Services\ActivityLogService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Enums\MetodoPagoEnum;
+use App\Enums\TipoMovimientoEnum;
+use App\Models\Caja;
+use App\Models\Movimiento;
+use App\Models\Venta;
+use Illuminate\Http\Request; // Importación correcta de Request
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -136,6 +143,74 @@ class clienteController extends Controller
         } catch (Throwable $e) {
             Log::error('Error al eliminar/restaurar al cliente', ['error' => $e->getMessage()]);
             return redirect()->route('clientes.index')->with('error', 'Ups, algo falló');
+        }
+    }
+
+    /**
+     * Pagar deuda de cliente (Abono)
+     */
+    public function pagarDeuda(Request $request, Cliente $cliente)
+    {
+        $request->validate([
+            'monto' => 'required|numeric|min:1',
+            'metodo_pago' => ['required', new \Illuminate\Validation\Rules\Enum(MetodoPagoEnum::class)],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $montoAbono = $request->input('monto');
+            $metodoPago = $request->input('metodo_pago');
+            
+            // 1. Validar Caja Abierta
+            $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
+            if (!$caja) {
+                return redirect()->back()->with('error', 'No tienes una caja abierta para registrar el pago.');
+            }
+
+            // 2. Registrar Movimiento en Caja (Ingreso)
+            Movimiento::create([
+                'tipo' => TipoMovimientoEnum::Ingreso, 
+                'descripcion' => 'Abono deuda cliente: ' . $cliente->persona->razon_social,
+                'monto' => $montoAbono,
+                'metodo_pago' => $metodoPago,
+                'caja_id' => $caja->id
+            ]);
+
+            // 3. Distribuir el abono en las ventas pendientes (FIFO)
+            $ventasPendientes = $cliente->ventas()
+                ->where('pagado', false)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            $montoRestante = $montoAbono;
+
+            foreach ($ventasPendientes as $venta) {
+                if ($montoRestante <= 0) break;
+
+                if ($venta->saldo_pendiente <= $montoRestante) {
+                    // Paga toda esta venta
+                    $montoRestante -= $venta->saldo_pendiente;
+                    $venta->saldo_pendiente = 0;
+                    $venta->pagado = true;
+                } else {
+                    // Paga parcial
+                    $venta->saldo_pendiente -= $montoRestante;
+                    $montoRestante = 0;
+                    // Sigue impaga
+                }
+                $venta->save();
+            }
+
+            DB::commit();
+            ActivityLogService::log('Pago de deuda', 'Clientes', ['cliente_id' => $cliente->id, 'monto' => $montoAbono]);
+
+            return redirect()->back()->with('success', 'Abono registrado correctamente.');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al registrar pago de deuda', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
         }
     }
 }

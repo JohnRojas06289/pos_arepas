@@ -130,6 +130,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::post('productos/import', [ProductoController::class, 'import'])->name('productos.import');
     Route::resource('productos', ProductoController::class)->except('show', 'destroy');
     Route::resource('clientes', clienteController::class)->except('show');
+    Route::post('clientes/{cliente}/pagar-deuda', [clienteController::class, 'pagarDeuda'])->name('clientes.pagarDeuda');
     Route::resource('proveedores', proveedorController::class)->except('show');
     Route::resource('compras', compraController::class)->except('edit', 'update', 'destroy');
     Route::resource('ventas', ventaController::class)->except('edit', 'update', 'destroy');

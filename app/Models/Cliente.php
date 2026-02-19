@@ -51,7 +51,7 @@ class Cliente extends Model
     {
         return $this->ventas()
             ->where('pagado', false)
-            ->sum('total');
+            ->sum('saldo_pendiente');
     }
 
     /**
