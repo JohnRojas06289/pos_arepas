@@ -222,7 +222,7 @@
                         <hr class="my-4">
                         <h5 class="mb-3"><i class="fas fa-file-invoice-dollar me-2 text-danger"></i>Detalle de Deuda</h5>
                         @php
-                            $ventasPendientes = $item->ventas()->whereRaw('"pagado" = false')->orderBy('created_at', 'desc')->get();
+                            $ventasPendientes = $item->ventas()->with('productos')->whereRaw('"pagado" = false')->orderBy('created_at', 'desc')->get();
                             $totalDeuda = $ventasPendientes->sum('saldo_pendiente');
                         @endphp
                         @if($ventasPendientes->count() > 0)
@@ -238,7 +238,7 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Fecha</th>
-                                        <th>Comprobante</th>
+                                        <th>Productos</th>
                                         <th class="text-end">Total Venta</th>
                                         <th class="text-end">Saldo Pendiente</th>
                                     </tr>
@@ -247,7 +247,11 @@
                                     @foreach($ventasPendientes as $vp)
                                     <tr>
                                         <td>{{ \Carbon\Carbon::parse($vp->fecha_hora)->format('d/m/Y H:i') }}</td>
-                                        <td><span class="badge bg-secondary">{{ $vp->numero_comprobante }}</span></td>
+                                        <td>
+                                            @foreach($vp->productos as $prod)
+                                            <div><small>{{ $prod->nombre }} <span class="badge bg-primary rounded-pill">x{{ $prod->pivot->cantidad }}</span></small></div>
+                                            @endforeach
+                                        </td>
                                         <td class="text-end">${{ number_format($vp->total, 0) }}</td>
                                         <td class="text-end fw-bold text-danger">${{ number_format($vp->saldo_pendiente, 0) }}</td>
                                     </tr>
