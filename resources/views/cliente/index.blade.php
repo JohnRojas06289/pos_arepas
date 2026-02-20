@@ -169,7 +169,6 @@
             </div>
         </div>
         @endif
-        </div>
 
         <!-- Modal Ver Cliente -->
         <div class="modal fade" id="verModal-{{$item->id}}" tabindex="-1" aria-hidden="true">
@@ -217,6 +216,57 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($item->tipo_cliente == 'fiado')
+                        <!-- Sección Detalle de Deuda -->
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="fas fa-file-invoice-dollar me-2 text-danger"></i>Detalle de Deuda</h5>
+                        @php
+                            $ventasPendientes = $item->ventas()->whereRaw('"pagado" = false')->orderBy('created_at', 'desc')->get();
+                            $totalDeuda = $ventasPendientes->sum('saldo_pendiente');
+                        @endphp
+                        @if($ventasPendientes->count() > 0)
+                        <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+                            <div>
+                                <strong>Deuda Total: ${{ number_format($totalDeuda, 0) }}</strong>
+                                <span class="ms-2 text-muted">({{ $ventasPendientes->count() }} {{ $ventasPendientes->count() == 1 ? 'venta' : 'ventas' }} pendientes)</span>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped table-hover align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Comprobante</th>
+                                        <th class="text-end">Total Venta</th>
+                                        <th class="text-end">Saldo Pendiente</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($ventasPendientes as $vp)
+                                    <tr>
+                                        <td>{{ \Carbon\Carbon::parse($vp->fecha_hora)->format('d/m/Y H:i') }}</td>
+                                        <td><span class="badge bg-secondary">{{ $vp->numero_comprobante }}</span></td>
+                                        <td class="text-end">${{ number_format($vp->total, 0) }}</td>
+                                        <td class="text-end fw-bold text-danger">${{ number_format($vp->saldo_pendiente, 0) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="table-warning">
+                                    <tr>
+                                        <td colspan="3" class="text-end fw-bold">Total Deuda:</td>
+                                        <td class="text-end fw-bold text-danger fs-5">${{ number_format($totalDeuda, 0) }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        @else
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>Este cliente no tiene deudas pendientes.
+                        </div>
+                        @endif
+                        @endif
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-modern-primary" data-bs-dismiss="modal">
