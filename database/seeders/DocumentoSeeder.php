@@ -12,23 +12,17 @@ class DocumentoSeeder extends Seeder
      */
     public function run(): void
     {
-        Documento::insert([
-            [
-                'id' => \Illuminate\Support\Str::uuid(),
-                'nombre' => 'DNI',
-            ],
-            [
-                'id' => \Illuminate\Support\Str::uuid(),
-                'nombre' => 'Pasaporte',
-            ],
-            [
-                'id' => \Illuminate\Support\Str::uuid(),
-                'nombre' => 'RUC',
-            ],
-            [
-                'id' => \Illuminate\Support\Str::uuid(),
-                'nombre' => 'Carnet Extranjería',
-            ],
-        ]);
+        $documentos = [
+            'Cédula de ciudadania',
+            'Pasaporte',
+            'NIT',
+            'Cédula de extranjeria'
+        ];
+
+        foreach ($documentos as $nombre) {
+            Documento::create([
+                'nombre' => $nombre
+            ]);
+        }
     }
 }

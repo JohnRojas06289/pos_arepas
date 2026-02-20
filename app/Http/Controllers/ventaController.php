@@ -66,7 +66,8 @@ class ventaController extends Controller
         }
 
         // Verificar productos (sin bloquear si está vacío)
-        $productos = Producto::join('inventario as i', function ($join) {
+        // Verificar productos (sin bloquear si está vacío)
+        $productos = Producto::leftJoin('inventario as i', function ($join) {
             $join->on('i.producto_id', '=', 'productos.id');
         })
             ->leftJoin('presentaciones as p', function ($join) {
@@ -77,13 +78,12 @@ class ventaController extends Controller
                 'productos.nombre',
                 'productos.codigo',
                 'productos.id',
-                'i.cantidad',
+                DB::raw("COALESCE(i.cantidad, 0) as cantidad"),
                 'productos.precio',
                 'productos.img_path',
                 'productos.categoria_id'
             )
             ->where('productos.estado', 1)
-            ->where('i.cantidad', '>', 0)
             ->get();
 
         // ELIMINADO EL BLOQUEO DE INVENTARIO VACÍO POR SOLICITUD DEL USUARIO

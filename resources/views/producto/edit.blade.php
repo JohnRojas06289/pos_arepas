@@ -30,7 +30,7 @@
                 <div class="row g-4">
 
                     <!----Codigo---->
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="codigo" class="form-label">Código:</label>
                         <input type="text" name="codigo" id="codigo"
                             class="form-control"
@@ -40,31 +40,24 @@
                         @enderror
                     </div>
 
-                    <div class="col-md-6">
-                        <p class="form-label">Código de barras</p>
-
-                        <?php
-                        require base_path('vendor/autoload.php');
-                        $codigo = $producto->codigo;
-                        $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
-
-                        try {
-                            echo '<img src="data:image/png;base64,' . base64_encode($generator->getBarcode($codigo, $generator::TYPE_EAN_13)) . '">';
-                        } catch (Exception $e) {
-                            echo "Formato no compatible";
-                        }
-                        ?>
-                    </div>
-
                     <!---Nombre---->
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label for="nombre" class="form-label">Nombre:</label>
                         <input type="text"
                             name="nombre"
                             id="nombre"
                             class="form-control"
-                            value="{{old('nombre',$producto->nombre)}}">
+                            value="{{old('nombre',$producto->nombre)}}" required>
                         @error('nombre')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!---Precio (Nuevo)---->
+                    <div class="col-md-3">
+                        <label for="precio" class="form-label">Precio Venta:</label>
+                        <input type="number" name="precio" id="precio" class="form-control" step="0.01" min="0" value="{{old('precio', $producto->precio)}}">
+                        @error('precio')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror
                     </div>
@@ -75,7 +68,7 @@
                         <textarea
                             name="descripcion"
                             id="descripcion"
-                            rows="3"
+                            rows="2"
                             class="form-control">{{old('descripcion',$producto->descripcion)}}</textarea>
                         @error('descripcion')
                         <small class="text-danger">{{'*'.$message}}</small>
@@ -83,105 +76,148 @@
                     </div>
 
                 </div>
+                
+                <hr>
+
+                <div class="row g-4">
+                    <!---Talla---->
+                    <div class="col-md-3">
+                        <label for="presentacione_id" class="form-label">Talla (Opcional):</label>
+                        <select data-size="4"
+                            title="Seleccione una talla"
+                            data-live-search="true"
+                            name="presentacione_id"
+                            id="presentacione_id"
+                            class="form-control selectpicker show-tick">
+                            <option value="">Ninguna</option>
+                            @foreach ($presentaciones as $item)
+                            <option value="{{$item->id}}"
+                                {{$producto->presentacione_id == $item->id || old('presentacione_id') == $item->id ? 'selected' : '' }}>
+                                {{$item->nombre}}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('presentacione_id')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!---Color---->
+                    <div class="col-md-3">
+                        <label for="color" class="form-label">Color:</label>
+                        <input type="text" name="color" id="color" class="form-control" value="{{old('color', $producto->color)}}">
+                        @error('color')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!---Material---->
+                    <div class="col-md-3">
+                        <label for="material" class="form-label">Material:</label>
+                        <input type="text" name="material" id="material" class="form-control" value="{{old('material', $producto->material)}}">
+                        @error('material')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <!---Género---->
+                    <div class="col-md-3">
+                        <label for="genero" class="form-label">Género:</label>
+                        <select name="genero" id="genero" class="form-control selectpicker show-tick">
+                            <option value="Unisex" {{ (old('genero') == 'Unisex' || $producto->genero == 'Unisex') ? 'selected' : '' }}>Unisex</option>
+                            <option value="Hombre" {{ (old('genero') == 'Hombre' || $producto->genero == 'Hombre') ? 'selected' : '' }}>Hombre</option>
+                            <option value="Mujer" {{ (old('genero') == 'Mujer' || $producto->genero == 'Mujer') ? 'selected' : '' }}>Mujer</option>
+                        </select>
+                        @error('genero')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+                </div>
 
                 <br>
 
                 <div class="row g-4">
-
-                    <div class="col-md-6">
-
-                        <div class="row g-4">
-
-                            <!---Imagen---->
-                            <div class="col-12">
-                                <label for="img_path" class="form-label">Imagen:</label>
-                                <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*">
-                                @error('img_path')
-                                <small class="text-danger">{{'*'.$message}}</small>
-                                @enderror
-                            </div>
-
-                            <!---Marca---->
-                            <div class="col-12">
-                                <label for="marca_id" class="form-label">Marca:</label>
-                                <select data-size="4"
-                                    title="Seleccione una marca"
-                                    data-live-search="true"
-                                    name="marca_id"
-                                    id="marca_id"
-                                    class="form-control selectpicker show-tick">
-                                    <option value="">No tiene marca</option>
-                                    @foreach ($marcas as $item)
-                                    <option value="{{$item->id}}"
-                                        {{$producto->marca_id == $item->id || old('marca_id') == $item->id ? 'selected' : '' }}>
-                                        {{$item->nombre}}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('marca_id')
-                                <small class="text-danger">{{'*'.$message}}</small>
-                                @enderror
-                            </div>
-
-                            <!---Presentaciones---->
-                            <div class="col-12">
-                                <label for="presentacione_id" class="form-label">Presentación:</label>
-                                <select data-size="4"
-                                    title="Seleccione una presentación"
-                                    data-live-search="true"
-                                    name="presentacione_id"
-                                    id="presentacione_id"
-                                    class="form-control selectpicker show-tick">
-                                    @foreach ($presentaciones as $item)
-                                    <option value="{{$item->id}}"
-                                        {{$producto->presentacione_id == $item->id || old('presentacione_id') == $item->id ? 'selected' : '' }}>
-                                        {{$item->nombre}}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('presentacione_id')
-                                <small class="text-danger">{{'*'.$message}}</small>
-                                @enderror
-                            </div>
-
-                            <!---Categoría---->
-                            <div class="col-12">
-                                <label for="categoria_id" class="form-label">Categoría:</label>
-                                <select data-size="4"
-                                    title="Seleccione la categoría"
-                                    data-live-search="true"
-                                    name="categoria_id"
-                                    id="categoria_id"
-                                    class="form-control selectpicker show-tick">
-                                    <option value="">No tiene categoría</option>
-                                    @foreach ($categorias as $item)
-                                    <option value="{{$item->id}}"
-                                        {{ $producto->categoria_id == $item->id || old('categoria_id') == $item->id ? 'selected' : '' }}>
-                                        {{$item->nombre}}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('categoria_id')
-                                <small class="text-danger">{{'*'.$message}}</small>
-                                @enderror
-                            </div>
-                        </div>
-
+                    <!---Marca---->
+                    <div class="col-md-4">
+                        <label for="marca_id" class="form-label">Marca (Opcional):</label>
+                        <select data-size="4"
+                            title="Seleccione una marca"
+                            data-live-search="true"
+                            name="marca_id"
+                            id="marca_id"
+                            class="form-control selectpicker show-tick">
+                            <option value="">No tiene marca</option>
+                            @foreach ($marcas as $item)
+                            <option value="{{$item->id}}"
+                                {{$producto->marca_id == $item->id || old('marca_id') == $item->id ? 'selected' : '' }}>
+                                {{$item->nombre}}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('marca_id')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
                     </div>
 
-                    <div class="col-md-6">
-                        <p>Imagen del producto:</p>
+                    <!---Categoría---->
+                    <div class="col-md-4">
+                        <label for="categoria_id" class="form-label">Categoría (Opcional):</label>
+                        <select data-size="4"
+                            title="Seleccione la categoría"
+                            data-live-search="true"
+                            name="categoria_id"
+                            id="categoria_id"
+                            class="form-control selectpicker show-tick">
+                            <option value="">No tiene categoría</option>
+                            @foreach ($categorias as $item)
+                            <option value="{{$item->id}}"
+                                {{ $producto->categoria_id == $item->id || old('categoria_id') == $item->id ? 'selected' : '' }}>
+                                {{$item->nombre}}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('categoria_id')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
 
-                        <img id="img-default"
+                    <!---Imagen---->
+                    <div class="col-md-4">
+                        <label for="img_path" class="form-label">Imagen:</label>
+                        <input type="file" name="img_path" id="img_path" class="form-control" accept="image/*">
+                        @error('img_path')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12 text-center">
+                        <p>Imagen del producto:</p>
+                         <img id="img-default"
                             class="img-fluid"
+                            style="max-height: 200px;"
                             src="{{ $producto->img_path ? $producto->image_url : asset('assets/img/paisaje.png') }}"
                             alt="Imagen por defecto">
 
-                        <img src="" alt="Ha cargado un archivo no compatible"
+                        <img src="" alt="Vista previa"
                             id="img-preview"
-                            class="img-fluid img-thumbnail" style="display: none;">
+                            class="img-fluid img-thumbnail" 
+                            style="display: none; max-height: 200px;">
                     </div>
-
+                    <div class="col-12 text-center mt-2">
+                         <p class="form-label">Código de barras</p>
+                         <?php
+                         try {
+                             $generator = new Picqer\Barcode\BarcodeGeneratorPNG();
+                             if($producto->codigo) {
+                                echo '<img src="data:image/png;base64,' . base64_encode($generator->getBarcode($producto->codigo, $generator::TYPE_EAN_13)) . '">';
+                             }
+                         } catch (Exception $e) {
+                             echo "Sin código de barras compatible";
+                         }
+                         ?>
+                    </div>
                 </div>
 
             </div>
@@ -206,48 +242,56 @@
     const imagenDefault = document.getElementById('img-default');
     const submitBtn = document.querySelector('button[type="submit"]');
 
-    inputImagen.addEventListener('change', async function() {
-        if (this.files && this.files[0]) {
-            const file = this.files[0];
-            
-            // Si la imagen es mayor a 1MB, comprimir
-            if (file.size > 1024 * 1024) {
-                submitBtn.disabled = true;
-                const originalText = submitBtn.innerText;
-                submitBtn.innerText = '⏳ Comprimiendo imagen...';
+    if (inputImagen) {
+        inputImagen.addEventListener('change', async function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Si la imagen es mayor a 1MB, comprimir
+                if (file.size > 1024 * 1024) {
+                    if(submitBtn) {
+                        submitBtn.disabled = true;
+                        const originalText = submitBtn.innerText;
+                        submitBtn.innerText = '⏳ Comprimiendo imagen...';
+                    }
 
-                try {
-                    const options = {
-                        maxSizeMB: 0.5,
-                        maxWidthOrHeight: 1280,
-                        useWebWorker: true
-                    };
-                    
-                    const compressedFile = await imageCompression(file, options);
-                    
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(new File([compressedFile], file.name, { type: file.type }));
-                    inputImagen.files = dataTransfer.files;
+                    try {
+                        const options = {
+                            maxSizeMB: 0.5,
+                            maxWidthOrHeight: 1280,
+                            useWebWorker: true
+                        };
+                        
+                        const compressedFile = await imageCompression(file, options);
+                        
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(new File([compressedFile], file.name, { type: file.type }));
+                        inputImagen.files = dataTransfer.files;
 
-                     console.log(`Imagen comprimida: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
-                } catch (error) {
-                    console.error('Error al comprimir:', error);
-                    alert('Error al procesar la imagen.');
-                } finally {
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = originalText;
+                         console.log(`Imagen comprimida: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+                    } catch (error) {
+                        console.error('Error al comprimir:', error);
+                        alert('Error al procesar la imagen.');
+                    } finally {
+                        if(submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = 'Guardar'; // Reset text
+                        }
+                    }
+                }
+
+                if(imagenPreview && imagenDefault) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagenPreview.src = e.target.result;
+                        imagenPreview.style.display = 'block';
+                        imagenDefault.style.display = 'none';
+                    }
+                    reader.readAsDataURL(this.files[0]);
                 }
             }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                imagenPreview.src = e.target.result;
-                imagenPreview.style.display = 'block';
-                imagenDefault.style.display = 'none';
-            }
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
+        });
+    }
 </script>
 @endpush
 

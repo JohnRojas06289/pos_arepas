@@ -105,8 +105,8 @@
                 @endcan
 
                 @can('ver-presentacione')
-                <x-nav.nav-link content='Presentaciones'
-                    icon='fa-solid fa-box-archive'
+                <x-nav.nav-link content='Tallas'
+                    icon='fa-solid fa-ruler-combined'
                     :href="route('presentaciones.index')" />
                 @endcan
 

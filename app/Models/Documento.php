@@ -11,6 +11,8 @@ class Documento extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $fillable = ['nombre'];
+
     public function personas(): HasMany
     {
         return $this->hasMany(Persona::class);

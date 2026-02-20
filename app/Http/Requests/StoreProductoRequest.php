@@ -26,9 +26,13 @@ class StoreProductoRequest extends FormRequest
             'nombre' => 'required|max:255', 
             'descripcion' => 'nullable|max:255',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg,webp,avif,gif,svg,bmp',
-            'marca_id' => 'nullable', // Removed exists:marcas,id
-            'presentacione_id' => 'nullable', // Removed exists:presentaciones,id
-            'categoria_id' => 'nullable' // Removed exists:categorias,id
+            'marca_id' => 'nullable', 
+            'presentacione_id' => 'nullable', 
+            'categoria_id' => 'nullable',
+            'color' => 'nullable|string|max:100',
+            'material' => 'nullable|string|max:100',
+            'genero' => 'nullable|in:Hombre,Mujer,Unisex',
+            'precio' => 'nullable|numeric|min:0'
         ];
     }
 

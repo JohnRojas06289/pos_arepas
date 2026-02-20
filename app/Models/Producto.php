@@ -14,7 +14,20 @@ class Producto extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'codigo',
+        'nombre',
+        'descripcion',
+        'img_path',
+        'estado',
+        'precio',
+        'marca_id',
+        'presentacione_id',
+        'categoria_id',
+        'color',
+        'material',
+        'genero'
+    ];
 
     public function compras(): BelongsToMany
     {
@@ -96,17 +109,22 @@ class Producto extends Model
             return $this->img_path;
         }
 
-        // Check if using Cloudinary
-        if (config('filesystems.default') === 'cloudinary') {
-            $cloudName = config('filesystems.disks.cloudinary.cloud_name');
-            // Fallback if config is missing but env is present (should be handled by config, but safe check)
-            if (!$cloudName) {
-                 $cloudName = parse_url(env('CLOUDINARY_URL'), PHP_URL_HOST);
-            }
-            
-            if ($cloudName) {
-                return "https://res.cloudinary.com/{$cloudName}/image/upload/{$this->img_path}";
-            }
+        // Check if using Cloudinary (Force check due to Vercel/Latency issues)
+        $cloudName = config('filesystems.disks.cloudinary.cloud_name');
+        
+        // Fallback: If config is missing but env is present (should be handled by config, but safe check)
+        if (!$cloudName) {
+             $cloudName = parse_url(env('CLOUDINARY_URL'), PHP_URL_HOST);
+        }
+        
+        // If we have a cloud name, we assume the image is hosted there if it's not a full URL already
+        if ($cloudName) {
+            return "https://res.cloudinary.com/{$cloudName}/image/upload/{$this->img_path}";
+        }
+
+        // Fallback to Storage::url for local files
+        if (config('filesystems.default') === 'local' || config('filesystems.default') === 'public') {
+             return \Illuminate\Support\Facades\Storage::url($this->img_path);
         }
 
         // Fallback to Storage::url
