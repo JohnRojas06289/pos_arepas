@@ -8,8 +8,11 @@ use App\Models\Inventario;
 use App\Models\Kardex;
 use App\Models\Producto;
 use App\Models\Ubicacione;
+use App\Models\Venta;
 use App\Services\ActivityLogService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +25,34 @@ class InventarioControlller extends Controller
     {
         $this->middleware('check_producto_inicializado', ['only' => ['create', 'store']]);
     }
+
+    /**
+     * Get date ranges for sales period filters
+     */
+    private function getDateRanges(): array
+    {
+        $now = Carbon::now();
+        return [
+            'hoy' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+            'ayer' => [$now->copy()->subDay()->startOfDay(), $now->copy()->subDay()->endOfDay()],
+            'semana' => [$now->copy()->startOfWeek(Carbon::MONDAY), $now->copy()->endOfDay()],
+            'mes' => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
+        ];
+    }
+
+    /**
+     * Calculate units sold per product for a given date range
+     */
+    private function getVentasPorProducto(string $productoId, array $dateRange): int
+    {
+        return DB::table('producto_venta')
+            ->join('ventas', 'ventas.id', '=', 'producto_venta.venta_id')
+            ->where('producto_venta.producto_id', $productoId)
+            ->where('ventas.revertida', false)
+            ->whereBetween('ventas.fecha_hora', $dateRange)
+            ->sum('producto_venta.cantidad');
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -29,14 +60,116 @@ class InventarioControlller extends Controller
     {
         $categorias = \App\Models\Categoria::with('caracteristica')->get();
         
-        $productos = Producto::with(['inventario', 'presentacione', 'categoria.caracteristica'])
-            ->when($request->categoria_id, function($query, $categoria_id) {
-                return $query->where('categoria_id', $categoria_id);
-            })
-            ->orderBy('nombre', 'asc')
-            ->get();
+        // Sales period filter
+        $periodo = $request->periodo ?? 'hoy';
+        $dateRanges = $this->getDateRanges();
+        $selectedRange = $dateRanges[$periodo] ?? $dateRanges['hoy'];
+        
+        // Check if date filter is applied
+        $fecha = $request->fecha;
+        
+        if ($fecha) {
+            // When filtering by date, we need to get the last Kardex entry for each product on that date
+            $productos = Producto::with(['presentacione', 'categoria.caracteristica'])
+                ->when($request->categoria_id, function($query, $categoria_id) {
+                    return $query->where('categoria_id', $categoria_id);
+                })
+                ->orderBy('nombre', 'asc')
+                ->get()
+                ->map(function($producto) use ($fecha, $selectedRange) {
+                    // Get the last Kardex entry for this product on or before the selected date
+                    $kardex = Kardex::where('producto_id', $producto->id)
+                        ->whereDate('created_at', '<=', $fecha)
+                        ->orderBy('created_at', 'desc')
+                        ->orderBy('id', 'desc')
+                        ->first();
+                    
+                    // Create a virtual inventario object with the historical stock
+                    if ($kardex) {
+                        $producto->inventario = (object)[
+                            'cantidad' => $kardex->saldo,
+                            'fecha_vencimiento' => null,
+                            'fecha_vencimiento_format' => 'N/A (Histórico)',
+                            'id' => null // No editing allowed for historical data
+                        ];
+                    } else {
+                        // Product didn't exist or had no kardex entries on that date
+                        $producto->inventario = (object)[
+                            'cantidad' => 0,
+                            'fecha_vencimiento' => null,
+                            'fecha_vencimiento_format' => 'N/A',
+                            'id' => null
+                        ];
+                    }
+                    
+                    // Add sales count for the selected period
+                    $producto->vendidos_periodo = $this->getVentasPorProducto($producto->id, $selectedRange);
+                    
+                    return $producto;
+                });
+        } else {
+            // Default behavior: show current inventory
+            $productos = Producto::with(['inventario', 'presentacione', 'categoria.caracteristica'])
+                ->when($request->categoria_id, function($query, $categoria_id) {
+                    return $query->where('categoria_id', $categoria_id);
+                })
+                ->orderBy('nombre', 'asc')
+                ->get()
+                ->map(function($producto) use ($selectedRange) {
+                    $producto->vendidos_periodo = $this->getVentasPorProducto($producto->id, $selectedRange);
+                    return $producto;
+                });
+        }
             
-        return view('inventario.index', compact('productos', 'categorias'));
+        return view('inventario.index', compact('productos', 'categorias', 'periodo'));
+    }
+
+    /**
+     * Get sales detail for a product in a given period (AJAX)
+     */
+    public function ventasDetalle(Request $request, string $productoId): JsonResponse
+    {
+        $periodo = $request->periodo ?? 'hoy';
+        $dateRanges = $this->getDateRanges();
+        $selectedRange = $dateRanges[$periodo] ?? $dateRanges['hoy'];
+
+        $producto = Producto::findOrFail($productoId);
+
+        $ventas = Venta::where('revertida', false)
+            ->whereBetween('fecha_hora', $selectedRange)
+            ->whereHas('productos', function ($q) use ($productoId) {
+                $q->where('producto_id', $productoId);
+            })
+            ->with(['cliente.persona', 'user'])
+            ->orderBy('fecha_hora', 'desc')
+            ->get()
+            ->map(function ($venta) use ($productoId) {
+                $pivot = $venta->productos->firstWhere('id', $productoId)?->pivot;
+                return [
+                    'fecha' => Carbon::parse($venta->fecha_hora)->format('d/m/Y'),
+                    'hora' => Carbon::parse($venta->fecha_hora)->format('H:i'),
+                    'cliente' => $venta->cliente?->persona?->nombre ?? 'Público general',
+                    'vendedor' => $venta->user?->name ?? 'N/A',
+                    'cantidad' => $pivot?->cantidad ?? 0,
+                    'precio_unitario' => number_format($pivot?->precio_venta ?? 0, 0, ',', '.'),
+                    'total' => number_format(($pivot?->cantidad ?? 0) * ($pivot?->precio_venta ?? 0), 0, ',', '.'),
+                    'comprobante' => $venta->numero_comprobante,
+                ];
+            });
+
+        $periodoLabels = [
+            'hoy' => 'Hoy',
+            'ayer' => 'Ayer',
+            'semana' => 'Esta Semana',
+            'mes' => 'Este Mes',
+        ];
+
+        return response()->json([
+            'producto' => $producto->nombre,
+            'periodo' => $periodoLabels[$periodo] ?? 'Hoy',
+            'total_vendidos' => $ventas->sum('cantidad'),
+            'ventas' => $ventas,
+        ]);
     }
 
     /**
