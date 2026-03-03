@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title','Tallas')
+@section('title','Presentacións')
 @push('css-datatable')
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" type="text/css">
 @endpush
@@ -11,10 +11,10 @@
 @section('content')
 
 <div class="container-fluid px-2">
-    <h1 class="mt-1 text-center">Tallas</h1>
+    <h1 class="mt-1 text-center">Presentacións</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item active">Tallas</li>
+        <li class="breadcrumb-item active">Presentacións</li>
     </ol>
 
     @can('crear-presentacione')
@@ -28,7 +28,7 @@
     <div class="card">
         <div class="card-header">
             <i class="fas fa-table me-1"></i>
-            Tabla Tallas
+            Tabla Presentacións
         </div>
         <div class="card-body">
             <table id="datatablesSimple" class="table table-striped fs-6">
@@ -105,7 +105,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
-                                    {{ $item->caracteristica->estado == 1 ? '¿Seguro que quieres eliminar la talla?' : '¿Seguro que quieres restaurar la talla?' }}
+                                    {{ $item->caracteristica->estado == 1 ? '¿Seguro que quieres eliminar la presentación?' : '¿Seguro que quieres restaurar la presentación?' }}
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>

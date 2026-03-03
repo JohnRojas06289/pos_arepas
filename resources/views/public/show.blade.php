@@ -44,15 +44,12 @@
 
             <!-- Size Selector (Visual) -->
             <div class="mb-5">
-                <h6 class="text-white text-uppercase fw-bold mb-3">Talla / Presentación</h6>
+                <h6 class="text-white text-uppercase fw-bold mb-3">Presentación</h6>
                 <div class="d-flex gap-2">
                     @if($product->presentacione)
                          <button class="btn btn-outline-light active">{{ $product->presentacione->nombre }}</button>
                     @else
-                        <button class="btn btn-outline-light">S</button>
-                        <button class="btn btn-outline-light">M</button>
-                        <button class="btn btn-outline-light">L</button>
-                        <button class="btn btn-outline-light">XL</button>
+                        <span class="text-white-50">Sin presentación definida</span>
                     @endif
                 </div>
             </div>

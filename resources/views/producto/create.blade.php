@@ -71,11 +71,11 @@
                 <hr>
 
                 <div class="row g-4">
-                    <!---Talla (Antes Presentación)---->
+                    <!---Presentación---->
                     <div class="col-md-3">
-                        <label for="presentacione_id" class="form-label">Talla (Opcional):</label>
+                        <label for="presentacione_id" class="form-label">Presentación (Opcional):</label>
                         <select data-size="4"
-                            title="Seleccione una talla"
+                            title="Seleccione una presentación"
                             data-live-search="true"
                             name="presentacione_id"
                             id="presentacione_id"

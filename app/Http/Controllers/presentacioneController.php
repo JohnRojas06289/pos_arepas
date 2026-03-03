@@ -51,7 +51,7 @@ class presentacioneController extends Controller
             DB::commit();
             ActivityLogService::log('Creación de presentación', 'Presentaciones', $request->validated());
 
-            return redirect()->route('presentaciones.index')->with('success', 'Talla registrada');
+            return redirect()->route('presentaciones.index')->with('success', 'Presentación registrada');
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Error al crear la presentacion", ['error' => $e->getMessage()]);
@@ -86,7 +86,7 @@ class presentacioneController extends Controller
 
             ActivityLogService::log('Edición de presentación', 'Presentaciones', $request->validated());
 
-            return redirect()->route('presentaciones.index')->with('success', 'Talla editada');
+            return redirect()->route('presentaciones.index')->with('success', 'Presentación editada');
         } catch (Throwable $e) {
             Log::error("Error al editar la presentacion", ['error' => $e->getMessage()]);
 
@@ -104,7 +104,7 @@ class presentacioneController extends Controller
 
             $nuevoEstado = $presentacione->caracteristica->estado == 1 ? 0 : 1;
             $presentacione->caracteristica->update(['estado' => $nuevoEstado]);
-            $message = $nuevoEstado == 1 ? 'Talla restaurada' : 'Talla eliminada';
+            $message = $nuevoEstado == 1 ? 'Presentación restaurada' : 'Presentación eliminada';
 
             ActivityLogService::log($message, 'Presentaciones', [
                 'presentacione_id' => $id,

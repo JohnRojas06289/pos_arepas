@@ -1,6 +1,6 @@
 ﻿@extends('layouts.app')
 
-@section('title','Editar Talla')
+@section('title','Editar Presentación')
 
 @push('css')
 <style>
@@ -12,11 +12,11 @@
 
 @section('content')
 <div class="container-fluid px-2">
-    <h1 class="mt-1 text-center">Editar Talla</h1>
+    <h1 class="mt-1 text-center">Editar Presentación</h1>
     <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('presentaciones.index')}}">Tallas</a></li>
-        <li class="breadcrumb-item active">Editar Talla</li>
+        <li class="breadcrumb-item"><a href="{{ route('presentaciones.index')}}">Presentacións</a></li>
+        <li class="breadcrumb-item active">Editar Presentación</li>
     </ol>
 
     <div class="card text-bg-light">
