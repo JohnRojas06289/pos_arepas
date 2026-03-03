@@ -19,7 +19,7 @@ class homeController extends Controller
     public function index(Request $request): View|RedirectResponse|\Illuminate\Http\Response
     {
         if (!Auth::check()) {
-            return view('welcome');
+            return redirect()->route('login.index');
         }
 
         if (!Auth::user()->can('ver-panel')) {
@@ -32,9 +32,14 @@ class homeController extends Controller
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
     
             // Métricas Principales — totales de HOY por método de pago (una sola query agrupada)
-            $ventasHoy = Venta::whereDate('created_at', Carbon::today())->sum('total');
+            // Usamos whereBetween con string explícito igual que el gráfico, evitando
+            // DATE() de PostgreSQL que puede tener desfase de zona horaria.
+            $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
+            $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
 
-            $ventasPorMetodo = Venta::whereDate('created_at', Carbon::today())
+            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+
+            $ventasPorMetodo = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])
                 ->select('metodo_pago', DB::raw('SUM(total) as total'))
                 ->groupBy('metodo_pago')
                 ->pluck('total', 'metodo_pago');

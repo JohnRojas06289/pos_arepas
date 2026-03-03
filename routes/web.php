@@ -40,13 +40,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-use App\Http\Controllers\PublicController;
-
-Route::get('/', [PublicController::class, 'home'])->name('home');
-Route::get('/coleccion', [PublicController::class, 'collection'])->name('collection');
-Route::get('/producto/{id}', [PublicController::class, 'show'])->name('product.show');
-Route::get('/contacto', [PublicController::class, 'contact'])->name('contact');
-Route::get('/nosotros', [PublicController::class, 'about'])->name('about');
+// Ecommerce público eliminado — la app es un POS interno.
+// La raíz redirige directamente al login.
+Route::get('/', function () {
+    return redirect()->route('login.index');
+})->name('home');
 
 Route::get('/migrate-db-secret-key-12345', function () {
     try {
