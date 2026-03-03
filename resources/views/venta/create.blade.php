@@ -431,7 +431,11 @@
             <div class="d-none">
                 <select name="cliente_id"><option value="{{$clientes->first()->id ?? ''}}" selected></option></select>
                 <select name="comprobante_id"><option value="{{$comprobantes->first()->id ?? ''}}" selected></option></select>
-                <select name="metodo_pago"><option value="{{$optionsMetodoPago[0]->value ?? ''}}" selected></option></select>
+                <select name="metodo_pago" id="selectMetodoPago">
+                    @foreach($optionsMetodoPago as $op)
+                        <option value="{{ $op->value }}" {{ $loop->first ? 'selected' : '' }}>{{ $op->value }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="cart-items" id="cartItemsContainer">
@@ -453,12 +457,32 @@
                 <input type="hidden" name="total" id="inputTotal" value="0">
 
                 <div class="mb-2">
-                    <label class="form-label small text-muted mb-1">Pago Rápido:</label>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label small text-muted mb-0">Método de Pago:</label>
+                        <span id="paymentBadge" class="badge bg-success" style="font-size:0.8rem;">
+                            <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
+                        </span>
+                    </div>
+                    <div class="row g-1 mb-2">
+                        <div class="col-4">
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#230836;color:#fff;font-size:0.72rem;" onclick="pagarCon('NEQUI')">NEQUI</button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#d71920;color:#fff;font-size:0.72rem;" onclick="pagarCon('DAVIPLATA')">DAVIPLATA</button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-warning btn-sm w-100 smart-cash-btn fw-bold" style="font-size:0.72rem;" onclick="pagarCon('FIADO')">FIADO</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label small text-muted mb-1">Pago Rápido (Efectivo):</label>
                     <div class="row g-1">
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="setExactCash()">Exacto</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="addCash(10000)">$10k</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="addCash(20000)">$20k</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="addCash(50000)">$50k</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();setExactCash()">Exacto</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(10000)">$10k</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(20000)">$20k</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(50000)">$50k</button></div>
                     </div>
                 </div>
 
@@ -903,8 +927,52 @@
         document.getElementById('dinero_recibido_display').value = '';
         document.getElementById('vuelto').value = '';
         document.getElementById('vuelto_display').value = '';
+        pagarEfectivo();
         renderCart();
         document.getElementById('searchInput').focus();
+    }
+
+    function pagarEfectivo() {
+        var select = document.getElementById('selectMetodoPago');
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === 'EFECTIVO') { select.selectedIndex = i; break; }
+        }
+        var badge = document.getElementById('paymentBadge');
+        badge.className = 'badge bg-success';
+        badge.style.fontSize = '0.8rem';
+        badge.innerHTML = '<i class="fa-solid fa-money-bill me-1"></i> EFECTIVO';
+    }
+
+    function pagarCon(type) {
+        if (total === 0) return;
+        var select = document.getElementById('selectMetodoPago');
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === type) { select.selectedIndex = i; break; }
+        }
+        var badge = document.getElementById('paymentBadge');
+        badge.style.fontSize = '0.8rem';
+        if (type === 'NEQUI') {
+            badge.className = 'badge';
+            badge.style.backgroundColor = '#230836';
+            badge.style.color = '#fff';
+            badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> NEQUI';
+        } else if (type === 'DAVIPLATA') {
+            badge.className = 'badge bg-danger';
+            badge.style.backgroundColor = '';
+            badge.style.color = '';
+            badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
+        } else if (type === 'FIADO') {
+            badge.className = 'badge bg-warning text-dark';
+            badge.style.backgroundColor = '';
+            badge.style.color = '';
+            badge.innerHTML = '<i class="fa-solid fa-handshake me-1"></i> FIADO';
+        }
+        document.getElementById('dinero_recibido').value = total;
+        document.getElementById('dinero_recibido_display').value = formatNumber(total);
+        document.getElementById('vuelto').value = 0;
+        document.getElementById('vuelto_display').value = '0';
+        document.getElementById('btnPay').disabled = false;
+        playSound(600, 0.1);
     }
 
     // Prevenir envío accidental del formulario

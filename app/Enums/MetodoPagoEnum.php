@@ -8,4 +8,5 @@ enum MetodoPagoEnum: string
     case Tarjeta = 'TARJETA';
     case Nequi = 'NEQUI';
     case Daviplata = 'DAVIPLATA';
+    case Fiado = 'FIADO';
 }
