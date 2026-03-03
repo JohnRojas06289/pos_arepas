@@ -35,14 +35,13 @@ class UpdateInventarioVentaListener
                 return;
             }
 
-            $nuevaCantidad = $registro->cantidad - $event->cantidad;
-            
-            $registro->update(['cantidad' => $nuevaCantidad]);
-            
+            $cantidadAnterior = $registro->cantidad;
+            $registro->decrement('cantidad', $event->cantidad);
+
             \Log::info('UpdateInventarioVentaListener: Stock updated', [
                 'producto_id' => $event->producto_id,
-                'cantidad_anterior' => $registro->cantidad,
-                'cantidad_nueva' => $nuevaCantidad
+                'cantidad_anterior' => $cantidadAnterior,
+                'cantidad_nueva' => $registro->cantidad
             ]);
         } catch (\Exception $e) {
             \Log::error('UpdateInventarioVentaListener: Error', ['error' => $e->getMessage()]);
