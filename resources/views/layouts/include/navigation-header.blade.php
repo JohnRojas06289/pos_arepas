@@ -4,7 +4,7 @@ use App\Models\Empresa;
 
 $empresa = Empresa::first();
 if (!$empresa) {
-    $empresa = (object)['nombre' => 'Bajo Cero POS'];
+    $empresa = (object)['nombre' => 'POS Arepas'];
 }
 ?>
 <style>
@@ -107,7 +107,7 @@ if (!$empresa) {
 <nav class="sb-topnav navbar navbar-expand navbar-dark">
     <!-- Navbar Brand-->
     <a class="navbar-brand ps-3" href="{{ route('panel') }}">
-        <i class="fas fa-snowflake me-2"></i>{{ $empresa->nombre ?? 'Bajo Cero POS' }}
+        <i class="fas fa-hamburger me-2"></i>{{ $empresa->nombre ?? 'POS Arepas' }}
     </a>
     <!-- Sidebar Toggle-->
     <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 ms-auto" id="sidebarToggle" href="#!">
