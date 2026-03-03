@@ -240,76 +240,114 @@
         </form>
     </div>
 
-    <!-- Métricas Principales (KPIs) -->
-    <div class="row g-4 mb-4">
-        <!-- Ventas Hoy -->
-        <div class="col-xl-3 col-md-6">
-            <div class="kpi-card primary">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="flex-grow-1">
-                        <div class="kpi-label">Ventas Hoy</div>
-                        <div class="kpi-value">${{ number_format($ventasHoy, 0, ',', '.') }}</div>
-                        <div class="small text-success fw-semibold">
-                            <i class="fas fa-arrow-up me-1"></i>+12.5% vs ayer
-                        </div>
-                    </div>
-                    <div class="kpi-icon primary">
-                        <i class="fas fa-calendar-day"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ventas Mes -->
-        <div class="col-xl-3 col-md-6">
+    <!-- Desglose de Ventas de HOY -->
+    <div class="row g-3 mb-4">
+        <!-- Total Hoy -->
+        <div class="col-6 col-md-4 col-xl">
             <div class="kpi-card success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
-                        <div class="kpi-label">Ventas del Mes</div>
-                        <div class="kpi-value">${{ number_format($ventasMes, 0, ',', '.') }}</div>
-                        <div class="small text-success fw-semibold">
-                            <i class="fas fa-arrow-up me-1"></i>+8.2% vs mes anterior
-                        </div>
+                        <div class="kpi-label">Total Hoy</div>
+                        <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasHoy, 0, ',', '.') }}</div>
+                        <div class="small text-success fw-semibold"><i class="fas fa-calendar-day me-1"></i>Hoy</div>
                     </div>
-                    <div class="kpi-icon success">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
+                    <div class="kpi-icon success"><i class="fas fa-cash-register"></i></div>
                 </div>
             </div>
         </div>
 
-        <!-- Total Clientes -->
-        <div class="col-xl-3 col-md-6">
+        <!-- Efectivo -->
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card primary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Efectivo</div>
+                        <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasEfectivo, 0, ',', '.') }}</div>
+                        <div class="small text-muted fw-semibold"><i class="fas fa-money-bill me-1"></i>En efectivo</div>
+                    </div>
+                    <div class="kpi-icon primary"><i class="fas fa-money-bill-wave"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nequi -->
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card info">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Nequi</div>
+                        <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasNequi, 0, ',', '.') }}</div>
+                        <div class="small text-info fw-semibold"><i class="fas fa-mobile-alt me-1"></i>Transferencia</div>
+                    </div>
+                    <div class="kpi-icon info"><i class="fas fa-mobile-alt"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daviplata -->
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card warning">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Daviplata</div>
+                        <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasDaviplata, 0, ',', '.') }}</div>
+                        <div class="small text-warning fw-semibold"><i class="fas fa-university me-1"></i>Transferencia</div>
+                    </div>
+                    <div class="kpi-icon warning"><i class="fas fa-university"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fiado -->
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card" style="border-left-color:#dc2626;">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Fiado</div>
+                        <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasFiado, 0, ',', '.') }}</div>
+                        <div class="small text-danger fw-semibold"><i class="fas fa-handshake me-1"></i>Pendiente</div>
+                    </div>
+                    <div class="kpi-icon" style="background:#dc2626;"><i class="fas fa-handshake"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs secundarios -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
             <div class="kpi-card info">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
                         <div class="kpi-label">Total Clientes</div>
                         <div class="kpi-value">{{ number_format($totalClientes, 0, ',', '.') }}</div>
-                        <div class="small text-info fw-semibold">
-                            <i class="fas fa-user-plus me-1"></i>Clientes activos
-                        </div>
+                        <div class="small text-info fw-semibold"><i class="fas fa-user-plus me-1"></i>Clientes activos</div>
                     </div>
-                    <div class="kpi-icon info">
-                        <i class="fas fa-users"></i>
-                    </div>
+                    <div class="kpi-icon info"><i class="fas fa-users"></i></div>
                 </div>
             </div>
         </div>
-
-        <!-- Total Productos -->
-        <div class="col-xl-3 col-md-6">
+        <div class="col-md-4">
             <div class="kpi-card warning">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
                         <div class="kpi-label">Productos</div>
                         <div class="kpi-value">{{ number_format($totalProductos, 0, ',', '.') }}</div>
-                        <div class="small text-warning fw-semibold">
-                            <i class="fas fa-boxes me-1"></i>En inventario
-                        </div>
+                        <div class="small text-warning fw-semibold"><i class="fas fa-boxes me-1"></i>En inventario</div>
                     </div>
-                    <div class="kpi-icon warning">
-                        <i class="fas fa-box-open"></i>
+                    <div class="kpi-icon warning"><i class="fas fa-box-open"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="kpi-card primary">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Compras</div>
+                        <div class="kpi-value">{{ number_format($totalCompras, 0, ',', '.') }}</div>
+                        <div class="small text-muted fw-semibold"><i class="fas fa-shopping-cart me-1"></i>Total registradas</div>
                     </div>
+                    <div class="kpi-icon primary"><i class="fas fa-shopping-cart"></i></div>
                 </div>
             </div>
         </div>

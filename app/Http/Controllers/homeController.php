@@ -31,11 +31,18 @@ class homeController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subDays(7)->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
     
-            // Métricas Principales
+            // Métricas Principales — totales de HOY por método de pago (una sola query agrupada)
             $ventasHoy = Venta::whereDate('created_at', Carbon::today())->sum('total');
-            $ventasMes = Venta::whereMonth('created_at', Carbon::now()->month)
-                              ->whereYear('created_at', Carbon::now()->year)
-                              ->sum('total');
+
+            $ventasPorMetodo = Venta::whereDate('created_at', Carbon::today())
+                ->select('metodo_pago', DB::raw('SUM(total) as total'))
+                ->groupBy('metodo_pago')
+                ->pluck('total', 'metodo_pago');
+
+            $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']  ?? 0;
+            $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
+            $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
+            $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
             
             $totalClientes = Cliente::count();
             $totalProductos = Producto::count();
@@ -101,14 +108,17 @@ class homeController extends Controller
                 ->get();
     
             return view('panel.index', compact(
-                'ventasHoy', 
-                'ventasMes', 
-                'totalClientes', 
-                'totalProductos', 
-                'totalCompras', 
+                'ventasHoy',
+                'ventasEfectivo',
+                'ventasNequi',
+                'ventasDaviplata',
+                'ventasFiado',
+                'totalClientes',
+                'totalProductos',
+                'totalCompras',
                 'totalUsuarios',
-                'totalVentasPorDia', 
-                'productosMasVendidos', 
+                'totalVentasPorDia',
+                'productosMasVendidos',
                 'productosMenosVendidos',
                 'productosMasStock',
                 'productosMenosStock',
