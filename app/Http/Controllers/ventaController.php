@@ -37,14 +37,20 @@ class ventaController extends Controller
     }
     /**
      * Display a listing of the resource.
+     * Loads the last 90 days by default to avoid an unbounded full-table scan.
+     * The client-side DataTable handles search/sort/pagination within that window.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
+        $desde = $request->input('desde', now()->subDays(90)->toDateString());
+        $hasta = $request->input('hasta', now()->toDateString());
+
         $ventas = Venta::with(['comprobante', 'cliente.persona', 'user'])
+            ->whereBetween('created_at', [$desde . ' 00:00:00', $hasta . ' 23:59:59'])
             ->latest()
             ->get();
 
-        return view('venta.index', compact('ventas'));
+        return view('venta.index', compact('ventas', 'desde', 'hasta'));
     }
 
     /**

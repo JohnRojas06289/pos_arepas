@@ -31,6 +31,29 @@
     </div>
     @endcan
 
+    {{-- Filtro de rango de fechas --}}
+    <div class="card mb-3">
+        <div class="card-body py-2">
+            <form method="GET" action="{{ route('ventas.index') }}" class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label mb-0 small">Desde</label>
+                    <input type="date" name="desde" class="form-control form-control-sm" value="{{ $desde }}">
+                </div>
+                <div class="col-auto">
+                    <label class="form-label mb-0 small">Hasta</label>
+                    <input type="date" name="hasta" class="form-control form-control-sm" value="{{ $hasta }}">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-sm btn-secondary">Filtrar</button>
+                    <a href="{{ route('ventas.index') }}" class="btn btn-sm btn-outline-secondary ms-1">Últimos 90 días</a>
+                </div>
+                <div class="col-auto ms-auto text-muted small align-self-center">
+                    Mostrando {{ $ventas->count() }} venta(s) del {{ $desde }} al {{ $hasta }}
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card mb-4">
         <div class="card-header">
             <i class="fas fa-table me-1"></i>
