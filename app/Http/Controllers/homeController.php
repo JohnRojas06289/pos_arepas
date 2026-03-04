@@ -27,6 +27,48 @@ class homeController extends Controller
         }
 
         try {
+            // Panel simplificado: Solo mostrar las ventas de HOY
+            $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
+            $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
+
+            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+
+            $ventasPorMetodo = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])
+                ->select('metodo_pago', DB::raw('SUM(total) as total'))
+                ->groupBy('metodo_pago')
+                ->pluck('total', 'metodo_pago');
+
+            $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']  ?? 0;
+            $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
+            $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
+            $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
+            
+            // Últimas Ventas (Transacciones recientes - Limit 5)
+            $ultimasVentas = Venta::with('user', 'cliente')
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            return view('panel.index', compact(
+                'ventasHoy',
+                'ventasEfectivo',
+                'ventasNequi',
+                'ventasDaviplata',
+                'ventasFiado',
+                'ultimasVentas'
+            ));
+        } catch (\Exception $e) {
+            return response("Error en Dashboard: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+        }
+    }
+
+    public function estadisticas(Request $request): View|RedirectResponse|\Illuminate\Http\Response
+    {
+        if (!Auth::check() || !Auth::user()->hasRole('administrador')) {
+            return redirect()->route('panel')->with('error', 'Acceso denegado');
+        }
+
+        try {
             // Filtros de fecha para la gráfica de ventas
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subDays(7)->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
@@ -104,13 +146,7 @@ class homeController extends Controller
                 ->limit(5)
                 ->get();
     
-            // Últimas Ventas (Transacciones recientes - Limit 5)
-            $ultimasVentas = Venta::with('user', 'cliente')
-                ->latest()
-                ->limit(5)
-                ->get();
-    
-            return view('panel.index', compact(
+            return view('admin.estadisticas.index', compact(
                 'ventasHoy',
                 'ventasEfectivo',
                 'ventasNequi',
@@ -126,12 +162,11 @@ class homeController extends Controller
                 'productosMasStock',
                 'productosMenosStock',
                 'productosStockBajo',
-                'ultimasVentas',
                 'fechaInicio',
                 'fechaFin'
             ));
         } catch (\Exception $e) {
-            return response("Error en Dashboard: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            return response("Error en Estadísticas: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
         }
     }
 }

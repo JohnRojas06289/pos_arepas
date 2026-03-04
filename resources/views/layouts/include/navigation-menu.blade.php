@@ -10,9 +10,9 @@
 
     .sb-sidenav-dark .nav-link {
         color: rgba(255, 255, 255, 0.8) !important;
-        padding: 0.75rem 1rem !important;
+        padding: 0.4rem 1rem !important;
         border-radius: 8px !important;
-        margin: 0.25rem 0.5rem !important;
+        margin: 0.1rem 0.5rem !important;
         transition: all 0.3s ease !important;
         font-weight: 500 !important;
     }
@@ -48,8 +48,8 @@
         font-weight: 700 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.1em !important;
-        padding: 1.5rem 1rem 0.5rem !important;
-        margin-top: 0.5rem !important;
+        padding: 1rem 1rem 0.25rem !important;
+        margin-top: 0.25rem !important;
     }
 
     .sb-sidenav-dark .sb-sidenav-footer {
@@ -188,7 +188,9 @@
 
                 @hasrole('administrador')
                 <x-nav.heading>Administración</x-nav.heading>
-                @endhasrole
+                <x-nav.nav-link content='Estadísticas'
+                    icon='fas fa-chart-pie'
+                    :href="route('admin.estadisticas')" />
 
                 @can('ver-empresa')
                 <x-nav.nav-link content='Empresa'

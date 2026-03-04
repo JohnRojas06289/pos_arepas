@@ -137,6 +137,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('users', userController::class)->except('show');
     Route::resource('roles', roleController::class)->except('show');
     Route::resource('profile', profileController::class)->only('index', 'update');
+    Route::get('/estadisticas', [homeController::class, 'estadisticas'])->name('admin.estadisticas');
     Route::resource('activityLog', ActivityLogController::class)->except(['create', 'store', 'edit', 'update']);
     Route::post('activityLog/{log}/reverse-venta', [ActivityLogController::class, 'reverseVenta'])->name('activityLog.reverseVenta');
     Route::get('inventario/ventas-detalle/{producto}', [InventarioControlller::class, 'ventasDetalle'])->name('inventario.ventas-detalle');
