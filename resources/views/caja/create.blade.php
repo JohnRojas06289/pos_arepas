@@ -21,22 +21,22 @@
 
             <div class="col-12 col-md-4">
                 <label for="billetes" class="form-label fw-semibold">💵 Billetes</label>
-                <input type="number" id="billetes" class="form-control form-control-lg"
-                       min="0" value="0" placeholder="0">
+                <input type="text" id="billetes" class="form-control form-control-lg"
+                       inputmode="numeric" value="0" placeholder="0" autocomplete="off">
             </div>
 
             <div class="col-12 col-md-4">
                 <label for="monedas" class="form-label fw-semibold">🪙 Monedas</label>
-                <input type="number" id="monedas" class="form-control form-control-lg"
-                       min="0" value="0" placeholder="0">
+                <input type="text" id="monedas" class="form-control form-control-lg"
+                       inputmode="numeric" value="0" placeholder="0" autocomplete="off">
             </div>
 
             <div class="col-12 col-md-4">
-                <label for="saldo_inicial" class="form-label fw-semibold">💰 Total</label>
-                <input type="number" id="saldo_inicial" name="saldo_inicial"
-                       class="form-control form-control-lg fw-bold"
-                       style="background:#f0fdf4; color:#15803d;"
-                       required value="0" readonly>
+                <label class="form-label fw-semibold">💰 Total</label>
+                <div class="form-control form-control-lg fw-bold"
+                     id="saldo_total_display"
+                     style="background:#f0fdf4; color:#15803d; font-size:1.3rem;">$0</div>
+                <input type="hidden" id="saldo_inicial" name="saldo_inicial" value="0" required>
             </div>
 
         </div>
@@ -52,13 +52,53 @@
 
 @push('js')
 <script>
+    // Convierte "1234567" → "1.234.567"
+    function formatNum(n) {
+        return n.toLocaleString('es-CO');
+    }
+
+    // Parsea el campo (puede estar formateado con puntos)
+    function parseNum(str) {
+        return parseInt(str.replace(/\./g, '')) || 0;
+    }
+
     function recalcular() {
-        const billetes = parseInt(document.getElementById('billetes').value) || 0;
-        const monedas  = parseInt(document.getElementById('monedas').value)  || 0;
+        const billetes = parseNum(document.getElementById('billetes').value);
+        const monedas  = parseNum(document.getElementById('monedas').value);
+        document.getElementById('saldo_total_display').textContent = '$' + formatNum(billetes + monedas);
         document.getElementById('saldo_inicial').value = billetes + monedas;
     }
 
-    document.getElementById('billetes').addEventListener('input', recalcular);
-    document.getElementById('monedas').addEventListener('input', recalcular);
+    function setupInput(id) {
+        const el = document.getElementById(id);
+
+        // Al hacer foco: si el valor es 0 o "0", vaciar
+        el.addEventListener('focus', function() {
+            if (!this.value || this.value === '0') this.value = '';
+        });
+
+        // Al salir: si está vacío, volver a 0
+        el.addEventListener('blur', function() {
+            if (!this.value) this.value = '0';
+            // Formatear con puntos
+            const n = parseNum(this.value);
+            this.value = n === 0 ? '0' : formatNum(n);
+            recalcular();
+        });
+
+        // Al escribir: solo dígitos, formatea al vuelo
+        el.addEventListener('input', function() {
+            const raw = this.value.replace(/\./g, '').replace(/\D/g, '');
+            const n = parseInt(raw) || 0;
+            // Mantener cursor al final formateando
+            this.value = n === 0 ? '' : formatNum(n);
+            recalcular();
+        });
+    }
+
+    setupInput('billetes');
+    setupInput('monedas');
+    recalcular();
 </script>
 @endpush
+
