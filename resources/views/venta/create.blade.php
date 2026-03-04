@@ -493,7 +493,7 @@
                     </div>
                 </div>
 
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-3" id="efectivoCampos">
                     <div class="col-6">
                         <label class="small text-muted">Recibido</label>
                         <input type="text" id="dinero_recibido_display" class="form-control fw-bold" placeholder="0" oninput="updateReceived(this)">
@@ -981,6 +981,8 @@
         badge.className = 'badge bg-success';
         badge.style.fontSize = '0.8rem';
         badge.innerHTML = '<i class="fa-solid fa-money-bill me-1"></i> EFECTIVO';
+        // Mostrar campos de efectivo
+        document.getElementById('efectivoCampos').style.display = '';
     }
 
     function pagarCon(type) {
@@ -1006,7 +1008,15 @@
             badge.style.backgroundColor = '';
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-handshake me-1"></i> FIADO';
+            // Ocultar campos de efectivo (no hay vuelto en fiado)
+            document.getElementById('efectivoCampos').style.display = 'none';
+            document.getElementById('dinero_recibido').value = total;
+            document.getElementById('vuelto').value = 0;
+            document.getElementById('btnPay').disabled = false;
+            playSound(600, 0.1);
+            return; // Salir antes de la lógica de abajo
         }
+        document.getElementById('efectivoCampos').style.display = '';
         document.getElementById('dinero_recibido').value = total;
         document.getElementById('dinero_recibido_display').value = formatNumber(total);
         document.getElementById('vuelto').value = 0;
