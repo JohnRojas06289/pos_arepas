@@ -25,7 +25,7 @@ class CreateMovimientoVentaCajaListener
      */
     public function handle(CreateVentaEvent $event): void
     {
-        if ($event->venta->metodo_pago === \App\Enums\MetodoPagoEnum::Cliente->value) {
+        if ($event->venta->metodo_pago === \App\Enums\MetodoPagoEnum::Fiado->value) {
             return;
         }
         
