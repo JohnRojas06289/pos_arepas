@@ -429,7 +429,7 @@
             </div>
             
             <div class="d-none">
-                <select name="cliente_id"><option value="{{$clientes->first()->id ?? ''}}" selected></option></select>
+                <select name="cliente_id" id="selectClienteId"><option value="" selected></option></select>
                 <select name="comprobante_id"><option value="{{$comprobantes->first()->id ?? ''}}" selected></option></select>
                 <select name="metodo_pago" id="selectMetodoPago">
                     @foreach($optionsMetodoPago as $op)
@@ -463,6 +463,13 @@
                             <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
                         </span>
                     </div>
+                    <div id="fiadoClienteBadge" class="d-none mb-1">
+                        <span class="badge bg-warning text-dark w-100 text-start" style="font-size:0.8rem;">
+                            <i class="fa-solid fa-user me-1"></i>
+                            <span id="fiadoClienteNombre">Sin cliente</span>
+                            <button type="button" class="btn-close btn-close-sm ms-auto float-end" style="font-size:0.6rem;" onclick="cancelarFiado()"></button>
+                        </span>
+                    </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#230836;color:#fff;font-size:0.72rem;" onclick="pagarCon('NEQUI')">NEQUI</button>
@@ -471,7 +478,7 @@
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#d71920;color:#fff;font-size:0.72rem;" onclick="pagarCon('DAVIPLATA')">DAVIPLATA</button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-warning btn-sm w-100 smart-cash-btn fw-bold" style="font-size:0.72rem;" onclick="pagarCon('FIADO')">FIADO</button>
+                            <button type="button" class="btn btn-warning btn-sm w-100 smart-cash-btn fw-bold" style="font-size:0.72rem;" onclick="iniciarFiado()">FIADO</button>
                         </div>
                     </div>
                 </div>
@@ -1006,6 +1013,41 @@
         document.getElementById('vuelto_display').value = '0';
         document.getElementById('btnPay').disabled = false;
         playSound(600, 0.1);
+    }
+
+    function iniciarFiado() {
+        if (total === 0) return;
+        // Abrir modal de selección de cliente
+        var modal = new bootstrap.Modal(document.getElementById('clientModal'));
+        modal.show();
+        // Marcar que el modal se abrió por motivo FIADO
+        document.getElementById('clientModal').dataset.context = 'fiado';
+    }
+
+    function cancelarFiado() {
+        // Limpiar cliente seleccionado y volver a EFECTIVO
+        document.getElementById('selectClienteId').value = '';
+        document.getElementById('fiadoClienteBadge').classList.add('d-none');
+        document.getElementById('fiadoClienteNombre').textContent = 'Sin cliente';
+        pagarEfectivo();
+        document.getElementById('btnPay').disabled = true;
+    }
+
+    function selectClient(id, nombre) {
+        var context = document.getElementById('clientModal').dataset.context;
+        // Actualizar el campo oculto cliente_id
+        document.getElementById('selectClienteId').innerHTML = '<option value="' + id + '" selected>' + nombre + '</option>';
+
+        // Cerrar modal
+        bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
+
+        if (context === 'fiado') {
+            // Completar flujo FIADO
+            pagarCon('FIADO');
+            document.getElementById('fiadoClienteBadge').classList.remove('d-none');
+            document.getElementById('fiadoClienteNombre').textContent = nombre;
+            document.getElementById('clientModal').dataset.context = '';
+        }
     }
 
     // Prevenir envío accidental del formulario
