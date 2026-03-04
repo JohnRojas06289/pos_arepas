@@ -31,15 +31,13 @@ class homeController extends Controller
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subDays(7)->format('Y-m-d'));
             $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
     
-            // Métricas Principales — totales de HOY por método de pago (una sola query agrupada)
-            // Usamos whereBetween con string explícito igual que el gráfico, evitando
-            // DATE() de PostgreSQL que puede tener desfase de zona horaria.
-            $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
-            $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
+            // Métricas Principales — totales del período filtrado por método de pago
+            $periodoInicio = $fechaInicio . ' 00:00:00';
+            $periodoFin    = $fechaFin    . ' 23:59:59';
 
-            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+            $ventasHoy = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])->sum('total');
 
-            $ventasPorMetodo = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])
+            $ventasPorMetodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])
                 ->select('metodo_pago', DB::raw('SUM(total) as total'))
                 ->groupBy('metodo_pago')
                 ->pluck('total', 'metodo_pago');

@@ -247,9 +247,9 @@
             <div class="kpi-card success">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
-                        <div class="kpi-label">Total Hoy</div>
+                        <div class="kpi-label">Total Período</div>
                         <div class="kpi-value" style="font-size:1.5rem;">${{ number_format($ventasHoy, 0, ',', '.') }}</div>
-                        <div class="small text-success fw-semibold"><i class="fas fa-calendar-day me-1"></i>Hoy</div>
+                        <div class="small text-success fw-semibold"><i class="fas fa-calendar-day me-1"></i>{{ $fechaInicio == $fechaFin ? 'Hoy' : $fechaInicio.' — '.$fechaFin }}</div>
                     </div>
                     <div class="kpi-icon success"><i class="fas fa-cash-register"></i></div>
                 </div>
