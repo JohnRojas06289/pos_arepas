@@ -190,7 +190,4 @@
 </div>
 @endsection
 
-@push('js')
-<script src="{{ asset('js/simple-datatables.min.js') }}" crossorigin="anonymous"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 @endpush

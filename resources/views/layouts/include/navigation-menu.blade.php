@@ -191,6 +191,7 @@
                 <x-nav.nav-link content='Estadísticas'
                     icon='fas fa-chart-pie'
                     :href="route('admin.estadisticas')" />
+                @endhasrole
 
                 @can('ver-empresa')
                 <x-nav.nav-link content='Empresa'
