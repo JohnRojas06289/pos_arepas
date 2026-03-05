@@ -129,7 +129,7 @@
                             {{$item->codigo}}
                         </td>
                         <td>
-                             {{$item->nombre}} - Presentación: {{$item->presentacione->sigla}}
+                             {{$item->nombre}}{{ $item->presentacione ? ' - Presentación: ' . $item->presentacione->sigla : '' }}
                         </td>
                         <td>
                             {{$item->inventario->cantidad ?? 0}}
