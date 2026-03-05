@@ -156,7 +156,7 @@
         <div class="col-xl-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Deudas del Día por Cliente (FIADO)</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Ventas del Día por Cliente</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -164,31 +164,31 @@
                             <thead>
                                 <tr>
                                     <th>Cliente</th>
-                                    <th>Total Deuda</th>
+                                    <th>Total Ventas</th>
                                     <th>Transacciones</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($deudasDelDia as $clienteId => $ventas)
+                                @forelse($ventasPorCliente as $clienteId => $ventas)
                                 <tr>
-                                    <td>{{ $ventas->first()->cliente ? $ventas->first()->cliente->persona->razon_social : 'Sin Cliente' }}</td>
-                                    <td class="fw-bold text-danger">${{ number_format($ventas->sum('total'), 2) }}</td>
+                                    <td>{{ $ventas->first()->cliente ? $ventas->first()->cliente->persona->razon_social : 'Cliente General' }}</td>
+                                    <td class="fw-bold text-success">${{ number_format($ventas->sum('total'), 2) }}</td>
                                     <td>{{ $ventas->count() }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="showTransacciones('{{ $clienteId }}', '{{ $ventas->first()->cliente ? addslashes($ventas->first()->cliente->persona->razon_social) : 'Sin Cliente' }}')">
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="showTransacciones('{{ $clienteId ? $clienteId : 'general' }}', '{{ $ventas->first()->cliente ? addslashes($ventas->first()->cliente->persona->razon_social) : 'Cliente General' }}')">
                                             <i class="fas fa-eye me-1"></i> Ver Transacciones
                                         </button>
-                                        <div id="data_transacciones_{{ $clienteId }}" class="d-none">
+                                        <div id="data_transacciones_{{ $clienteId ? $clienteId : 'general' }}" class="d-none">
                                             @foreach($ventas as $v)
-                                                <div class="tx-item" data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}" data-total="{{ number_format($v->total, 2) }}" data-vendedor="{{ $v->user->name }}"></div>
+                                                <div class="tx-item" data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}" data-total="{{ number_format($v->total, 2) }}" data-vendedor="{{ $v->user->name }}" data-metodo="{{ $v->metodo_pago }}"></div>
                                             @endforeach
                                         </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">No hay ventas a crédito el día de hoy</td>
+                                    <td colspan="4" class="text-center text-muted">No hay ventas registradas el día de hoy</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -215,6 +215,7 @@
                             <tr>
                                 <th>Fecha y Hora</th>
                                 <th>Total</th>
+                                <th>Método</th>
                                 <th>Vendedor</th>
                             </tr>
                         </thead>
@@ -248,6 +249,7 @@
             tr.innerHTML = `
                 <td>${item.getAttribute('data-fecha')}</td>
                 <td class="fw-bold">$${item.getAttribute('data-total')}</td>
+                <td><span class="badge bg-secondary" style="font-size: 0.7em;">${item.getAttribute('data-metodo')}</span></td>
                 <td><small class="text-muted">${item.getAttribute('data-vendedor')}</small></td>
             `;
             tbody.appendChild(tr);

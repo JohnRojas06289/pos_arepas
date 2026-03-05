@@ -43,9 +43,8 @@ class homeController extends Controller
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
             
-            // Deudas (Ventas FIADO) del día actual
-            $deudasDelDia = Venta::with(['user', 'cliente'])
-                ->where('metodo_pago', 'FIADO')
+            // Ventas agrupadas por cliente del día actual (FIADO + EFECTIVO + etc)
+            $ventasPorCliente = Venta::with(['user', 'cliente'])
                 ->whereBetween('created_at', [$hoyInicio, $hoyFin])
                 ->get()
                 ->groupBy('cliente_id');
@@ -56,7 +55,7 @@ class homeController extends Controller
                 'ventasNequi',
                 'ventasDaviplata',
                 'ventasFiado',
-                'deudasDelDia'
+                'ventasPorCliente'
             ));
         } catch (\Exception $e) {
             return response("Error en Dashboard: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
@@ -147,9 +146,8 @@ class homeController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Deudas (Ventas FIADO) del periodo seleccionado
-            $deudasDelDia = Venta::with(['user', 'cliente'])
-                ->where('metodo_pago', 'FIADO')
+            // Ventas agrupadas por cliente del periodo seleccionado
+            $ventasPorCliente = Venta::with(['user', 'cliente'])
                 ->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
                 ->get()
                 ->groupBy('cliente_id');
@@ -170,7 +168,7 @@ class homeController extends Controller
                 'productosMasStock',
                 'productosMenosStock',
                 'productosStockBajo',
-                'deudasDelDia',
+                'ventasPorCliente',
                 'fechaInicio',
                 'fechaFin'
             ));
