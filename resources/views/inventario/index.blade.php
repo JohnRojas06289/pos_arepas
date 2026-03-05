@@ -249,8 +249,15 @@
 <script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script>
     let currentProductoId = null;
+    let ventasModal = null; // Single modal instance, reused
 
     window.addEventListener('DOMContentLoaded', event => {
+        // Create modal instance once
+        ventasModal = new bootstrap.Modal(document.getElementById('ventasDetalleModal'), {
+            backdrop: true,
+            keyboard: true
+        });
+
         const datatablesSimple = document.getElementById('datatablesSimple');
         if (datatablesSimple) {
             const dataTable = new simpleDatatables.DataTable(datatablesSimple, {
@@ -295,10 +302,15 @@
 
     function verDetalleVentas(productoId, periodo) {
         currentProductoId = productoId;
-        const modal = new bootstrap.Modal(document.getElementById('ventasDetalleModal'));
         
         // Show loading, hide content
         document.getElementById('ventasDetalleLoading').style.display = 'block';
+        document.getElementById('ventasDetalleLoading').innerHTML = `
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando detalles...</p>
+        `;
         document.getElementById('ventasDetalleContent').style.display = 'none';
         
         // Highlight active period button
@@ -311,7 +323,8 @@
             }
         });
 
-        modal.show();
+        // Reuse single modal instance (prevents backdrop stacking)
+        ventasModal.show();
 
         fetch(`{{ url('admin/inventario/ventas-detalle') }}/${productoId}?periodo=${periodo}`)
             .then(response => response.json())
