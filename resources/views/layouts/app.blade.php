@@ -31,29 +31,33 @@
     </div>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
+    <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             const notificationIcon = document.getElementById('notificationsDropdown');
 
-            notificationIcon.addEventListener('click', function() {
-                fetch("{{ route('notifications.markAsRead') }}", {
-                        method: "POST",
-                        headers: {
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({})
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const badge = notificationIcon.querySelector('.badge');
-                            if (badge) badge.remove();
-                        }
-                    })
-                    .catch(error => console.error('Error al marcar notificaciones como leídas:', error));
-            });
+            // Guard: element may not exist on all pages
+            if (notificationIcon) {
+                notificationIcon.addEventListener('click', function() {
+                    fetch("{{ route('notifications.markAsRead') }}", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const badge = notificationIcon.querySelector('.badge');
+                                if (badge) badge.remove();
+                            }
+                        })
+                        .catch(error => console.error('Error al marcar notificaciones como leídas:', error));
+                });
+            }
 
         });
 
