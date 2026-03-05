@@ -156,30 +156,41 @@
         <div class="col-xl-12">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Últimas 5 Transacciones</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Deudas del Día por Cliente (FIADO)</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>Fecha y Hora</th>
                                     <th>Cliente</th>
-                                    <th>Total</th>
-                                    <th>Método</th>
-                                    <th>Vendedor</th>
+                                    <th>Total Deuda</th>
+                                    <th>Transacciones</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($ultimasVentas as $venta)
+                                @forelse($deudasDelDia as $clienteId => $ventas)
                                 <tr>
-                                    <td>{{ \Carbon\Carbon::parse($venta->created_at)->format('d/m/Y H:i') }}</td>
-                                    <td>{{ $venta->cliente ? $venta->cliente->persona->razon_social : 'Cliente General' }}</td>
-                                    <td class="fw-bold text-success">${{ number_format($venta->total, 2) }}</td>
-                                    <td><span class="badge bg-secondary">{{ $venta->metodo_pago }}</span></td>
-                                    <td>{{ $venta->user->name }}</td>
+                                    <td>{{ $ventas->first()->cliente ? $ventas->first()->cliente->persona->razon_social : 'Sin Cliente' }}</td>
+                                    <td class="fw-bold text-danger">${{ number_format($ventas->sum('total'), 2) }}</td>
+                                    <td>{{ $ventas->count() }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="showTransacciones('{{ $clienteId }}', '{{ $ventas->first()->cliente ? addslashes($ventas->first()->cliente->persona->razon_social) : 'Sin Cliente' }}')">
+                                            <i class="fas fa-eye me-1"></i> Ver Transacciones
+                                        </button>
+                                        <div id="data_transacciones_{{ $clienteId }}" class="d-none">
+                                            @foreach($ventas as $v)
+                                                <div class="tx-item" data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}" data-total="{{ number_format($v->total, 2) }}" data-vendedor="{{ $v->user->name }}"></div>
+                                            @endforeach
+                                        </div>
+                                    </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No hay ventas a crédito el día de hoy</td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
@@ -188,5 +199,63 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para ver las transacciones del cliente -->
+<div class="modal fade" id="transaccionesModal" tabindex="-1" aria-labelledby="transaccionesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="transaccionesModalLabel"><i class="fas fa-list me-2"></i>Transacciones de <span id="modalClientName"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha y Hora</th>
+                                <th>Total</th>
+                                <th>Vendedor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaccionesModalBody">
+                            <!-- Las filas se llenan via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('js')
+<script>
+    function showTransacciones(clienteId, clienteNombre) {
+        document.getElementById('modalClientName').textContent = clienteNombre;
+        
+        let txContainer = document.getElementById('data_transacciones_' + clienteId);
+        let tbody = document.getElementById('transaccionesModalBody');
+        tbody.innerHTML = '';
+        
+        let items = txContainer.querySelectorAll('.tx-item');
+        items.forEach(function(item) {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.getAttribute('data-fecha')}</td>
+                <td class="fw-bold">$${item.getAttribute('data-total')}</td>
+                <td><small class="text-muted">${item.getAttribute('data-vendedor')}</small></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        
+        var myModal = new bootstrap.Modal(document.getElementById('transaccionesModal'));
+        myModal.show();
+    }
+</script>
+@endpush
 

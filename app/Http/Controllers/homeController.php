@@ -43,11 +43,12 @@ class homeController extends Controller
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
             
-            // Últimas Ventas (Transacciones recientes - Limit 5)
-            $ultimasVentas = Venta::with('user', 'cliente')
-                ->latest()
-                ->limit(5)
-                ->get();
+            // Deudas (Ventas FIADO) del día actual
+            $deudasDelDia = Venta::with(['user', 'cliente'])
+                ->where('metodo_pago', 'FIADO')
+                ->whereBetween('created_at', [$hoyInicio, $hoyFin])
+                ->get()
+                ->groupBy('cliente_id');
 
             return view('panel.index', compact(
                 'ventasHoy',
@@ -55,7 +56,7 @@ class homeController extends Controller
                 'ventasNequi',
                 'ventasDaviplata',
                 'ventasFiado',
-                'ultimasVentas'
+                'deudasDelDia'
             ));
         } catch (\Exception $e) {
             return response("Error en Dashboard: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
@@ -146,11 +147,12 @@ class homeController extends Controller
                 ->limit(5)
                 ->get();
 
-            // Últimas Ventas (Transacciones recientes - Limit 5)
-            $ultimasVentas = Venta::with('user', 'cliente')
-                ->latest()
-                ->limit(5)
-                ->get();
+            // Deudas (Ventas FIADO) del periodo seleccionado
+            $deudasDelDia = Venta::with(['user', 'cliente'])
+                ->where('metodo_pago', 'FIADO')
+                ->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
+                ->get()
+                ->groupBy('cliente_id');
     
             return view('admin.estadisticas.index', compact(
                 'ventasHoy',
@@ -168,7 +170,7 @@ class homeController extends Controller
                 'productosMasStock',
                 'productosMenosStock',
                 'productosStockBajo',
-                'ultimasVentas',
+                'deudasDelDia',
                 'fechaInicio',
                 'fechaFin'
             ));
