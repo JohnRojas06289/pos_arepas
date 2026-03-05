@@ -38,7 +38,7 @@ class clienteController extends Controller
     {
         $clientes = Cliente::with('persona.documento')
             ->whereHas('persona', function($query) {
-                $query->where('estado', 1);
+                $query->where('estado', DB::raw('true'));
             })
             ->latest()
             ->get();
@@ -163,7 +163,7 @@ class clienteController extends Controller
             $metodoPago = $request->input('metodo_pago');
             
             // 1. Validar Caja Abierta
-            $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
+            $caja = Caja::where('user_id', Auth::id())->where('estado', DB::raw('true'))->first();
             if (!$caja) {
                 return redirect()->back()->with('error', 'No tienes una caja abierta para registrar el pago.');
             }
@@ -179,7 +179,7 @@ class clienteController extends Controller
 
             // 3. Distribuir el abono en las ventas pendientes (FIFO)
             $ventasPendientes = $cliente->ventas()
-                ->where('pagado', false)
+                ->where('pagado', DB::raw('false'))
                 ->orderBy('created_at', 'asc')
                 ->get();
 
