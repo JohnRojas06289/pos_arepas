@@ -118,6 +118,8 @@ class ventaController extends Controller
     {
         DB::beginTransaction();
         try {
+            Log::info('AJAX Venta Payload:', $request->all());
+            
             //Llenar mi tabla venta
             $venta = Venta::create($request->validated());
 
@@ -128,7 +130,7 @@ class ventaController extends Controller
             $arrayPrecioVenta = $request->get('arrayprecioventa');
 
             //2.Realizar el llenado
-            $siseArray = count($arrayProducto_id);
+            $siseArray = is_array($arrayProducto_id) ? count($arrayProducto_id) : 0;
             $cont = 0;
 
             while ($cont < $siseArray) {
