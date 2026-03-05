@@ -159,27 +159,24 @@ class clienteController extends Controller
         try {
             DB::beginTransaction();
 
-            $montoAbono = $request->input('monto');
-            $metodoPago = $request->input('metodo_pago');
-            
-            // 1. Validar Caja Abierta
-            $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first(); // smallint column
-            if (!$caja) {
-                return redirect()->back()->with('error', 'No tienes una caja abierta para registrar el pago.');
+            $montoAbono  = (float) $request->input('monto');
+            $metodoPago  = $request->input('metodo_pago');
+
+            // 1. Registrar Movimiento en Caja si hay caja abierta (opcional)
+            $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
+            if ($caja) {
+                Movimiento::create([
+                    'tipo'        => TipoMovimientoEnum::Ingreso,
+                    'descripcion' => 'Abono deuda cliente: ' . $cliente->persona->razon_social,
+                    'monto'       => $montoAbono,
+                    'metodo_pago' => $metodoPago,
+                    'caja_id'     => $caja->id,
+                ]);
             }
 
-            // 2. Registrar Movimiento en Caja (Ingreso)
-            Movimiento::create([
-                'tipo' => TipoMovimientoEnum::Ingreso, 
-                'descripcion' => 'Abono deuda cliente: ' . $cliente->persona->razon_social,
-                'monto' => $montoAbono,
-                'metodo_pago' => $metodoPago,
-                'caja_id' => $caja->id
-            ]);
-
-            // 3. Distribuir el abono en las ventas pendientes (FIFO)
+            // 2. Distribuir el abono en las ventas pendientes (FIFO)
             $ventasPendientes = $cliente->ventas()
-                ->where('pagado', DB::raw('false'))
+                ->whereRaw('"pagado" = false')
                 ->orderBy('created_at', 'asc')
                 ->get();
 
@@ -191,21 +188,25 @@ class clienteController extends Controller
                 if ($venta->saldo_pendiente <= $montoRestante) {
                     // Paga toda esta venta
                     $montoRestante -= $venta->saldo_pendiente;
-                    $venta->saldo_pendiente = 0;
-                    $venta->pagado = true;
+                    // Use DB::update to avoid PHP bool → integer cast issues with PostgreSQL
+                    DB::table('ventas')->where('id', $venta->id)->update([
+                        'saldo_pendiente' => 0,
+                        'pagado'          => DB::raw('true'),
+                    ]);
                 } else {
-                    // Paga parcial
-                    $venta->saldo_pendiente -= $montoRestante;
+                    // Pago parcial
+                    $nuevoSaldo = $venta->saldo_pendiente - $montoRestante;
                     $montoRestante = 0;
-                    // Sigue impaga
+                    DB::table('ventas')->where('id', $venta->id)->update([
+                        'saldo_pendiente' => $nuevoSaldo,
+                    ]);
                 }
-                $venta->save();
             }
 
             DB::commit();
             ActivityLogService::log('Pago de deuda', 'Clientes', ['cliente_id' => $cliente->id, 'monto' => $montoAbono]);
 
-            return redirect()->back()->with('success', 'Abono registrado correctamente.');
+            return redirect()->back()->with('success', 'Abono de $' . number_format($montoAbono, 0, ',', '.') . ' registrado correctamente.');
 
         } catch (Throwable $e) {
             DB::rollBack();
