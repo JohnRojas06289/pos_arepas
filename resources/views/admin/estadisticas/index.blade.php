@@ -226,12 +226,15 @@
                     <input type="date" class="form-control" name="fecha_fin" id="fecha_fin" value="{{ $fechaFin }}">
                 </div>
                 <div class="col-md-6">
+                    @php $preset = request('preset', 'custom'); @endphp
+                    <input type="hidden" name="preset" id="preset_input" value="{{ $preset }}">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button type="button" class="preset-btn" onclick="setDatePreset('today')">Hoy</button>
-                        <button type="button" class="preset-btn" onclick="setDatePreset('week')">Esta Semana</button>
-                        <button type="button" class="preset-btn" onclick="setDatePreset('month')">Este Mes</button>
-                        <button type="button" class="preset-btn" onclick="setDatePreset('year')">Este Año</button>
-                        <button type="submit" class="btn btn-modern-primary ms-auto">
+                        <button type="button" class="preset-btn {{ $preset == 'today' ? 'active' : '' }}" onclick="setDatePreset('today')">Hoy</button>
+                        <button type="button" class="preset-btn {{ $preset == 'yesterday' ? 'active' : '' }}" onclick="setDatePreset('yesterday')">Ayer</button>
+                        <button type="button" class="preset-btn {{ $preset == 'week' ? 'active' : '' }}" onclick="setDatePreset('week')">Esta Semana</button>
+                        <button type="button" class="preset-btn {{ $preset == 'month' ? 'active' : '' }}" onclick="setDatePreset('month')">Este Mes</button>
+                        <button type="button" class="preset-btn {{ $preset == 'year' ? 'active' : '' }}" onclick="setDatePreset('year')">Este Año</button>
+                        <button type="button" onclick="document.getElementById('preset_input').value='custom'; document.getElementById('filterForm').submit();" class="btn btn-modern-primary ms-auto">
                             <i class="fas fa-filter me-2"></i>Filtrar
                         </button>
                     </div>
@@ -708,6 +711,11 @@
             case 'today':
                 startDate = endDate = today;
                 break;
+            case 'yesterday':
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - 1);
+                endDate = startDate;
+                break;
             case 'week':
                 startDate = new Date(today);
                 startDate.setDate(today.getDate() - today.getDay());
@@ -725,6 +733,7 @@
 
         document.getElementById('fecha_inicio').value = formatDate(startDate);
         document.getElementById('fecha_fin').value = formatDate(endDate);
+        document.getElementById('preset_input').value = preset;
         document.getElementById('filterForm').submit();
     }
 
