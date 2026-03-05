@@ -135,7 +135,7 @@ class InventarioControlller extends Controller
 
         $producto = Producto::findOrFail($productoId);
 
-        $ventas = Venta::where('revertida', false)
+        $ventas = Venta::where('revertida', DB::raw('false'))
             ->whereBetween('fecha_hora', $selectedRange)
             ->whereHas('productos', function ($q) use ($productoId) {
                 $q->where('producto_id', $productoId);
