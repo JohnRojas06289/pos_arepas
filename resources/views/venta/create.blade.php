@@ -395,9 +395,11 @@
             <div class="row g-3" id="productsContainer">
                 @foreach ($productos as $item)
                 <div class="col-6 col-md-3 col-lg-20 product-item" 
+                     id="product-{{$item->id}}"
+                     data-stock="{{$item->cantidad}}"
                      data-category="{{$item->categoria_id}}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
-                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, {{$item->cantidad}}, '{{$item->sigla ?? 'UND'}}')">
+                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
                             @if($item->img_path)
                                 <img src="{{ $item->image_url }}" class="product-img" alt="{{$item->nombre}}" onerror="this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'">
@@ -411,8 +413,8 @@
                         <div class="card-body p-2 text-center">
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
                             <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio, 0, ',', '.') }}</div>
-                            <small class="text-{{ $item->cantidad > 5 ? 'success' : 'danger' }} d-block" style="font-size: 0.7rem;">
-                                Stock: {{$item->cantidad}}
+                            <small class="text-{{ $item->cantidad > 5 ? 'success' : 'danger' }} d-block stock-display" style="font-size: 0.7rem;">
+                                Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
                         </div>
                     </div>
@@ -1108,6 +1110,26 @@
                 showConfirmButton: false,
                 timer: 2500,
                 title: data.message || 'Venta registrada con éxito'
+            });
+
+            // Descontar inventario en la vista (DOM) sin recargar
+            cart.forEach(function(item) {
+                var productEl = document.getElementById('product-' + item.id);
+                if (productEl) {
+                    var currentStock = parseInt(productEl.getAttribute('data-stock')) || 0;
+                    var newStock = currentStock - item.cantidad;
+                    productEl.setAttribute('data-stock', newStock);
+                    
+                    var stockDisplay = productEl.querySelector('.stock-display');
+                    if (stockDisplay) {
+                        stockDisplay.innerHTML = 'Stock: <span class="stock-count">' + newStock + '</span>';
+                        if (newStock > 5) {
+                            stockDisplay.className = 'text-success d-block stock-display';
+                        } else {
+                            stockDisplay.className = 'text-danger d-block stock-display';
+                        }
+                    }
+                }
             });
 
             // Limpiar todo para la siguiente venta
