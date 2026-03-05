@@ -1060,10 +1060,11 @@
         }
     }
 
-    // Prevenir envío accidental del formulario
+    // Prevenir envío tradicional y usar AJAX (Fetch API)
     document.getElementById('ventaForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Evitar la recarga de página
+
         if (cart.length === 0) {
-            e.preventDefault();
             Swal.fire({
                 icon: 'warning',
                 title: 'Carrito vacío',
@@ -1071,9 +1072,80 @@
             });
             return false;
         }
-        
-        // Sonido de éxito al procesar venta
-        playSound(1200, 0.3);
+
+        // Deshabilitar botón para evitar doble cobro
+        var btnPay = document.getElementById('btnPay');
+        var originalBtnHtml = btnPay.innerHTML;
+        btnPay.disabled = true;
+        btnPay.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> PROCESANDO...';
+
+        var formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then(data => { throw data; });
+            }
+        })
+        .then(data => {
+            // Sonido de éxito al procesar venta
+            playSound(1200, 0.3);
+
+            // Alerta de éxito pequeña
+            Swal.fire({
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                title: data.message || 'Venta registrada con éxito'
+            });
+
+            // Limpiar todo para la siguiente venta
+            cart = [];
+            total = 0;
+            document.getElementById('inputSubtotal').value = '0';
+            document.getElementById('inputTotal').value = '0';
+            
+            // Si estaba en fiado, regresar a efectivo normal
+            cancelarFiado();
+            updateCart(); // Esto repinta el carrito vacío
+
+            // Restaurar botón
+            btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora
+            btnPay.innerHTML = originalBtnHtml;
+        })
+        .catch(error => {
+            console.error('Error procesando venta:', error);
+            let errorMsg = error.message || 'Ocurrió un error inesperado al procesar la venta.';
+            if (error.errors) {
+                // Errores de validación de Laravel
+                let messages = [];
+                for (let field in error.errors) {
+                    messages.push(error.errors[field][0]);
+                }
+                errorMsg = messages.join('\n');
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMsg
+            });
+
+            // Restaurar botón
+            btnPay.disabled = false;
+            btnPay.innerHTML = originalBtnHtml;
+        });
     });
 </script>
 @endpush

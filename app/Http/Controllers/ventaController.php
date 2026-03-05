@@ -114,7 +114,7 @@ class ventaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreVentaRequest $request): RedirectResponse
+    public function store(StoreVentaRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
     {
         DB::beginTransaction();
         try {
@@ -156,11 +156,27 @@ class ventaController extends Controller
 
             DB::commit();
             ActivityLogService::log('Creación de una venta', 'Ventas', $request->validated());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Venta registrada con éxito'
+                ]);
+            }
+
             return redirect()->route('ventas.create')
                 ->with('success', 'Venta registrada');
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al crear la venta', ['error' => $e->getMessage()]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ups, algo falló: ' . $e->getMessage()
+                ], 500);
+            }
+
             return redirect()->route('ventas.create')->with('error', 'Ups, algo falló: ' . $e->getMessage());
         }
     }
