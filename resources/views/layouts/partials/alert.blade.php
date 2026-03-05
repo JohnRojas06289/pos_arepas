@@ -1,6 +1,6 @@
 ﻿@if (session('success'))
 <script>
-    let message = "{{ session('success') }}";
+    let message = @json(session('success'));
     const Toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -22,7 +22,7 @@
 
 @if (session('error'))
 <script>
-    let messageError = "{{ session('error') }}";
+    let messageError = @json(session('error'));
     const ToastError = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -45,10 +45,8 @@
 @if (session('login'))
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-
-        let message = "{{ session('login') }}";
+        let message = @json(session('login'));
         Swal.fire(message);
-
     });
 </script>
 @endif
