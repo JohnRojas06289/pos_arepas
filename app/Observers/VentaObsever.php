@@ -7,6 +7,7 @@ use App\Models\Comprobante;
 use App\Models\Venta;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class VentaObsever
 {
@@ -27,9 +28,10 @@ class VentaObsever
             
             // Si el método de pago es FIADO la venta queda pendiente de cobro
             if ($venta->metodo_pago === \App\Enums\MetodoPagoEnum::Fiado->value) {
-                $venta->pagado = false;
+                // Use DB::raw so Eloquent inserts literal SQL 'false' without PDO param binding
+                $venta->pagado = DB::raw('false');
             } else {
-                $venta->pagado = true;
+                $venta->pagado = DB::raw('true');
             }
 
             $venta->user_id = Auth::id();
