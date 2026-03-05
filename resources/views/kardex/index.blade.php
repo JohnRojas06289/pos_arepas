@@ -9,6 +9,23 @@
 @endpush
 
 @push('css')
+<style>
+    /* Bigger search box inside bootstrap-select dropdown */
+    .bootstrap-select .bs-searchbox .form-control {
+        height: 52px !important;
+        font-size: 1rem;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+    }
+    .bootstrap-select .dropdown-menu {
+        padding-top: 8px;
+    }
+    /* Make the main select button taller too */
+    select.selectpicker + button.btn.dropdown-toggle {
+        height: 52px !important;
+        font-size: 1rem;
+    }
+</style>
 @endpush
 
 @section('content')
