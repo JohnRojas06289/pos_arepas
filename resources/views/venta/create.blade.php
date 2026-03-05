@@ -1118,7 +1118,7 @@
             
             // Si estaba en fiado, regresar a efectivo normal
             cancelarFiado();
-            updateCart(); // Esto repinta el carrito vacío
+            renderCart(); // Esto repinta el carrito vacío
 
             // Restaurar botón
             btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora
