@@ -45,10 +45,10 @@ class InventarioControlller extends Controller
      */
     private function getVentasPorProducto(string $productoId, array $dateRange): int
     {
-        return DB::table('producto_venta')
+        return (int) DB::table('producto_venta')
             ->join('ventas', 'ventas.id', '=', 'producto_venta.venta_id')
             ->where('producto_venta.producto_id', $productoId)
-            ->where('ventas.revertida', false)
+            ->where('ventas.revertida', DB::raw("false"))
             ->whereBetween('ventas.fecha_hora', $dateRange)
             ->sum('producto_venta.cantidad');
     }
