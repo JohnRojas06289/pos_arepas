@@ -2,7 +2,7 @@
 
 ## 👤 Usuario Administrador
 
-**Email:** `admin@gmail.com`  
+**Email:** `ventas@gmail.com`  
 **Contraseña:** `12345678`  
 **Nombre:** Sak Noel  
 **Rol:** Administrador (acceso completo)

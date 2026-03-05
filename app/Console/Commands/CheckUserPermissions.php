@@ -13,7 +13,7 @@ class CheckUserPermissions extends Command
 
     public function handle()
     {
-        $email = $this->argument('email') ?? 'admin@gmail.com';
+        $email = $this->argument('email') ?? 'ventas@gmail.com';
         
         $user = User::where('email', $email)->first();
         

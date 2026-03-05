@@ -61,7 +61,7 @@
                                     <form action="{{route('login.login')}}" method="post">
                                         @csrf
                                         <div class="form-floating mb-3 text-dark">
-                                            <input autofocus autocomplete="off" value="admin@gmail.com" class="form-control" name="email" id="inputEmail" type="email" placeholder="name@example.com" />
+                                            <input autofocus autocomplete="off" value="ventas@gmail.com" class="form-control" name="email" id="inputEmail" type="email" placeholder="name@example.com" />
                                             <label for="inputEmail">Correo electrónico</label>
                                         </div>
                                         <div class="input-group mb-3">

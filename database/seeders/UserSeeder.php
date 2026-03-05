@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         \Illuminate\Support\Facades\DB::table('users')->insert([
             'id' => $userId,
             'name' => 'Admin Bajo Cero',
-            'email' => 'admin@gmail.com',
+            'email' => 'ventas@gmail.com',
             'password' => bcrypt('12345678'),
             'created_at' => now(),
             'updated_at' => now()
