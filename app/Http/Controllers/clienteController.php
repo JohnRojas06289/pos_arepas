@@ -38,7 +38,7 @@ class clienteController extends Controller
     {
         $clientes = Cliente::with('persona.documento')
             ->whereHas('persona', function($query) {
-                $query->where('estado', DB::raw('true'));
+                $query->where('estado', 1); // smallint column, not boolean
             })
             ->latest()
             ->get();
@@ -163,7 +163,7 @@ class clienteController extends Controller
             $metodoPago = $request->input('metodo_pago');
             
             // 1. Validar Caja Abierta
-            $caja = Caja::where('user_id', Auth::id())->where('estado', DB::raw('true'))->first();
+            $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first(); // smallint column
             if (!$caja) {
                 return redirect()->back()->with('error', 'No tienes una caja abierta para registrar el pago.');
             }
