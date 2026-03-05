@@ -33,7 +33,8 @@ class Venta extends Model
     ];
 
     protected $casts = [
-        // 'pagado' => 'boolean', // Commented out to prevent int casting issue in PGSQL
+        'pagado'          => 'boolean',
+        'revertida'       => 'boolean',
         'saldo_pendiente' => 'decimal:2',
     ];
 
@@ -69,7 +70,7 @@ class Venta extends Model
      */
     public function scopePagadas($query)
     {
-        return $query->where('pagado', true);
+        return $query->whereRaw('"pagado" = true');
     }
 
     /**
@@ -77,7 +78,7 @@ class Venta extends Model
      */
     public function scopePendientes($query)
     {
-        return $query->where('pagado', false);
+        return $query->whereRaw('"pagado" = false');
     }
 
      /**
