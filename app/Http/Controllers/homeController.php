@@ -145,6 +145,12 @@ class homeController extends Controller
                 ->select('productos.nombre', 'inventario.cantidad')
                 ->limit(5)
                 ->get();
+
+            // Últimas Ventas (Transacciones recientes - Limit 5)
+            $ultimasVentas = Venta::with('user', 'cliente')
+                ->latest()
+                ->limit(5)
+                ->get();
     
             return view('admin.estadisticas.index', compact(
                 'ventasHoy',
@@ -162,6 +168,7 @@ class homeController extends Controller
                 'productosMasStock',
                 'productosMenosStock',
                 'productosStockBajo',
+                'ultimasVentas',
                 'fechaInicio',
                 'fechaFin'
             ));
