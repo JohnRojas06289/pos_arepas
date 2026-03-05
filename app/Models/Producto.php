@@ -95,7 +95,8 @@ class Producto extends Model
      */
     public function getNombreCompletoAttribute(): string
     {
-        return "Código: {$this->codigo} - {$this->nombre} - Presentación: {$this->presentacione->sigla}";
+        $sigla = $this->presentacione?->sigla ?? '-';
+        return "Código: {$this->codigo} - {$this->nombre} - Presentación: {$sigla}";
     }
 
     public function getImageUrlAttribute(): string
