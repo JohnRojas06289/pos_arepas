@@ -22,13 +22,13 @@
             <div class="col-12 col-md-4">
                 <label for="billetes" class="form-label fw-semibold">💵 Billetes</label>
                 <input type="text" id="billetes" class="form-control form-control-lg"
-                       inputmode="numeric" value="0" placeholder="0" autocomplete="off">
+                       inputmode="decimal" value="0" placeholder="0" autocomplete="off">
             </div>
 
             <div class="col-12 col-md-4">
                 <label for="monedas" class="form-label fw-semibold">🪙 Monedas</label>
                 <input type="text" id="monedas" class="form-control form-control-lg"
-                       inputmode="numeric" value="0" placeholder="0" autocomplete="off">
+                       inputmode="decimal" value="0" placeholder="0" autocomplete="off">
             </div>
 
             <div class="col-12 col-md-4">
@@ -54,7 +54,7 @@
 <script>
     // Convierte "1234567" → "1.234.567"
     function formatNum(n) {
-        return n.toLocaleString('es-CO');
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
     // Parsea el campo (puede estar formateado con puntos)
