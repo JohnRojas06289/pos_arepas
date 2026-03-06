@@ -385,10 +385,10 @@
 
         <!-- Column 2: Products -->
         <div class="col-12 col-md product-grid">
-            <div class="sticky-top pb-3 pt-1 mb-2" style="z-index: 10;">
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text bg-transparent border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control bg-transparent border-start-0" placeholder="Buscar producto..." autofocus>
+            <div class="sticky-top pb-3 pt-1 mb-2 bg-white" style="z-index: 10;">
+                <div class="input-group input-group-lg shadow-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control bg-white border-start-0 focus-ring-none" placeholder="Buscar producto..." autofocus>
                 </div>
             </div>
 
