@@ -30,8 +30,10 @@ class VentaObsever
             if ($venta->metodo_pago === \App\Enums\MetodoPagoEnum::Fiado->value) {
                 // Use DB::raw so Eloquent inserts literal SQL 'false' without PDO param binding
                 $venta->pagado = DB::raw('false');
+                $venta->saldo_pendiente = $venta->total - $venta->monto_recibido;
             } else {
                 $venta->pagado = DB::raw('true');
+                $venta->saldo_pendiente = 0;
             }
 
             $venta->user_id = Auth::id();

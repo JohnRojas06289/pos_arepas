@@ -24,7 +24,7 @@ class StoreVentaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cliente_id' => 'required_if:metodo_pago,FIADO|nullable|exists:clientes,id',
+            'cliente_id' => 'required_if:metodo_pago,FIADO|exists:clientes,id',
             'comprobante_id' => 'required|exists:comprobantes,id',
             'metodo_pago' => ['required', new Enum(MetodoPagoEnum::class)],
             'subtotal' => 'required|min:1',
