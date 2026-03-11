@@ -313,7 +313,35 @@
     function agregarBurbuja(texto, tipo, guardar) {
         const div = document.createElement('div');
         div.classList.add('ia-burbuja', tipo);
-        div.textContent = texto;
+
+        if (tipo === 'ia') {
+            // Eliminar los # para limpiar los titulares
+            let formattedText = texto.replace(/#/g, '');
+            // Negritas markdown a etiqueta HTML
+            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // Cursivas (asterisco simple)
+            formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // Listas (guion convertido a li)
+            formattedText = formattedText.replace(/\n- (.*?)(?=\n|$)/g, '<br>&bull; $1');
+            // Saltos de línea
+            formattedText = formattedText.replace(/\n/g, '<br>');
+
+            div.innerHTML = `
+                <div style="flex-grow: 1;">${formattedText}</div>
+                <button class="ia-play-btn" title="Escuchar en voz alta" style="margin-top: 8px; background: none; border: none; color: #28a745; cursor: pointer;">
+                    <i class="fas fa-volume-up"></i> Leer
+                </button>
+            `;
+
+            const btnPlay = div.querySelector('.ia-play-btn');
+            btnPlay.addEventListener('click', function() {
+                // Removemos la etiqueta completa para que narre todo en limpio
+                hablarTexto(texto.replace(/\*/g, '').replace(/#/g, '').replace(/-/g, ''));
+            });
+        } else {
+            div.textContent = texto;
+        }
+
         mensajes.appendChild(div);
         mensajes.scrollTop = mensajes.scrollHeight;
         if (guardar !== false) guardarHistorial();
@@ -395,15 +423,12 @@
             
             if (data.respuesta) {
                 agregarBurbuja(data.respuesta, 'ia', true);
-                hablarTexto(data.respuesta); // <-- AQUI HABLA EL BOT
             } else {
                 agregarBurbuja(data.error || 'Error al obtener respuesta.', 'ia', true);
-                hablarTexto(data.error || 'Ocurrió un error al obtener la respuesta.');
             }
         } catch (err) {
             quitarEscribiendo();
             agregarBurbuja('Error de conexión. Verifica tu internet e intenta de nuevo.', 'ia', true);
-            hablarTexto('Error de conexión. Verifica tu internet e intenta de nuevo.');
         } finally {
             enviar.disabled = false;
             micBtn.disabled = false;
