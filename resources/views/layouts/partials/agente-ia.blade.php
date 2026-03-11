@@ -120,6 +120,36 @@
 #agente-ia-enviar:hover { background: #4338ca; }
 #agente-ia-enviar:disabled { background: #9ca3af; cursor: not-allowed; }
 
+#agente-ia-mic {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+#agente-ia-mic:hover { background: #e5e7eb; color: #1f2937; }
+#agente-ia-mic.grabando { 
+    background: #ef4444; 
+    color: white; 
+    border-color: #ef4444;
+    animation: pulse-mic 1.5s infinite; 
+}
+#agente-ia-mic:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes pulse-mic {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
 /* Mobile: panel ocupa toda la pantalla */
 @media (max-width: 576px) {
     #agente-ia-panel {
@@ -146,6 +176,9 @@
         <div class="ia-burbuja ia">¡Hola! Soy tu asistente IA. Puedo ayudarte con inventario, ventas, precios y navegación del sistema. ¿En qué te ayudo?</div>
     </div>
     <form id="agente-ia-form" autocomplete="off">
+        <button type="button" id="agente-ia-mic" title="Hablar por micrófono">
+            <i class="fas fa-microphone"></i>
+        </button>
         <textarea id="agente-ia-input" placeholder="Escribe tu pregunta..." rows="1"></textarea>
         <button type="submit" id="agente-ia-enviar" title="Enviar">
             <i class="fas fa-paper-plane"></i>
@@ -163,8 +196,86 @@
     const form       = document.getElementById('agente-ia-form');
     const input      = document.getElementById('agente-ia-input');
     const enviar     = document.getElementById('agente-ia-enviar');
+    const micBtn     = document.getElementById('agente-ia-mic');
     const csrfToken  = document.querySelector('meta[name="csrf-token"]').content;
     const chatUrl    = '{{ route("agente-ia.chat") }}';
+
+    // --- Web Speech API (Reconocimiento y Síntesis) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isRecording = false;
+
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-CO'; // Español Colombia
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            micBtn.classList.add('grabando');
+            input.placeholder = "Escuchando...";
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            input.value = transcript;
+            form.dispatchEvent(new Event('submit')); // Enviar automáticamente
+        };
+
+        recognition.onerror = function(event) {
+            console.error("Error en reconocimiento de voz: ", event.error);
+            detenerGrabacion();
+        };
+
+        recognition.onend = function() {
+            detenerGrabacion();
+        };
+    } else {
+        micBtn.style.display = 'none'; // Navegador no soporta Speech API
+    }
+
+    function detenerGrabacion() {
+        isRecording = false;
+        micBtn.classList.remove('grabando');
+        input.placeholder = "Escribe o habla tu pregunta...";
+    }
+
+    micBtn.addEventListener('click', function() {
+        if (!recognition) return;
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    });
+
+    // Leer respuesta en voz alta
+    function hablarTexto(texto) {
+        if (!window.speechSynthesis) return;
+
+        // Cancelar cualquier locución previa
+        window.speechSynthesis.cancel();
+        
+        // Limpiar el texto de asteriscos (markdown negrita) para que no los lea
+        const textoLimpio = texto.replace(/\*/g, '');
+
+        const utterance = new SpeechSynthesisUtterance(textoLimpio);
+        utterance.lang = 'es-CO';
+        utterance.rate = 1.05; // Velocidad ligeramente rápida
+        utterance.pitch = 1.1; // Tono más amigable
+
+        // Intentar buscar una voz en español
+        const voices = window.speechSynthesis.getVoices();
+        const spanishVoice = voices.find(v => v.lang.startsWith('es-') && (v.name.includes('Google') || v.name.includes('Microsoft')));
+        if (spanishVoice) {
+            utterance.voice = spanishVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+    }
+    // --- Fin API de Voz ---
+
 
     // Restaurar historial de la sesión
     function cargarHistorial() {
@@ -172,7 +283,6 @@
             const guardado = sessionStorage.getItem(SESSION_KEY);
             if (guardado) {
                 const items = JSON.parse(guardado);
-                // Limpia el mensaje de bienvenida
                 mensajes.innerHTML = '';
                 items.forEach(function(m) { agregarBurbuja(m.texto, m.tipo, false); });
                 if (items.length === 0) agregarBienvenida();
@@ -223,10 +333,18 @@
         if (!panel.classList.contains('oculto')) {
             cargarHistorial();
             input.focus();
+            
+            // Forzar carga de voces (en algunos navegadores tarda o necesita activación por interacción)
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+            }
         }
     });
 
-    cerrar.addEventListener('click', function () { panel.classList.add('oculto'); });
+    cerrar.addEventListener('click', function () { 
+        panel.classList.add('oculto'); 
+        if (window.speechSynthesis) window.speechSynthesis.cancel(); // Callar al cerrar
+    });
 
     // Auto-resize del textarea
     input.addEventListener('input', function () {
@@ -251,7 +369,11 @@
         input.value = '';
         input.style.height = 'auto';
         enviar.disabled = true;
+        micBtn.disabled = true;
         mostrarEscribiendo();
+
+        // Si estaba hablando, lo callamos para procesar la nueva pregunta
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
 
         try {
             const res = await fetch(chatUrl, {
@@ -265,16 +387,21 @@
             });
             const data = await res.json();
             quitarEscribiendo();
+            
             if (data.respuesta) {
                 agregarBurbuja(data.respuesta, 'ia', true);
+                hablarTexto(data.respuesta); // <-- AQUI HABLA EL BOT
             } else {
                 agregarBurbuja(data.error || 'Error al obtener respuesta.', 'ia', true);
+                hablarTexto(data.error || 'Ocurrió un error al obtener la respuesta.');
             }
         } catch (err) {
             quitarEscribiendo();
             agregarBurbuja('Error de conexión. Verifica tu internet e intenta de nuevo.', 'ia', true);
+            hablarTexto('Error de conexión. Verifica tu internet e intenta de nuevo.');
         } finally {
             enviar.disabled = false;
+            micBtn.disabled = false;
             input.focus();
         }
     });
