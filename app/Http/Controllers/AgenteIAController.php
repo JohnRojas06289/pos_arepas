@@ -61,8 +61,10 @@ class AgenteIAController extends Controller
         $usuario = auth()->user();
         $nombre = $usuario ? $usuario->name : 'Usuario';
         $rol = $usuario ? ($usuario->getRoleNames()->first() ?? 'desconocido') : 'desconocido';
+        $esAdmin = $usuario && $usuario->hasRole('admin');
 
         // Datos del inventario (cacheados 5 min para no sobrecargar la BD)
+        // Todos los roles necesitan ver qué hay en stock para vender.
         $inventario = Cache::remember('agente_ia_inventario', 300, function () {
             return Producto::with('inventario')
                 ->where('estado', 1)
@@ -77,42 +79,47 @@ class AgenteIAController extends Controller
                 ->toArray();
         });
 
-        // Ventas del día, Ventas del Mes y Productos más vendidos (cache 2 min)
-        $datosVentas = Cache::remember('agente_ia_ventas', 120, function () {
-            $hoyInicio = Carbon::now()->startOfDay();
-            $hoyFin    = Carbon::now()->endOfDay();
-            
-            $mesInicio = Carbon::now()->startOfMonth();
-            $mesFin    = Carbon::now()->endOfMonth();
+        $datosVentas = ['hoy' => 0, 'mes' => 0, 'top' => []];
+        $stockBajo = [];
 
-            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
-            $ventasMes = Venta::whereBetween('created_at', [$mesInicio, $mesFin])->sum('total');
+        // Solo consultamos y armamos la info financiera/gerencial si es admin
+        if ($esAdmin) {
+            $datosVentas = Cache::remember('agente_ia_ventas', 120, function () {
+                $hoyInicio = Carbon::now()->startOfDay();
+                $hoyFin    = Carbon::now()->endOfDay();
+                
+                $mesInicio = Carbon::now()->startOfMonth();
+                $mesFin    = Carbon::now()->endOfMonth();
 
-            // 5 productos más vendidos del mes
-            $masVendidos = \Illuminate\Support\Facades\DB::table('producto_venta')
-                ->join('ventas', 'producto_venta.venta_id', '=', 'ventas.id')
-                ->join('productos', 'producto_venta.producto_id', '=', 'productos.id')
-                ->select('productos.nombre', \Illuminate\Support\Facades\DB::raw('SUM(producto_venta.cantidad) as total_vendido'))
-                ->whereBetween('ventas.created_at', [$mesInicio, $mesFin])
-                ->groupBy('productos.id', 'productos.nombre')
-                ->orderByDesc('total_vendido')
-                ->limit(5)
-                ->get()
-                ->toArray();
+                $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+                $ventasMes = Venta::whereBetween('created_at', [$mesInicio, $mesFin])->sum('total');
 
-            return [
-                'hoy' => $ventasHoy,
-                'mes' => $ventasMes,
-                'top' => $masVendidos
-            ];
-        });
+                // 5 productos más vendidos del mes
+                $masVendidos = \Illuminate\Support\Facades\DB::table('producto_venta')
+                    ->join('ventas', 'producto_venta.venta_id', '=', 'ventas.id')
+                    ->join('productos', 'producto_venta.producto_id', '=', 'productos.id')
+                    ->select('productos.nombre', \Illuminate\Support\Facades\DB::raw('SUM(producto_venta.cantidad) as total_vendido'))
+                    ->whereBetween('ventas.created_at', [$mesInicio, $mesFin])
+                    ->groupBy('productos.id', 'productos.nombre')
+                    ->orderByDesc('total_vendido')
+                    ->limit(5)
+                    ->get()
+                    ->toArray();
 
-        // Productos con stock bajo (< 10)
-        $stockBajo = array_filter($inventario, fn($p) => $p['stock'] < 10 && $p['stock'] >= 0);
+                return [
+                    'hoy' => $ventasHoy,
+                    'mes' => $ventasMes,
+                    'top' => $masVendidos
+                ];
+            });
+
+            $stockBajo = array_filter($inventario, fn($p) => $p['stock'] < 10 && $p['stock'] >= 0);
+        }
 
         return [
             'usuario_nombre' => $nombre,
             'usuario_rol'    => $rol,
+            'es_admin'       => $esAdmin,
             'inventario'     => $inventario,
             'ventas_hoy'     => $datosVentas['hoy'],
             'ventas_mes'     => $datosVentas['mes'],
@@ -127,12 +134,32 @@ class AgenteIAController extends Controller
     private function construirPromptSistema(array $ctx): string
     {
         $inventarioJson = json_encode($ctx['inventario'], JSON_UNESCAPED_UNICODE);
-        $stockBajoJson  = json_encode($ctx['stock_bajo'], JSON_UNESCAPED_UNICODE);
-        $masVendidosJson = json_encode($ctx['mas_vendidos'], JSON_UNESCAPED_UNICODE);
-        $ventasHoy      = number_format($ctx['ventas_hoy'], 0, ',', '.');
-        $ventasMes      = number_format($ctx['ventas_mes'], 0, ',', '.');
         $nombreUsuario  = $ctx['usuario_nombre'];
         $rolUsuario     = $ctx['usuario_rol'];
+        $esAdmin        = $ctx['es_admin'];
+
+        $seccionEspecial = "";
+
+        if ($esAdmin) {
+            $masVendidosJson = json_encode($ctx['mas_vendidos'], JSON_UNESCAPED_UNICODE);
+            $stockBajoJson   = json_encode($ctx['stock_bajo'], JSON_UNESCAPED_UNICODE);
+            $ventasHoy       = number_format($ctx['ventas_hoy'], 0, ',', '.');
+            $ventasMes       = number_format($ctx['ventas_mes'], 0, ',', '.');
+
+            $seccionEspecial = <<<ADMIN
+**Ventas:** 
+- Hoy: \${$ventasHoy} COP
+- Este Mes: \${$ventasMes} COP
+
+**Top 5 Productos Más Vendidos Este Mes:**
+{$masVendidosJson}
+
+**Productos con stock bajo (menos de 10 unidades):**
+{$stockBajoJson}
+ADMIN;
+        } else {
+            $seccionEspecial = "No tienes permisos de Administrador para ver reportes financieros, estadísticas de ventas o alertas de stock a nivel gerencial. Si el usuario te pregunta detalles de dinero, ganancias o cuadre de caja, debes indicarle con amabilidad que su rol actual no cuenta con dichos permisos.";
+        }
 
         return <<<PROMPT
 Eres el asistente virtual del sistema POS "Arepas Boyacenses".
@@ -150,17 +177,9 @@ Tu función es darle soporte personalizado según su rol, responder a sus pregun
 
 ## Datos actuales del sistema (actualizados recién):
 
-**Ventas:** 
-- Hoy: \${$ventasHoy} COP
-- Este Mes: \${$ventasMes} COP
+{$seccionEspecial}
 
-**Top 5 Productos Más Vendidos Este Mes:**
-{$masVendidosJson}
-
-**Productos con stock bajo (menos de 10 unidades):**
-{$stockBajoJson}
-
-**Inventario completo:**
+**Inventario completo actual (Usa esto para confirmar precios y stock a los clientes):**
 {$inventarioJson}
 
 ## Navegación del sistema:
