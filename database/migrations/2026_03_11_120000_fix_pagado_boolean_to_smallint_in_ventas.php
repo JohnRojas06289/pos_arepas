@@ -23,8 +23,12 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         if ($driver === 'pgsql') {
-            // PostgreSQL: ALTER COLUMN con conversión explícita de boolean a integer
+            // 1. Quitar el DEFAULT boolean (true) que impide el ALTER TYPE
+            DB::statement('ALTER TABLE ventas ALTER COLUMN pagado DROP DEFAULT');
+            // 2. Cambiar el tipo a smallint con conversión explícita
             DB::statement('ALTER TABLE ventas ALTER COLUMN pagado TYPE SMALLINT USING pagado::int');
+            // 3. Restaurar el DEFAULT como entero (1 = true)
+            DB::statement('ALTER TABLE ventas ALTER COLUMN pagado SET DEFAULT 1');
         }
         // SQLite ya almacena booleans como 0/1 — no requiere cambio de esquema
     }
@@ -34,7 +38,9 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         if ($driver === 'pgsql') {
+            DB::statement('ALTER TABLE ventas ALTER COLUMN pagado DROP DEFAULT');
             DB::statement('ALTER TABLE ventas ALTER COLUMN pagado TYPE BOOLEAN USING CASE WHEN pagado = 1 THEN TRUE ELSE FALSE END');
+            DB::statement('ALTER TABLE ventas ALTER COLUMN pagado SET DEFAULT TRUE');
         }
     }
 };
