@@ -146,7 +146,8 @@ PROMPT;
      */
     private function llamarGemini(string $apiKey, string $promptSistema, string $mensajeUsuario): string
     {
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}";
+        // endpoint para gemini-1.5-flash
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={$apiKey}";
 
         $body = [
             'system_instruction' => [
