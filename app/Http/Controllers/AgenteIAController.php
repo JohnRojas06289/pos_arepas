@@ -57,6 +57,11 @@ class AgenteIAController extends Controller
      */
     private function construirContexto(): array
     {
+        // Datos del usuario actual
+        $usuario = auth()->user();
+        $nombre = $usuario ? $usuario->name : 'Usuario';
+        $rol = $usuario ? ($usuario->getRoleNames()->first() ?? 'desconocido') : 'desconocido';
+
         // Datos del inventario (cacheados 5 min para no sobrecargar la BD)
         $inventario = Cache::remember('agente_ia_inventario', 300, function () {
             return Producto::with('inventario')
@@ -83,9 +88,11 @@ class AgenteIAController extends Controller
         $stockBajo = array_filter($inventario, fn($p) => $p['stock'] < 10 && $p['stock'] >= 0);
 
         return [
-            'inventario'  => $inventario,
-            'ventas_hoy'  => $ventasHoy,
-            'stock_bajo'  => array_values($stockBajo),
+            'usuario_nombre' => $nombre,
+            'usuario_rol'    => $rol,
+            'inventario'     => $inventario,
+            'ventas_hoy'     => $ventasHoy,
+            'stock_bajo'     => array_values($stockBajo),
         ];
     }
 
@@ -97,12 +104,17 @@ class AgenteIAController extends Controller
         $inventarioJson = json_encode($ctx['inventario'], JSON_UNESCAPED_UNICODE);
         $stockBajoJson  = json_encode($ctx['stock_bajo'], JSON_UNESCAPED_UNICODE);
         $ventasHoy      = number_format($ctx['ventas_hoy'], 0, ',', '.');
+        $nombreUsuario  = $ctx['usuario_nombre'];
+        $rolUsuario     = $ctx['usuario_rol'];
 
         return <<<PROMPT
-Eres el asistente virtual del sistema POS "Arepas Boyacenses". Tu función es ayudar al usuario (cajero o administrador) a navegar el sistema y responder preguntas sobre inventario, ventas y productos.
+Eres el asistente virtual del sistema POS "Arepas Boyacenses".
+Actualmente estás hablando con {$nombreUsuario}, que tiene el rol de "{$rolUsuario}" en el sistema.
+Tu función es darle soporte personalizado según su rol, responder a sus preguntas y ayudarle a navegar por el sistema. Trátalo siempre por su nombre de forma cordial.
 
 ## Reglas:
 - Responde SIEMPRE en español, de forma concisa y amigable.
+- Ten en cuenta el rol del usuario (Ej: Si es de ventas, enfócate en ayudarlo a vender; si es admin, puedes darle más panoramas generales).
 - Si no sabes algo, dilo claramente. No inventes datos.
 - Para preguntas de navegación, da instrucciones claras con el menú del sistema.
 - Los precios están en pesos colombianos (COP), sin decimales.

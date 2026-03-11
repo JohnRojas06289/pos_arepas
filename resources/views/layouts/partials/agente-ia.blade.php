@@ -188,7 +188,11 @@
 
 <script>
 (function () {
-    const SESSION_KEY = 'agente_ia_historial';
+    const userId     = '{{ auth()->id() ?? "guest" }}';
+    const userName   = '{{ auth()->user() ? auth()->user()->name : "Usuario" }}';
+    const userRole   = '{{ auth()->user() ? (auth()->user()->getRoleNames()->first() ?? "Usuario") : "Usuario" }}';
+    const SESSION_KEY = 'agente_ia_historial_' + userId;
+
     const btn        = document.getElementById('agente-ia-btn');
     const panel      = document.getElementById('agente-ia-panel');
     const cerrar     = document.getElementById('agente-ia-cerrar');
@@ -302,7 +306,8 @@
     }
 
     function agregarBienvenida() {
-        agregarBurbuja('¡Hola! Soy tu asistente IA. Puedo ayudarte con inventario, ventas, precios y navegación del sistema. ¿En qué te ayudo?', 'ia', false);
+        const saludo = `¡Hola, ${userName}! Soy tu asistente IA. Como ${userRole}, puedo ayudarte con tus tareas en Arepas Boyacenses. ¿En qué te puedo ayudar hoy?`;
+        agregarBurbuja(saludo, 'ia', false);
     }
 
     function agregarBurbuja(texto, tipo, guardar) {
