@@ -109,8 +109,8 @@
     transform: translateY(-1px);
 }
 .ia-audio-btn.ia-play-btn { color: #059669; }
-.ia-audio-btn.ia-pause-btn { color: #d97706; }
-.ia-audio-btn.ia-stop-btn { color: #dc2626; }
+.ia-audio-btn.ia-pause-btn { color: #d97706; display: none; }
+.ia-audio-btn.ia-stop-btn { color: #dc2626; display: none; }
 
 #agente-ia-form {
     display: flex;
@@ -338,10 +338,10 @@
                     <button class="ia-audio-btn ia-play-btn" title="Escuchar" type="button">
                         <i class="fas fa-volume-up"></i> Leer
                     </button>
-                    <button class="ia-audio-btn ia-pause-btn" title="Pausar / Reanudar" type="button" style="display: none;">
+                    <button class="ia-audio-btn ia-pause-btn" title="Pausar / Reanudar" type="button">
                         <i class="fas fa-pause"></i> Pausar
                     </button>
-                    <button class="ia-audio-btn ia-stop-btn" title="Detener" type="button" style="display: none;">
+                    <button class="ia-audio-btn ia-stop-btn" title="Detener" type="button">
                         <i class="fas fa-stop"></i> Detener
                     </button>
                 </div>
@@ -357,12 +357,18 @@
                 window.speechSynthesis.cancel(); // Detener cualquier otro audio actual
 
                 // Ocultar botones de pausa/stop en otros mensajes
-                document.querySelectorAll('.ia-pause-btn, .ia-stop-btn').forEach(b => b.style.display = 'none');
+                document.querySelectorAll('.ia-pause-btn, .ia-stop-btn').forEach(b => {
+                    b.style.display = ''; // Reset inline
+                    b.classList.remove('active');
+                });
                 
-                btnPause.style.display = 'inline-block';
+                btnPause.style.display = 'inline-flex';
+                btnPause.classList.add('active');
                 btnPause.innerHTML = '<i class="fas fa-pause"></i> Pausar';
-                btnStop.style.display = 'inline-block';
+                btnStop.style.display = 'inline-flex';
+                btnStop.classList.add('active');
 
+                // Asegurar que solo el Play de este mensaje está
                 const textoLimpio = texto.replace(/\*/g, '').replace(/#/g, '').replace(/-/g, '');
                 const utterance = new SpeechSynthesisUtterance(textoLimpio);
                 utterance.lang = 'es-CO';
@@ -374,8 +380,8 @@
                 if (spanishVoice) utterance.voice = spanishVoice;
 
                 utterance.onend = function() {
-                    btnPause.style.display = 'none';
-                    btnStop.style.display = 'none';
+                    btnPause.style.display = '';
+                    btnStop.style.display = '';
                 };
 
                 window.speechSynthesis.speak(utterance);
@@ -395,8 +401,8 @@
             btnStop.addEventListener('click', function() {
                 if (!window.speechSynthesis) return;
                 window.speechSynthesis.cancel();
-                btnPause.style.display = 'none';
-                btnStop.style.display = 'none';
+                btnPause.style.display = '';
+                btnStop.style.display = '';
             });
         } else {
             div.textContent = texto;
