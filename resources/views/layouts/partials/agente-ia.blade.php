@@ -254,30 +254,6 @@
         }
     });
 
-    // Leer respuesta en voz alta
-    function hablarTexto(texto) {
-        if (!window.speechSynthesis) return;
-
-        // Cancelar cualquier locución previa
-        window.speechSynthesis.cancel();
-        
-        // Limpiar el texto de asteriscos (markdown negrita) para que no los lea
-        const textoLimpio = texto.replace(/\*/g, '');
-
-        const utterance = new SpeechSynthesisUtterance(textoLimpio);
-        utterance.lang = 'es-CO';
-        utterance.rate = 1.05; // Velocidad ligeramente rápida
-        utterance.pitch = 1.1; // Tono más amigable
-
-        // Intentar buscar una voz en español
-        const voices = window.speechSynthesis.getVoices();
-        const spanishVoice = voices.find(v => v.lang.startsWith('es-') && (v.name.includes('Google') || v.name.includes('Microsoft')));
-        if (spanishVoice) {
-            utterance.voice = spanishVoice;
-        }
-
-        window.speechSynthesis.speak(utterance);
-    }
     // --- Fin API de Voz ---
 
 
@@ -328,15 +304,69 @@
 
             div.innerHTML = `
                 <div style="flex-grow: 1;">${formattedText}</div>
-                <button class="ia-play-btn" title="Escuchar en voz alta" style="margin-top: 8px; background: none; border: none; color: #28a745; cursor: pointer;">
-                    <i class="fas fa-volume-up"></i> Leer
-                </button>
+                <div style="margin-top: 8px; display: flex; gap: 15px;">
+                    <button class="ia-play-btn" title="Escuchar" style="background: none; border: none; color: #28a745; cursor: pointer; padding: 0;">
+                        <i class="fas fa-volume-up"></i> Leer
+                    </button>
+                    <button class="ia-pause-btn" title="Pausar / Reanudar" style="background: none; border: none; color: #ffc107; cursor: pointer; padding: 0; display: none;">
+                        <i class="fas fa-pause"></i> Pausar
+                    </button>
+                    <button class="ia-stop-btn" title="Detener" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 0; display: none;">
+                        <i class="fas fa-stop"></i> Detener
+                    </button>
+                </div>
             `;
 
             const btnPlay = div.querySelector('.ia-play-btn');
+            const btnPause = div.querySelector('.ia-pause-btn');
+            const btnStop = div.querySelector('.ia-stop-btn');
+
             btnPlay.addEventListener('click', function() {
-                // Removemos la etiqueta completa para que narre todo en limpio
-                hablarTexto(texto.replace(/\*/g, '').replace(/#/g, '').replace(/-/g, ''));
+                if (!window.speechSynthesis) return;
+
+                window.speechSynthesis.cancel(); // Detener cualquier otro audio actual
+
+                // Ocultar botones de pausa/stop en otros mensajes
+                document.querySelectorAll('.ia-pause-btn, .ia-stop-btn').forEach(b => b.style.display = 'none');
+                
+                btnPause.style.display = 'inline-block';
+                btnPause.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+                btnStop.style.display = 'inline-block';
+
+                const textoLimpio = texto.replace(/\*/g, '').replace(/#/g, '').replace(/-/g, '');
+                const utterance = new SpeechSynthesisUtterance(textoLimpio);
+                utterance.lang = 'es-CO';
+                utterance.rate = 1.05;
+                utterance.pitch = 1.1;
+
+                const voices = window.speechSynthesis.getVoices();
+                const spanishVoice = voices.find(v => v.lang.startsWith('es-') && (v.name.includes('Google') || v.name.includes('Microsoft')));
+                if (spanishVoice) utterance.voice = spanishVoice;
+
+                utterance.onend = function() {
+                    btnPause.style.display = 'none';
+                    btnStop.style.display = 'none';
+                };
+
+                window.speechSynthesis.speak(utterance);
+            });
+
+            btnPause.addEventListener('click', function() {
+                if (!window.speechSynthesis) return;
+                if (window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                    btnPause.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+                } else if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.pause();
+                    btnPause.innerHTML = '<i class="fas fa-play"></i> Reanudar';
+                }
+            });
+
+            btnStop.addEventListener('click', function() {
+                if (!window.speechSynthesis) return;
+                window.speechSynthesis.cancel();
+                btnPause.style.display = 'none';
+                btnStop.style.display = 'none';
             });
         } else {
             div.textContent = texto;
