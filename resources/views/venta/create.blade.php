@@ -1,60 +1,56 @@
 ﻿@extends('layouts.app')
 
-@section('title', 'Realizar venta')
+@section('title', 'Punto de Venta')
 
 @push('css')
 <style>
     body { overflow: hidden; }
-    .pos-container { height: calc(100vh - 56px); overflow: hidden; }
-    
-    /* Sidebar de categorías mejorada */
-    .category-sidebar { 
-        height: 100%; 
-        overflow-y: auto; 
-        background: linear-gradient(180deg, #1a1d23 0%, #212529 100%);
-        border-right: 2px solid #343a40; 
-        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        max-width: 15%;
-    }
-    
-    .product-grid { 
-        height: 100%; 
-        overflow-y: auto; 
-        padding: 1.25rem; 
-        padding-top: 0.5rem; /* Reduced top padding */
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    }
+    .pos-container { height: calc(100vh - 60px); overflow: hidden; }
 
     /* Fix for extra spacing at the top */
-    main {
-        padding: 0 !important;
-        margin: 0 !important;
+    main { padding: 0 !important; margin: 0 !important; }
+
+    /* Sidebar de categorías */
+    .category-sidebar {
+        height: 100%;
+        overflow-y: auto;
+        background: var(--bg-sidebar);
+        border-right: 1px solid var(--border-sidebar);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.12);
+        max-width: 15%;
     }
 
-    
-    .cart-section { 
-        height: 100%; 
-        display: flex; 
-        flex-direction: column; 
-        background-color: #fff; 
-        border-left: 2px solid #dee2e6;
-        box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+    .product-grid {
+        height: 100%;
+        overflow-y: auto;
+        padding: 1rem;
+        padding-top: 0.5rem;
+        background: var(--bg-primary);
+    }
+
+    .cart-section {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-card);
+        border-left: 1px solid var(--border-color);
+        box-shadow: -2px 0 10px rgba(0,0,0,0.04);
     }
 
 
 
     /* Botones de categoría más grandes y claros */
-    .category-btn { 
-        width: 100%; 
-        text-align: left; 
-        padding: 15px 12px; 
-        background: transparent; 
-        border: none; 
-        border-bottom: 1px solid #343a40; 
-        color: #adb5bd; 
-        transition: all 0.3s ease; 
-        font-weight: 500; 
-        font-size: 1rem;
+    .category-btn {
+        width: 100%;
+        text-align: left;
+        padding: 13px 12px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border-sidebar);
+        color: var(--text-sidebar);
+        transition: all 0.25s ease;
+        font-weight: 500;
+        font-size: 0.92rem;
         position: relative;
         overflow: hidden;
         white-space: nowrap;
@@ -67,18 +63,18 @@
         top: 0;
         height: 100%;
         width: 4px;
-        background-color: #f59e0b;
+        background-color: var(--color-accent);
         transform: scaleY(0);
         transition: transform 0.3s ease;
     }
-    
-    .category-btn:hover, .category-btn.active { 
-        background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
-        color: #fff; 
+
+    .category-btn:hover, .category-btn.active {
+        background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+        color: #fff;
         font-weight: bold;
         transform: translateX(5px);
     }
-    
+
     .category-btn.active::before {
         transform: scaleY(1);
     }
@@ -100,32 +96,32 @@
     }
 
     /* Tarjetas de producto mejoradas */
-    .product-card { 
-        cursor: pointer; 
-        transition: all 0.2s ease; 
-        border: 2px solid #e2e8f0; 
+    .product-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid var(--border-color);
         overflow: hidden;
         border-radius: 12px;
-        background: #fff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        background: var(--bg-card);
+        box-shadow: var(--card-shadow);
     }
-    
-    .product-card:hover { 
-        transform: translateY(-4px) scale(1.02); 
-        border-color: #f59e0b; 
-        box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2);
+
+    .product-card:hover {
+        transform: translateY(-4px) scale(1.02);
+        border-color: var(--color-accent);
+        box-shadow: 0 8px 16px rgba(240,199,94,0.22);
     }
     
     .product-card:active { 
         transform: translateY(-2px) scale(0.98); 
     }
     
-    .product-img-container { 
-        height: 140px; 
-        overflow: hidden; 
-        background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
-        display: flex; 
-        align-items: center; 
+    .product-img-container {
+        height: 140px;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        display: flex;
+        align-items: center;
         justify-content: center;
         position: relative;
     }
@@ -141,36 +137,37 @@
         transform: scale(1.1);
     }
     
-    .product-price { 
-        font-weight: bold; 
-        color: #f59e0b; 
-        font-size: 1.15rem;
+    .product-price {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        color: var(--color-primary);
+        font-size: 1.1rem;
     }
-    
+
     .product-name {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         font-weight: 600;
-        color: #1f2937;
+        color: var(--text-primary);
     }
-    
-    /* Items del carrito más espaciados */
-    .cart-items { 
-        flex-grow: 1; 
-        overflow-y: auto; 
+
+    /* Items del carrito */
+    .cart-items {
+        flex-grow: 1;
+        overflow-y: auto;
         padding: 0;
-        background: #fafafa;
+        background: var(--bg-primary);
     }
-    
-    .cart-item { 
-        padding: 15px; 
-        border-bottom: 1px solid #e5e7eb; 
-        display: flex; 
-        align-items: center; 
+
+    .cart-item {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
         justify-content: space-between;
-        background: #fff;
-        margin: 8px;
+        background: var(--bg-card);
+        margin: 6px;
         border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         transition: all 0.2s ease;
     }
     
@@ -194,75 +191,75 @@
         }
     }
     
-    .cart-footer { 
-        padding: 1.25rem; 
-        background: linear-gradient(180deg, #f8f9fa 0%, #fff 100%);
-        border-top: 2px solid #dee2e6;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    .cart-footer {
+        padding: 1rem 1.1rem;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
     }
-    
-    .smart-cash-btn { 
-        font-size: 0.9rem; 
-        font-weight: 700; 
+
+    .smart-cash-btn {
+        font-size: 0.88rem;
+        font-weight: 700;
         padding: 10px 8px;
         border-radius: 8px;
         transition: all 0.2s ease;
-        border: 2px solid #dee2e6;
+        border: 2px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-primary);
     }
-    
+
     .smart-cash-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        border-color: #f59e0b;
-        background-color: #fff3e0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        border-color: var(--color-accent);
+        background-color: var(--color-accent-subtle);
     }
-    
+
     /* Total más prominente */
     .total-display {
-        font-size: 2.5rem !important;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2.2rem !important;
         font-weight: 900 !important;
-        color: #059669 !important;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: var(--color-success) !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.06);
     }
-    
-    /* Botón de cobrar mejorado */
+
+    /* Botón de cobrar */
     #btnPay {
-        font-size: 1.25rem;
-        font-weight: 900;
-        padding: 18px !important;
+        font-size: 1.15rem;
+        font-weight: 800;
+        padding: 16px !important;
         border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(76,175,125,0.30);
+        transition: all 0.25s ease;
         border: none;
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        background: linear-gradient(135deg, var(--color-success) 0%, #3a9068 100%);
+        color: #fff;
     }
-    
+
     #btnPay:not(:disabled):hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(5, 150, 105, 0.4);
+        box-shadow: 0 8px 20px rgba(76,175,125,0.40);
     }
-    
-    #btnPay:not(:disabled):active {
-        transform: translateY(-1px);
-    }
-    
-    #btnPay:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+
+    #btnPay:not(:disabled):active { transform: translateY(-1px); }
+    #btnPay:disabled { opacity: 0.5; cursor: not-allowed; }
     
     /* Inputs mejorados */
     .form-control {
         border-radius: 8px;
-        border: 2px solid #e5e7eb;
+        border: 1.5px solid var(--border-input);
         padding: 10px 12px;
         font-size: 1rem;
+        background: var(--bg-input);
+        color: var(--text-primary);
         transition: all 0.2s ease;
     }
-    
+
     .form-control:focus {
-        border-color: #f59e0b;
-        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-subtle);
     }
     
     /* Búsqueda mejorada */
@@ -336,13 +333,13 @@
     .cart-toggle-mobile {
         display: none;
         position: fixed;
-        bottom: 90px; /* encima del botón IA */
+        bottom: 90px;
         left: 16px;
         z-index: 1045;
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: #1a1d23;
+        background: var(--bg-sidebar);
         color: white;
         border: none;
         box-shadow: 0 4px 12px rgba(0,0,0,0.35);
@@ -357,8 +354,8 @@
         position: absolute;
         top: -4px;
         right: -4px;
-        background: #f59e0b;
-        color: #000;
+        background: var(--color-accent);
+        color: var(--color-secondary);
         border-radius: 50%;
         width: 22px;
         height: 22px;
@@ -428,8 +425,10 @@
         
         <!-- Column 1: Categories -->
         <div class="col-md-2 category-sidebar d-none d-md-block">
-            <div class="p-3 text-white border-bottom border-secondary">
-                <h5 class="m-0"><i class="fa-solid fa-layer-group me-2"></i>Categorías</h5>
+            <div class="p-3 border-bottom" style="border-color:var(--border-sidebar)!important;">
+                <h6 class="m-0" style="color:var(--text-sidebar);font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                    <i class="fa-solid fa-layer-group me-2" style="color:var(--color-accent);"></i>Categorías
+                </h6>
             </div>
             <button type="button" class="category-btn active" onclick="filterCategory('all', this)">
                 <i class="fa-solid fa-border-all"></i> Todo
@@ -443,10 +442,13 @@
 
         <!-- Column 2: Products -->
         <div class="col-12 col-md product-grid">
-            <div class="sticky-top pb-3 pt-1 mb-2 bg-white" style="z-index: 10;">
-                <div class="input-group input-group-lg shadow-sm">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control bg-white border-start-0 focus-ring-none" placeholder="Buscar producto..." autofocus>
+            <div class="sticky-top pb-3 pt-1 mb-2" style="z-index:10;background:var(--bg-primary);">
+                <div class="input-group input-group-lg" style="border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow);">
+                    <span class="input-group-text" style="background:var(--bg-input);border:1.5px solid var(--border-input);border-right:none;border-radius:12px 0 0 12px;">
+                        <i class="fa-solid fa-search" style="color:var(--text-muted);"></i>
+                    </span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre o código..." autofocus
+                           style="border-radius:0 12px 12px 0;border:1.5px solid var(--border-input);border-left:none;">
                 </div>
             </div>
 
@@ -483,9 +485,13 @@
 
         <!-- Column 3: Cart -->
         <div class="col-md-3 cart-section shadow-lg">
-            <div class="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-                <h5 class="m-0"><i class="fa-solid fa-cart-shopping me-2"></i>Carrito</h5>
-                <span class="badge bg-warning text-dark" id="cartCount">0</span>
+            <div class="p-3 d-flex justify-content-between align-items-center"
+                 style="background:var(--bg-sidebar);color:#fff;border-bottom:1px solid var(--border-sidebar);">
+                <h5 class="m-0 fw-700" style="font-size:1rem;font-weight:700;">
+                    <i class="fa-solid fa-cart-shopping me-2" style="color:var(--color-accent);"></i>Carrito
+                </h5>
+                <span class="badge" id="cartCount"
+                      style="background:var(--color-accent);color:var(--color-secondary);font-family:'JetBrains Mono',monospace;font-weight:700;">0</span>
             </div>
             
             <div class="d-none">
@@ -532,13 +538,25 @@
                     </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#230836;color:#fff;font-size:0.72rem;" onclick="pagarCon('NEQUI')">NEQUI</button>
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                                style="background:var(--color-secondary);color:#fff;border-color:var(--color-secondary);font-size:0.72rem;"
+                                onclick="pagarCon('NEQUI')">
+                                <i class="fas fa-mobile-alt me-1"></i>NEQUI
+                            </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold" style="background-color:#d71920;color:#fff;font-size:0.72rem;" onclick="pagarCon('DAVIPLATA')">DAVIPLATA</button>
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                                style="background:var(--color-primary);color:#fff;border-color:var(--color-primary);font-size:0.72rem;"
+                                onclick="pagarCon('DAVIPLATA')">
+                                <i class="fas fa-university me-1"></i>DAVI
+                            </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-warning btn-sm w-100 smart-cash-btn fw-bold" style="font-size:0.72rem;" onclick="iniciarFiado()">FIADO</button>
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                                style="background:var(--color-warning);color:#fff;border-color:var(--color-warning);font-size:0.72rem;"
+                                onclick="iniciarFiado()">
+                                <i class="fas fa-handshake me-1"></i>FIADO
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -593,8 +611,10 @@
     <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title">Seleccionar Cliente</h5>
+                <div class="modal-header" style="background:var(--color-secondary);">
+                    <h5 class="modal-title" style="color:#fff;font-size:1rem;font-weight:700;">
+                        <i class="fas fa-user me-2"></i>Seleccionar Cliente
+                    </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
