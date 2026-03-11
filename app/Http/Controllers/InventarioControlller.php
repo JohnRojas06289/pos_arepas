@@ -48,7 +48,7 @@ class InventarioControlller extends Controller
         return (int) DB::table('producto_venta')
             ->join('ventas', 'ventas.id', '=', 'producto_venta.venta_id')
             ->where('producto_venta.producto_id', $productoId)
-            ->where('ventas.revertida', false)
+            ->whereRaw('ventas.revertida = false')
             ->whereBetween('ventas.fecha_hora', $dateRange)
             ->sum('producto_venta.cantidad');
     }
