@@ -332,24 +332,82 @@
         animation: pulse 2s infinite;
     }
     
+    /* Mobile: cart como panel deslizable desde abajo */
+    .cart-toggle-mobile {
+        display: none;
+        position: fixed;
+        bottom: 90px; /* encima del botón IA */
+        left: 16px;
+        z-index: 1045;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #1a1d23;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        font-size: 1.2rem;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .cart-toggle-mobile .badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #f59e0b;
+        color: #000;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 800;
+    }
+    .mobile-cart-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1039;
+    }
+    .mobile-cart-overlay.active { display: block; }
+
     /* Responsive mejorado */
-    @media (max-width: 768px) {
-        .product-card {
-            border-radius: 10px;
+    @media (max-width: 767px) {
+        .cart-toggle-mobile { display: flex; }
+
+        /* Cart panel: full-screen slide-up en móvil */
+        .cart-section {
+            position: fixed !important;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 85dvh;
+            max-height: 85dvh;
+            z-index: 1040;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.2);
         }
-        
-        .product-img-container {
-            height: 120px;
-        }
-        
-        .total-display {
-            font-size: 2rem !important;
-        }
-        
-        #btnPay {
-            font-size: 1.1rem;
-            padding: 16px !important;
-        }
+        .cart-section.mobile-open { transform: translateY(0); }
+
+        .product-card { border-radius: 10px; }
+        .product-img-container { height: 100px; }
+        .total-display { font-size: 2rem !important; }
+        #btnPay { font-size: 1.1rem; padding: 16px !important; }
+        .cart-footer { padding: 0.75rem; }
+        .smart-cash-btn { min-height: 44px; }
+    }
+
+    @media (max-width: 576px) {
+        .product-name { font-size: 0.8rem; }
+        .product-price { font-size: 0.95rem; }
     }
 
 
@@ -527,6 +585,9 @@
         <i class="fa-solid fa-shopping-cart"></i>
         <span class="badge" id="cartCountMobile">0</span>
     </button>
+
+    <!-- Overlay para cerrar el carrito móvil tocando fuera -->
+    <div class="mobile-cart-overlay" id="mobileCartOverlay" onclick="toggleMobileCart()"></div>
     
     <!-- Modal Clientes -->
     <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
@@ -912,7 +973,10 @@
         document.getElementById('inputTotal').value = total;
         document.getElementById('inputSubtotal').value = total;
 
-        document.getElementById('cartCount').innerText = cart.reduce(function(acc, item) { return acc + item.cantidad; }, 0);
+        var totalItems = cart.reduce(function(acc, item) { return acc + item.cantidad; }, 0);
+        document.getElementById('cartCount').innerText = totalItems;
+        var mobileCount = document.getElementById('cartCountMobile');
+        if (mobileCount) mobileCount.innerText = totalItems;
 
         calculateChange();
     }
@@ -960,6 +1024,19 @@
             document.getElementById('vuelto').value = '';
             document.getElementById('vuelto_display').value = '';
             document.getElementById('btnPay').disabled = true;
+        }
+    }
+
+    function toggleMobileCart() {
+        var cartSection = document.querySelector('.cart-section');
+        var overlay = document.getElementById('mobileCartOverlay');
+        var isOpen = cartSection.classList.contains('mobile-open');
+        if (isOpen) {
+            cartSection.classList.remove('mobile-open');
+            overlay.classList.remove('active');
+        } else {
+            cartSection.classList.add('mobile-open');
+            overlay.classList.add('active');
         }
     }
 

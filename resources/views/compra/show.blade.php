@@ -25,11 +25,11 @@
 
         <div class="card-body">
             <h6 class="card-subtitle mb-3 text-body-secondary">
-                Comprobante: {{$compra->comprobante->nombre}} ({{$compra->numero_comprobante}})</h6>
+                Comprobante: {{$compra->comprobante?->nombre ?? 'N/A'}} ({{$compra->numero_comprobante}})</h6>
             <h6 class="card-subtitle mb-3 text-body-secondary">
-                Proveedor: {{$compra->proveedore->persona->razon_social}}</h6>
+                Proveedor: {{$compra->proveedore?->persona?->razon_social ?? 'Proveedor general'}}</h6>
             <h6 class="card-subtitle mb-3 text-body-secondary">
-                Usuario: {{$compra->user->name}}</h6>
+                Usuario: {{$compra->user?->name ?? 'N/A'}}</h6>
             <h6 class="card-subtitle mb-3 text-body-secondary">
                 Método de pago: {{$compra->metodo_pago}}</h6>
             <h6 class="card-subtitle mb-3 text-body-secondary">
@@ -63,7 +63,7 @@
                             {{$item->nombre}}
                         </td>
                         <td>
-                            {{$item->presentacione->sigla}}
+                            {{$item->presentacione?->sigla ?? 'UND'}}
                         </td>
                         <td>
                             {{$item->pivot->cantidad}}
@@ -88,13 +88,13 @@
                         <th colspan="5">Sumas:</th>
                         <th>
                             <span id="th-suma"></span>
-                            <span>{{$empresa->moneda->simbolo}}</span>
+                            <span>{{$empresa?->moneda?->simbolo ?? 'COP'}}</span>
                         </th>
                     </tr>
 
                     <tr>
                         <th colspan="5">Total:</th>
-                        <th>{{$compra->total}} {{$empresa->moneda->simbolo}}</th>
+                        <th>{{$compra->total}} {{$empresa?->moneda?->simbolo ?? 'COP'}}</th>
                     </tr>
                 </tfoot>
             </table>

@@ -59,14 +59,14 @@
             <i class="fas fa-table me-1"></i>
             Tabla ventas
         </div>
-        <div class="card-body">
-            <table id="datatablesSimple" class="table table-striped">
+        <div class="card-body table-responsive">
+            <table id="datatablesSimple" class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Comprobante</th>
                         <th>Cliente</th>
-                        <th>Fecha y hora</th>
-                        <th>Vendedor</th>
+                        <th class="d-none d-md-table-cell">Fecha y hora</th>
+                        <th class="d-none d-lg-table-cell">Vendedor</th>
                         <th>Total</th>
                         <th>Acciones</th>
                     </tr>
@@ -75,14 +75,14 @@
                     @foreach ($ventas as $item)
                     <tr>
                         <td>
-                            <p class="fw-semibold mb-1">{{$item->comprobante->tipo_comprobante}}</p>
+                            <p class="fw-semibold mb-1">{{$item->comprobante?->tipo_comprobante ?? 'N/A'}}</p>
                             <p class="text-muted mb-0">{{$item->numero_comprobante}}</p>
                         </td>
                         <td>
-                            <p class="fw-semibold mb-1">{{ ucfirst($item->cliente->persona->tipo_persona ?? 'Cliente') }}</p>
-                            <p class="text-muted mb-0">{{$item->cliente->persona->razon_social}}</p>
+                            <p class="fw-semibold mb-1">{{ ucfirst($item->cliente?->persona?->tipo_persona ?? 'Cliente') }}</p>
+                            <p class="text-muted mb-0">{{$item->cliente?->persona?->razon_social ?? 'Cliente general'}}</p>
                         </td>
-                        <td>
+                        <td class="d-none d-md-table-cell">
                             <div class="row-not-space">
                                 <p class="fw-semibold mb-1">
                                     <span class="m-1"><i class="fa-solid fa-calendar-days"></i>
@@ -94,8 +94,8 @@
                                 </p>
                             </div>
                         </td>
-                        <td>
-                            {{$item->user->name}}
+                        <td class="d-none d-lg-table-cell">
+                            {{$item->user?->name ?? 'N/A'}}
                         </td>
                         <td>
                             {{$item->total}}

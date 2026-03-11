@@ -172,16 +172,16 @@
                             <tbody>
                                 @forelse($ventasPorCliente as $clienteId => $ventas)
                                 <tr>
-                                    <td>{{ $ventas->first()->cliente ? $ventas->first()->cliente->persona->razon_social : 'Cliente General' }}</td>
+                                    <td>{{ $ventas->first()->cliente?->persona?->razon_social ?? 'Cliente General' }}</td>
                                     <td class="fw-bold text-success">${{ number_format($ventas->sum('total'), 2) }}</td>
                                     <td>{{ $ventas->count() }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="showTransacciones('{{ $clienteId ? $clienteId : 'general' }}', '{{ $ventas->first()->cliente ? addslashes($ventas->first()->cliente->persona->razon_social) : 'Cliente General' }}')">
+                                        <button type="button" class="btn btn-sm btn-info text-white" onclick="showTransacciones('{{ $clienteId ? $clienteId : 'general' }}', '{{ addslashes($ventas->first()->cliente?->persona?->razon_social ?? 'Cliente General') }}')">
                                             <i class="fas fa-eye me-1"></i> Ver Transacciones
                                         </button>
                                         <div id="data_transacciones_{{ $clienteId ? $clienteId : 'general' }}" class="d-none">
                                             @foreach($ventas as $v)
-                                                <div class="tx-item" data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}" data-total="{{ number_format($v->total, 2) }}" data-vendedor="{{ $v->user->name }}" data-metodo="{{ $v->metodo_pago }}"></div>
+                                                <div class="tx-item" data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}" data-total="{{ number_format($v->total, 2) }}" data-vendedor="{{ $v->user?->name ?? 'N/A' }}" data-metodo="{{ $v->metodo_pago }}"></div>
                                             @endforeach
                                         </div>
                                     </td>

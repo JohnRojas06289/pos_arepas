@@ -17,6 +17,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -94,9 +95,11 @@ class ventaController extends Controller
 
         // ELIMINADO EL BLOQUEO DE INVENTARIO VACÍO POR SOLICITUD DEL USUARIO
         
-        $categorias = Categoria::whereHas('caracteristica', function ($query) {
-            $query->where('estado', 1);
-        })->get();
+        $categorias = Cache::remember('categorias_activas', 3600, function () {
+            return Categoria::whereHas('caracteristica', function ($query) {
+                $query->where('estado', 1);
+            })->get();
+        });
 
         $comprobantes = $comprobanteService->obtenerComprobantes();
         $optionsMetodoPago = MetodoPagoEnum::cases();

@@ -70,7 +70,7 @@ class Venta extends Model
      */
     public function scopePagadas($query)
     {
-        return $query->whereRaw('"pagado" = true');
+        return $query->where('pagado', true);
     }
 
     /**
@@ -78,7 +78,7 @@ class Venta extends Model
      */
     public function scopePendientes($query)
     {
-        return $query->whereRaw('"pagado" = false');
+        return $query->where('pagado', false);
     }
 
      /**

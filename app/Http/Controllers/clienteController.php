@@ -188,10 +188,9 @@ class clienteController extends Controller
                 if ($venta->saldo_pendiente <= $montoRestante) {
                     // Paga toda esta venta
                     $montoRestante -= $venta->saldo_pendiente;
-                    // Use DB::update to avoid PHP bool → integer cast issues with PostgreSQL
                     DB::table('ventas')->where('id', $venta->id)->update([
                         'saldo_pendiente' => 0,
-                        'pagado'          => DB::raw('true'),
+                        'pagado'          => true,
                     ]);
                 } else {
                     // Pago parcial

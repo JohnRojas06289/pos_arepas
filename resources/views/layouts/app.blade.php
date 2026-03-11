@@ -65,6 +65,28 @@
     </script>
     @stack('js')
 
+    @if(config('services.gemini.api_key'))
+    @include('layouts.partials.agente-ia')
+    @endif
+
+    {{-- Loading spinner en botones de submit para evitar doble-clic --}}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('form:not(#agente-ia-form)').forEach(function (form) {
+            form.addEventListener('submit', function () {
+                var btn = form.querySelector('button[type="submit"]');
+                if (btn && !btn.dataset.noSpinner) {
+                    btn.disabled = true;
+                    var original = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + original;
+                    // Re-habilitar tras 8s por si hay error de validación sin redirect
+                    setTimeout(function () { btn.disabled = false; btn.innerHTML = original; }, 8000);
+                }
+            });
+        });
+    });
+    </script>
+
 </body>
 
 

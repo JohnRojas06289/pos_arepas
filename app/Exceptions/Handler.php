@@ -50,11 +50,32 @@ class Handler extends ExceptionHandler
         });
 
         $this->renderable(function (NotFoundHttpException $e, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Recurso no encontrado'], 404);
+            }
             return response()->view('errors.404', [], 404);
+        });
 
-            return response()->view('errors.401', [], 401);
+        $this->renderable(function (\Symfony\Component\HttpKernel\Exception\HttpException $e, Request $request) {
+            if ($e->getStatusCode() === 401) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'No autorizado'], 401);
+                }
+                return response()->view('errors.401', [], 401);
+            }
+            if ($e->getStatusCode() === 403) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Acceso denegado'], 403);
+                }
+                return response()->view('errors.401', [], 403);
+            }
+        });
 
-            return response()->view('errors.500', [], 500);
+        $this->renderable(function (Throwable $e, Request $request) {
+            if ($request->expectsJson()) {
+                $mensaje = config('app.debug') ? $e->getMessage() : 'Error interno del servidor';
+                return response()->json(['message' => $mensaje], 500);
+            }
         });
     }
 }

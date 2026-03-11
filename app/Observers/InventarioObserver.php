@@ -30,12 +30,9 @@ class InventarioObserver
 
     public function saved(Inventario $inventario): void
     {
-        $producto = Producto::findOrfail($inventario->producto_id);
-        $kardex = new Kardex();
-
-        $producto->update([
-            'precio' => $kardex->calcularPrecioVenta($producto->id)
-        ]);
+        // Recálculo automático de precio ELIMINADO intencionalmente.
+        // El precio solo cambia cuando el usuario lo edita manualmente
+        // desde el formulario de producto o de inventario.
     }
 
     /**

@@ -44,7 +44,7 @@ class homeController extends Controller
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
             
             // Ventas agrupadas por cliente del día actual (FIADO + EFECTIVO + etc)
-            $ventasPorCliente = Venta::with(['user', 'cliente'])
+            $ventasPorCliente = Venta::with(['user', 'cliente.persona'])
                 ->whereBetween('created_at', [$hoyInicio, $hoyFin])
                 ->get()
                 ->groupBy('cliente_id');
@@ -96,9 +96,9 @@ class homeController extends Controller
     
             // Gráfica de Ventas por Día (Filtrada)
             $totalVentasPorDia = DB::table('ventas')
-                ->selectRaw('CAST(created_at AS DATE) as fecha, SUM(total) as total')
+                ->selectRaw('DATE(created_at) as fecha, SUM(total) as total')
                 ->whereBetween('created_at', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59'])
-                ->groupBy(DB::raw('CAST(created_at AS DATE)'))
+                ->groupByRaw('DATE(created_at)')
                 ->orderBy('fecha', 'asc')
                 ->get()->toArray();
     
@@ -147,7 +147,7 @@ class homeController extends Controller
                 ->get();
 
             // Ventas agrupadas por cliente del periodo seleccionado
-            $ventasPorCliente = Venta::with(['user', 'cliente'])
+            $ventasPorCliente = Venta::with(['user', 'cliente.persona'])
                 ->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
                 ->get()
                 ->groupBy('cliente_id');

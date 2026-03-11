@@ -1,0 +1,200 @@
+﻿2026-03-05T01:27:04.120060+00:00 heroku[run.3871]: State changed from up to complete
+2026-03-05T01:28:36.579570+00:00 app[api]: Log session created by user johnrove@unisabana.edu.co
+2026-03-05T01:29:59.000000+00:00 app[api]: Build started by user johnrove@unisabana.edu.co
+2026-03-05T01:30:03.000000+00:00 app[api]: Build started by user johnrove@unisabana.edu.co
+2026-03-05T01:30:17.815231+00:00 app[api]: Deploy 37d10288 by user johnrove@unisabana.edu.co
+2026-03-05T01:30:17.815231+00:00 app[api]: Release v291 created by user johnrove@unisabana.edu.co
+2026-03-05T01:30:18.191032+00:00 heroku[web.1]: Restarting
+2026-03-05T01:30:18.194111+00:00 heroku[web.1]: State changed from up to starting
+2026-03-05T01:30:19.000000+00:00 app[api]: Build succeeded
+2026-03-05T01:30:19.054699+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2026-03-05T01:30:19.072067+00:00 app[web.1]: SIGTERM received, attempting graceful shutdown...
+2026-03-05T01:30:19.072170+00:00 app[web.1]: WARNING: failed to get attributes of the connection socket
+2026-03-05T01:30:19.072220+00:00 app[web.1]: WARNING: failed to change attribute of the connection socket
+2026-03-05T01:30:19.072321+00:00 app[web.1]: Stopping nginx gracefully...
+2026-03-05T01:30:19.075338+00:00 app[web.1]: Stopping php-fpm gracefully...
+2026-03-05T01:30:19.105789+00:00 app[web.1]: Shutdown complete.
+2026-03-05T01:30:19.153453+00:00 heroku[web.1]: Process exited with status 143
+2026-03-05T01:30:21.174188+00:00 heroku[web.1]: Starting process with command `vendor/bin/heroku-php-nginx -C nginx_app.conf -i custom_php.ini public/`
+2026-03-05T01:30:22.591177+00:00 app[web.1]: DOCUMENT_ROOT changed to 'public/'
+2026-03-05T01:30:22.616905+00:00 app[web.1]: Using PHP configuration (php.ini) file 'custom_php.ini'
+2026-03-05T01:30:22.619766+00:00 app[web.1]: Using Nginx server-level configuration include 'nginx_app.conf'
+2026-03-05T01:30:22.703670+00:00 app[web.1]: Available RAM is 512M Bytes
+2026-03-05T01:30:22.703696+00:00 app[web.1]: PHP memory_limit is 512M Bytes
+2026-03-05T01:30:22.716086+00:00 app[web.1]: Starting php-fpm with 1 workers...
+2026-03-05T01:30:22.817462+00:00 app[web.1]: Starting nginx...
+2026-03-05T01:30:23.002165+00:00 heroku[web.1]: State changed from starting to up
+2026-03-05T01:30:24.353124+00:00 app[api]: Release v292 created by user johnrove@unisabana.edu.co
+2026-03-05T01:30:24.353124+00:00 app[api]: Deploy 37d10288 by user johnrove@unisabana.edu.co
+2026-03-05T01:30:24.733837+00:00 heroku[web.1]: Restarting
+2026-03-05T01:30:24.786293+00:00 heroku[web.1]: State changed from up to starting
+2026-03-05T01:30:25.540426+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2026-03-05T01:30:25.557278+00:00 app[web.1]: SIGTERM received, attempting graceful shutdown...
+2026-03-05T01:30:25.557506+00:00 app[web.1]: Stopping nginx gracefully...
+2026-03-05T01:30:25.559744+00:00 app[web.1]: Stopping php-fpm gracefully...
+2026-03-05T01:30:25.569957+00:00 app[web.1]: Shutdown complete.
+2026-03-05T01:30:25.623482+00:00 heroku[web.1]: Process exited with status 143
+2026-03-05T01:30:26.000000+00:00 app[api]: Build succeeded
+2026-03-05T01:30:27.642725+00:00 heroku[web.1]: Starting process with command `vendor/bin/heroku-php-nginx -C nginx_app.conf -i custom_php.ini public/`
+2026-03-05T01:30:28.997709+00:00 app[web.1]: DOCUMENT_ROOT changed to 'public/'
+2026-03-05T01:30:29.022976+00:00 app[web.1]: Using PHP configuration (php.ini) file 'custom_php.ini'
+2026-03-05T01:30:29.026019+00:00 app[web.1]: Using Nginx server-level configuration include 'nginx_app.conf'
+2026-03-05T01:30:29.106162+00:00 app[web.1]: Available RAM is 512M Bytes
+2026-03-05T01:30:29.106188+00:00 app[web.1]: PHP memory_limit is 512M Bytes
+2026-03-05T01:30:29.113713+00:00 app[web.1]: Starting php-fpm with 1 workers...
+2026-03-05T01:30:29.216824+00:00 app[web.1]: Starting nginx...
+2026-03-05T01:30:29.368124+00:00 heroku[web.1]: State changed from starting to up
+2026-03-05T01:30:34.268225+00:00 app[api]: Release v293 created by user johnrove@unisabana.edu.co
+2026-03-05T01:30:34.268225+00:00 app[api]: Set APP_DEBUG config vars by user johnrove@unisabana.edu.co
+2026-03-05T01:30:34.530838+00:00 heroku[web.1]: Restarting
+2026-03-05T01:30:34.588234+00:00 heroku[web.1]: State changed from up to starting
+2026-03-05T01:30:35.392469+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2026-03-05T01:30:35.411191+00:00 app[web.1]: SIGTERM received, attempting graceful shutdown...
+2026-03-05T01:30:35.411412+00:00 app[web.1]: Stopping nginx gracefully...
+2026-03-05T01:30:35.414269+00:00 app[web.1]: Stopping php-fpm gracefully...
+2026-03-05T01:30:35.425884+00:00 app[web.1]: Shutdown complete.
+2026-03-05T01:30:35.467642+00:00 heroku[web.1]: Process exited with status 143
+2026-03-05T01:30:37.574455+00:00 heroku[web.1]: Starting process with command `vendor/bin/heroku-php-nginx -C nginx_app.conf -i custom_php.ini public/`
+2026-03-05T01:30:38.900827+00:00 app[web.1]: DOCUMENT_ROOT changed to 'public/'
+2026-03-05T01:30:38.923516+00:00 app[web.1]: Using PHP configuration (php.ini) file 'custom_php.ini'
+2026-03-05T01:30:38.926609+00:00 app[web.1]: Using Nginx server-level configuration include 'nginx_app.conf'
+2026-03-05T01:30:39.014892+00:00 app[web.1]: Available RAM is 512M Bytes
+2026-03-05T01:30:39.014930+00:00 app[web.1]: PHP memory_limit is 512M Bytes
+2026-03-05T01:30:39.023578+00:00 app[web.1]: Starting php-fpm with 1 workers...
+2026-03-05T01:30:39.127097+00:00 app[web.1]: Starting nginx...
+2026-03-05T01:30:39.235994+00:00 heroku[web.1]: State changed from starting to up
+2026-03-05T01:53:56.746174+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:53:56 +0000] "GET / HTTP/1.1" 302 506 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:53:56.746229+00:00 heroku[router]: at=info method=GET path="/" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=7c0f6837-2f42-0d37-dee7-808ccad16840 fwd="152.203.222.222" dyno=web.1 connect=0ms service=250ms status=302 bytes=494 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:53:56.856290+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:53:56 +0000] "GET /login HTTP/1.1" 200 5626 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:53:56.856299+00:00 heroku[router]: at=info method=GET path="/login" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=20d7785d-d187-45c8-1108-6adff7a30d6b fwd="152.203.222.222" dyno=web.1 connect=0ms service=18ms status=200 bytes=5613 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:02.962548+00:00 heroku[router]: at=info method=POST path="/login" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=1701e8cb-9b08-db53-72f4-c126e372a12a fwd="152.203.222.222" dyno=web.1 connect=0ms service=195ms status=302 bytes=494 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:02.962858+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:54:02 +0000] "POST /login HTTP/1.1" 302 506 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.292266+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:54:03 +0000] "GET /panel HTTP/1.1" 200 25874 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/login" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.292689+00:00 heroku[router]: at=info method=GET path="/panel" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=9451109c-6044-a015-97ee-3e0a72610620 fwd="152.203.222.222" dyno=web.1 connect=0ms service=239ms status=200 bytes=25838 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:03.394098+00:00 app[web.1]: 10.1.91.5 - - [05/Mar/2026:01:54:03 +0000] "GET /css/styles.css HTTP/1.1" 200 259493 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.395051+00:00 heroku[router]: at=info method=GET path="/css/styles.css" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=ea38e04e-d735-0073-def8-f41a566c31ed fwd="152.203.222.222" dyno=web.1 connect=0ms service=1ms status=200 bytes=259493 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:03.467780+00:00 heroku[router]: at=info method=GET path="/css/custom.css" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=dc85e421-e97e-be8d-f5bd-d11596627a12 fwd="152.203.222.222" dyno=web.1 connect=0ms service=0ms status=200 bytes=31221 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:03.467944+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:54:03 +0000] "GET /css/custom.css HTTP/1.1" 200 31221 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.574520+00:00 app[web.1]: 10.1.93.180 - - [05/Mar/2026:01:54:03 +0000] "GET /js/fontawesome.js HTTP/1.1" 200 1472375 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.577070+00:00 heroku[router]: at=info method=GET path="/js/fontawesome.js" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=3bd4427b-46cd-a0eb-27b9-71aa5ec38b39 fwd="152.203.222.222" dyno=web.1 connect=0ms service=4ms status=200 bytes=1472375 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:03.663291+00:00 app[web.1]: 10.1.42.131 - - [05/Mar/2026:01:54:03 +0000] "GET /js/bootstrap.bundle.min.js HTTP/1.1" 200 80668 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.664410+00:00 heroku[router]: at=info method=GET path="/js/bootstrap.bundle.min.js" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=38fe7878-3798-e6d5-37ce-348047121757 fwd="152.203.222.222" dyno=web.1 connect=0ms service=1ms status=200 bytes=80668 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:03.835846+00:00 app[web.1]: 10.1.91.5 - - [05/Mar/2026:01:54:03 +0000] "GET /js/scripts.js HTTP/1.1" 200 976 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36
+2026-03-05T01:54:03.835909+00:00 heroku[router]: at=info method=GET path="/js/scripts.js" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=4ea60301-3154-cc23-2066-d028d76c6285 fwd="152.203.222.222" dyno=web.1 connect=0ms service=0ms status=200 bytes=976 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:31.982200+00:00 app[web.1]: [04-Mar-2026 20:54:31 America/Lima] [2026-03-04 20:54:31] production.ERROR: Undefined variable $ultimasVentas (View: /app/resources/views/admin/estadisticas/index.blade.php) {"userId":"1ba2bf46-1179-4cbe-b25c-8ea6c8e89fcc","exception":"[object] (Illuminate\\View\\ViewException(code: 0): Undefined variable $ultimasVentas (View: /app/resources/views/admin/estadisticas/index.blade.php) at /app/storage/framework/views/f27950c659827ce984e84a4ffead2255.php:436)
+2026-03-05T01:54:31.982223+00:00 app[web.1]: [stacktrace]
+2026-03-05T01:54:31.982361+00:00 app[web.1]: #0 /app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(59): Illuminate\\View\\Engines\\CompilerEngine->handleViewException(Object(ErrorException), 0)
+2026-03-05T01:54:31.982522+00:00 app[web.1]: #1 /app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(76): Illuminate\\View\\Engines\\PhpEngine->evaluatePath('/app/storage/fr...', Array)
+2026-03-05T01:54:31.982666+00:00 app[web.1]: #2 /app/vendor/laravel/framework/src/Illuminate/View/View.php(208): Illuminate\\View\\Engines\\CompilerEngine->get('/app/resources/...', Array)
+2026-03-05T01:54:31.982780+00:00 app[web.1]: #3 /app/vendor/laravel/framework/src/Illuminate/View/View.php(191): Illuminate\\View\\View->getContents()
+2026-03-05T01:54:31.982892+00:00 app[web.1]: #4 /app/vendor/laravel/framework/src/Illuminate/View/View.php(160): Illuminate\\View\\View->renderContents()
+2026-03-05T01:54:31.982998+00:00 app[web.1]: #5 /app/vendor/laravel/framework/src/Illuminate/Http/Response.php(78): Illuminate\\View\\View->render()
+2026-03-05T01:54:31.983146+00:00 app[web.1]: #6 /app/vendor/laravel/framework/src/Illuminate/Http/Response.php(34): Illuminate\\Http\\Response->setContent(Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.983303+00:00 app[web.1]: #7 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(939): Illuminate\\Http\\Response->__construct(Object(Illuminate\\View\\View), 200, Array)
+2026-03-05T01:54:31.983484+00:00 app[web.1]: #8 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(906): Illuminate\\Routing\\Router::toResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.983660+00:00 app[web.1]: #9 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\\Routing\\Router->prepareResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.983866+00:00 app[web.1]: #10 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Routing\\Router->{closure:Illuminate\\Routing\\Router::runRouteWithinStack():821}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.984077+00:00 app[web.1]: #11 /app/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():178}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.984253+00:00 app[web.1]: #12 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.984463+00:00 app[web.1]: #13 /app/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.984637+00:00 app[web.1]: #14 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.984821+00:00 app[web.1]: #15 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(87): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.985022+00:00 app[web.1]: #16 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.985042+00:00 heroku[router]: at=info method=GET path="/admin/estadisticas" host=pos-arepas-boyacenses-49af474a8cf1.herokuapp.com request_id=c5e46b18-ceea-308a-d5a7-285c9564fbf1 fwd="152.203.222.222" dyno=web.1 connect=0ms service=268ms status=500 bytes=1685 protocol=http1.1 tls=true tls_version=unknown
+2026-03-05T01:54:31.985228+00:00 app[web.1]: #17 /app/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(48): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.985405+00:00 app[web.1]: #18 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.985550+00:00 app[web.1]: #19 /app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(120): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.985706+00:00 app[web.1]: #20 /app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(63): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+2026-03-05T01:54:31.985816+00:00 app[web.1]: #21 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.986011+00:00 app[web.1]: #22 /app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(36): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.986135+00:00 app[web.1]: #23 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.986276+00:00 app[web.1]: #24 /app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(74): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.986390+00:00 app[web.1]: #25 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.986520+00:00 app[web.1]: #26 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.986608+00:00 app[web.1]: #27 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+2026-03-05T01:54:31.986726+00:00 app[web.1]: #28 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(800): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.986840+00:00 app[web.1]: #29 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(764): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+2026-03-05T01:54:31.986937+00:00 app[web.1]: #30 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(753): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.987034+00:00 app[web.1]: #31 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.987169+00:00 app[web.1]: #32 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():197}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.987314+00:00 app[web.1]: #33 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():178}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.987455+00:00 app[web.1]: #34 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.987582+00:00 app[web.1]: #35 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.987728+00:00 app[web.1]: #36 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.987861+00:00 app[web.1]: #37 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.987980+00:00 app[web.1]: #38 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.988117+00:00 app[web.1]: #39 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.988233+00:00 app[web.1]: #40 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.988388+00:00 app[web.1]: #41 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.988531+00:00 app[web.1]: #42 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.988667+00:00 app[web.1]: #43 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.988777+00:00 app[web.1]: #44 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.988914+00:00 app[web.1]: #45 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.989026+00:00 app[web.1]: #46 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.989156+00:00 app[web.1]: #47 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.989243+00:00 app[web.1]: #48 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+2026-03-05T01:54:31.989355+00:00 app[web.1]: #49 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.989428+00:00 app[web.1]: #50 /app/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.989442+00:00 app[web.1]: #51 {main}
+2026-03-05T01:54:31.989442+00:00 app[web.1]: 
+2026-03-05T01:54:31.989548+00:00 app[web.1]: [previous exception] [object] (ErrorException(code: 0): Undefined variable $ultimasVentas at /app/storage/framework/views/f27950c659827ce984e84a4ffead2255.php:436)
+2026-03-05T01:54:31.989563+00:00 app[web.1]: [stacktrace]
+2026-03-05T01:54:31.989695+00:00 app[web.1]: #0 /app/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php(258): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(2, 'Undefined varia...', '/app/storage/fr...', 436)
+2026-03-05T01:54:31.989854+00:00 app[web.1]: #1 /app/storage/framework/views/f27950c659827ce984e84a4ffead2255.php(436): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->{closure:Illuminate\\Foundation\\Bootstrap\\HandleExceptions::forwardsTo():257}(2, 'Undefined varia...', '/app/storage/fr...', 436)
+2026-03-05T01:54:31.989945+00:00 app[web.1]: #2 /app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(123): require('/app/storage/fr...')
+2026-03-05T01:54:31.990058+00:00 app[web.1]: #3 /app/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php(124): Illuminate\\Filesystem\\Filesystem::{closure:Illuminate\\Filesystem\\Filesystem::getRequire():120}()
+2026-03-05T01:54:31.990156+00:00 app[web.1]: #4 /app/vendor/laravel/framework/src/Illuminate/View/Engines/PhpEngine.php(57): Illuminate\\Filesystem\\Filesystem->getRequire('/app/storage/fr...', Array)
+2026-03-05T01:54:31.990259+00:00 app[web.1]: #5 /app/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php(76): Illuminate\\View\\Engines\\PhpEngine->evaluatePath('/app/storage/fr...', Array)
+2026-03-05T01:54:31.990351+00:00 app[web.1]: #6 /app/vendor/laravel/framework/src/Illuminate/View/View.php(208): Illuminate\\View\\Engines\\CompilerEngine->get('/app/resources/...', Array)
+2026-03-05T01:54:31.990420+00:00 app[web.1]: #7 /app/vendor/laravel/framework/src/Illuminate/View/View.php(191): Illuminate\\View\\View->getContents()
+2026-03-05T01:54:31.990491+00:00 app[web.1]: #8 /app/vendor/laravel/framework/src/Illuminate/View/View.php(160): Illuminate\\View\\View->renderContents()
+2026-03-05T01:54:31.990559+00:00 app[web.1]: #9 /app/vendor/laravel/framework/src/Illuminate/Http/Response.php(78): Illuminate\\View\\View->render()
+2026-03-05T01:54:31.990650+00:00 app[web.1]: #10 /app/vendor/laravel/framework/src/Illuminate/Http/Response.php(34): Illuminate\\Http\\Response->setContent(Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.990750+00:00 app[web.1]: #11 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(939): Illuminate\\Http\\Response->__construct(Object(Illuminate\\View\\View), 200, Array)
+2026-03-05T01:54:31.990863+00:00 app[web.1]: #12 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(906): Illuminate\\Routing\\Router::toResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.990983+00:00 app[web.1]: #13 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\\Routing\\Router->prepareResponse(Object(Illuminate\\Http\\Request), Object(Illuminate\\View\\View))
+2026-03-05T01:54:31.991109+00:00 app[web.1]: #14 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Routing\\Router->{closure:Illuminate\\Routing\\Router::runRouteWithinStack():821}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.991249+00:00 app[web.1]: #15 /app/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():178}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.991366+00:00 app[web.1]: #16 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Routing\\Middleware\\SubstituteBindings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.991503+00:00 app[web.1]: #17 /app/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.991616+00:00 app[web.1]: #18 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.991760+00:00 app[web.1]: #19 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(87): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.991882+00:00 app[web.1]: #20 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.992024+00:00 app[web.1]: #21 /app/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(48): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.992143+00:00 app[web.1]: #22 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.992281+00:00 app[web.1]: #23 /app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(120): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.992432+00:00 app[web.1]: #24 /app/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(63): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+2026-03-05T01:54:31.992555+00:00 app[web.1]: #25 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.992702+00:00 app[web.1]: #26 /app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(36): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.992824+00:00 app[web.1]: #27 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.992962+00:00 app[web.1]: #28 /app/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(74): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.993076+00:00 app[web.1]: #29 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.993207+00:00 app[web.1]: #30 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.993289+00:00 app[web.1]: #31 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+2026-03-05T01:54:31.993410+00:00 app[web.1]: #32 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(800): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.993523+00:00 app[web.1]: #33 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(764): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+2026-03-05T01:54:31.993621+00:00 app[web.1]: #34 /app/vendor/laravel/framework/src/Illuminate/Routing/Router.php(753): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.993719+00:00 app[web.1]: #35 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.993855+00:00 app[web.1]: #36 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\\Foundation\\Http\\Kernel->{closure:Illuminate\\Foundation\\Http\\Kernel::dispatchToRouter():197}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.994027+00:00 app[web.1]: #37 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:Illuminate\\Pipeline\\Pipeline::prepareDestination():178}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.994170+00:00 app[web.1]: #38 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.994306+00:00 app[web.1]: #39 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.994451+00:00 app[web.1]: #40 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.994585+00:00 app[web.1]: #41 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.994702+00:00 app[web.1]: #42 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.994841+00:00 app[web.1]: #43 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.994955+00:00 app[web.1]: #44 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.995109+00:00 app[web.1]: #45 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.995240+00:00 app[web.1]: #46 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.995374+00:00 app[web.1]: #47 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.995485+00:00 app[web.1]: #48 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.995623+00:00 app[web.1]: #49 /app/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.995734+00:00 app[web.1]: #50 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+2026-03-05T01:54:31.995864+00:00 app[web.1]: #51 /app/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\\Pipeline\\Pipeline->{closure:{closure:Illuminate\\Pipeline\\Pipeline::carry():194}:195}(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.995952+00:00 app[web.1]: #52 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+2026-03-05T01:54:31.996075+00:00 app[web.1]: #53 /app/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.996147+00:00 app[web.1]: #54 /app/public/index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+2026-03-05T01:54:31.996161+00:00 app[web.1]: #55 {main}
+2026-03-05T01:54:31.996170+00:00 app[web.1]: "}
+2026-03-05T01:54:31.996170+00:00 app[web.1]: 
+2026-03-05T01:54:31.996341+00:00 app[web.1]: 10.1.93.180 - - [05/Mar/2026:01:54:31 +0000] "GET /admin/estadisticas HTTP/1.1" 500 1697 "https://pos-arepas-boyacenses-49af474a8cf1.herokuapp.com/panel" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36

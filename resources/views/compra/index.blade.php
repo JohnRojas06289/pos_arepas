@@ -51,12 +51,12 @@
                     @foreach ($compras as $item)
                     <tr>
                         <td>
-                            <p class="fw-semibold mb-1">{{$item->comprobante->nombre}}</p>
+                            <p class="fw-semibold mb-1">{{$item->comprobante?->nombre ?? 'N/A'}}</p>
                             <p class="text-muted mb-0">{{$item->numero_comprobante}}</p>
                         </td>
                         <td>
-                            <p class="fw-semibold mb-1">{{ ucfirst($item->proveedore->persona->tipo->value) }}</p>
-                            <p class="text-muted mb-0">{{$item->proveedore->persona->razon_social}}</p>
+                            <p class="fw-semibold mb-1">{{ ucfirst($item->proveedore?->persona?->tipo?->value ?? '') }}</p>
+                            <p class="text-muted mb-0">{{$item->proveedore?->persona?->razon_social ?? 'Proveedor general'}}</p>
                         </td>
                         <td>
                             <div class="row-not-space">
@@ -71,7 +71,7 @@
                             </div>
                         </td>
                         <td>
-                            {{$item->user->name}}
+                            {{$item->user?->name ?? 'N/A'}}
                         </td>
                         <td>
                             {{$item->total}}
