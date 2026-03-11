@@ -77,11 +77,34 @@ class AgenteIAController extends Controller
                 ->toArray();
         });
 
-        // Ventas del día
-        $hoyInicio = Carbon::now()->startOfDay();
-        $hoyFin    = Carbon::now()->endOfDay();
-        $ventasHoy = Cache::remember('agente_ia_ventas_hoy', 120, function () use ($hoyInicio, $hoyFin) {
-            return Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+        // Ventas del día, Ventas del Mes y Productos más vendidos (cache 2 min)
+        $datosVentas = Cache::remember('agente_ia_ventas', 120, function () {
+            $hoyInicio = Carbon::now()->startOfDay();
+            $hoyFin    = Carbon::now()->endOfDay();
+            
+            $mesInicio = Carbon::now()->startOfMonth();
+            $mesFin    = Carbon::now()->endOfMonth();
+
+            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+            $ventasMes = Venta::whereBetween('created_at', [$mesInicio, $mesFin])->sum('total');
+
+            // 5 productos más vendidos del mes
+            $masVendidos = \Illuminate\Support\Facades\DB::table('producto_venta')
+                ->join('ventas', 'producto_venta.venta_id', '=', 'ventas.id')
+                ->join('productos', 'producto_venta.producto_id', '=', 'productos.id')
+                ->select('productos.nombre', \Illuminate\Support\Facades\DB::raw('SUM(producto_venta.cantidad) as total_vendido'))
+                ->whereBetween('ventas.created_at', [$mesInicio, $mesFin])
+                ->groupBy('productos.id', 'productos.nombre')
+                ->orderByDesc('total_vendido')
+                ->limit(5)
+                ->get()
+                ->toArray();
+
+            return [
+                'hoy' => $ventasHoy,
+                'mes' => $ventasMes,
+                'top' => $masVendidos
+            ];
         });
 
         // Productos con stock bajo (< 10)
@@ -91,7 +114,9 @@ class AgenteIAController extends Controller
             'usuario_nombre' => $nombre,
             'usuario_rol'    => $rol,
             'inventario'     => $inventario,
-            'ventas_hoy'     => $ventasHoy,
+            'ventas_hoy'     => $datosVentas['hoy'],
+            'ventas_mes'     => $datosVentas['mes'],
+            'mas_vendidos'   => $datosVentas['top'],
             'stock_bajo'     => array_values($stockBajo),
         ];
     }
@@ -103,7 +128,9 @@ class AgenteIAController extends Controller
     {
         $inventarioJson = json_encode($ctx['inventario'], JSON_UNESCAPED_UNICODE);
         $stockBajoJson  = json_encode($ctx['stock_bajo'], JSON_UNESCAPED_UNICODE);
+        $masVendidosJson = json_encode($ctx['mas_vendidos'], JSON_UNESCAPED_UNICODE);
         $ventasHoy      = number_format($ctx['ventas_hoy'], 0, ',', '.');
+        $ventasMes      = number_format($ctx['ventas_mes'], 0, ',', '.');
         $nombreUsuario  = $ctx['usuario_nombre'];
         $rolUsuario     = $ctx['usuario_rol'];
 
@@ -121,9 +148,14 @@ Tu función es darle soporte personalizado según su rol, responder a sus pregun
 - Para preguntas de navegación, da instrucciones claras con el menú del sistema.
 - Los precios están en pesos colombianos (COP), sin decimales.
 
-## Datos actuales del sistema (actualizado hace pocos minutos):
+## Datos actuales del sistema (actualizados recién):
 
-**Ventas de hoy:** \${$ventasHoy} COP
+**Ventas:** 
+- Hoy: \${$ventasHoy} COP
+- Este Mes: \${$ventasMes} COP
+
+**Top 5 Productos Más Vendidos Este Mes:**
+{$masVendidosJson}
 
 **Productos con stock bajo (menos de 10 unidades):**
 {$stockBajoJson}
