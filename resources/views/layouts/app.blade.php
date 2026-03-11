@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
@@ -65,10 +65,12 @@
     </script>
     @stack('js')
 
-    @if(config('services.gemini.api_key'))
+    <!-- Widget de Agente IA -->
     @include('layouts.partials.agente-ia')
-    @endif
 
+    <script>
+        console.log("Estado de Gemini API Key en Config:", "{{ config('services.gemini.api_key') ? 'CONFIGURADA' : 'NO CONFIGURADA' }}");
+    </script>
     {{-- Loading spinner en botones de submit para evitar doble-clic --}}
     <script>
     document.addEventListener('DOMContentLoaded', function () {
