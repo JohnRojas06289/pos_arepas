@@ -44,8 +44,11 @@ class AgenteIAController extends Controller
         $promptSistema = $this->construirPromptSistema($contexto);
 
         try {
-            $respuesta = $this->llamarGemini($apiKey, $promptSistema, $mensaje);
-            return response()->json(['respuesta' => $respuesta]);
+            $resultado = $this->llamarGemini($apiKey, $promptSistema, $mensaje);
+            return response()->json([
+                'respuesta'   => $resultado['respuesta'],
+                'sugerencias' => $resultado['sugerencias'],
+            ]);
         } catch (\Exception $e) {
             Log::error('Error al llamar a Gemini API', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Error al conectar con el agente IA. Intenta de nuevo.'], 500);
@@ -175,6 +178,14 @@ Tu función es darle soporte personalizado según su rol, responder a sus pregun
 - Para preguntas de navegación, da instrucciones claras con el menú del sistema.
 - Los precios están en pesos colombianos (COP), sin decimales.
 
+## FORMATO DE RESPUESTA OBLIGATORIO:
+Debes responder SIEMPRE con un JSON válido sin ningún texto extra. El schema es:
+{
+  "respuesta": "<Tu respuesta en Markdown, puede incluir negritas, listas y saltos de línea>",
+  "sugerencias": ["<pregunta 1>", "<pregunta 2>", "<pregunta 3>"]
+}
+Donde `sugerencias` es un array de exactamente 3 preguntas de seguimiento cortas, interesantes y contextuales basadas en lo que acabas de responder. Deben ser preguntas que el usuario probablemente quiera hacerte a continuación.
+
 ## Datos actuales del sistema (actualizados recién):
 
 {$seccionEspecial}
@@ -196,8 +207,9 @@ PROMPT;
 
     /**
      * Llama a la API de Google Gemini Flash.
+     * Devuelve array con 'respuesta' (string Markdown) y 'sugerencias' (array de strings).
      */
-    private function llamarGemini(string $apiKey, string $promptSistema, string $mensajeUsuario): string
+    private function llamarGemini(string $apiKey, string $promptSistema, string $mensajeUsuario): array
     {
         // endpoint para gemini-2.5-flash
         $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
@@ -213,8 +225,9 @@ PROMPT;
                 ],
             ],
             'generationConfig' => [
-                'temperature'     => 0.3,
-                'maxOutputTokens' => 512,
+                'temperature'       => 0.3,
+                'maxOutputTokens'   => 600,
+                'responseMimeType'  => 'application/json',
             ],
         ];
 
@@ -228,7 +241,13 @@ PROMPT;
         }
 
         $data = $response->json();
-        return $data['candidates'][0]['content']['parts'][0]['text']
-            ?? 'No pude generar una respuesta. Intenta de nuevo.';
+        $raw  = $data['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+
+        $parsed = json_decode($raw, true);
+
+        return [
+            'respuesta'   => $parsed['respuesta']   ?? 'No pude generar una respuesta. Intenta de nuevo.',
+            'sugerencias' => $parsed['sugerencias']  ?? [],
+        ];
     }
 }

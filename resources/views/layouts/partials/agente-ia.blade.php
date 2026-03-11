@@ -371,28 +371,24 @@
     const csrfToken  = document.querySelector('meta[name="csrf-token"]').content;
     const chatUrl    = '{{ route("agente-ia.chat") }}';
 
-    // ---- Chips de sugerencias según rol ----
+    // ---- Chips de sugerencias ----
     const chipsAdmin = [
         '¿Cuánto vendimos hoy?',
         '¿Qué productos tienen stock bajo?',
         '¿Cuál es el producto más vendido?',
-        'Resumen del día',
-        '¿Qué ventas se hicieron esta semana?',
     ];
     const chipsVendedor = [
         '¿Hay stock disponible?',
         '¿Cómo registro una venta?',
-        '¿Cómo abro una caja?',
         '¿Cuánto llevo vendido hoy?',
-        'Ayuda con el sistema',
     ];
-    const chips = userRole === 'administrador' ? chipsAdmin : chipsVendedor;
+    let sugerenciasActuales = userRole === 'administrador' ? chipsAdmin : chipsVendedor;
 
-    function renderChips() {
+    function renderSugerencias(sugerenciasList) {
         sugsEl.innerHTML = '';
-        // Mostrar solo 3 chips aleatorios
-        var shown = chips.slice().sort(function(){ return Math.random()-0.5; }).slice(0,3);
-        shown.forEach(function(c) {
+        if (!sugerenciasList || sugerenciasList.length === 0) return;
+
+        sugerenciasList.forEach(function(c) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'ia-chip';
@@ -449,7 +445,9 @@
                 var items = JSON.parse(guardado);
                 mensajes.innerHTML = '';
                 if (items.length === 0) { agregarBienvenida(); return; }
-                items.forEach(function(m) { agregarBurbuja(m.texto, m.tipo, false); });
+                items.forEach(function(m) { 
+                    agregarBurbuja(m.texto, m.tipo, false); 
+                });
             } else {
                 agregarBienvenida();
             }
@@ -564,7 +562,7 @@
         panel.classList.toggle('oculto');
         if (!panel.classList.contains('oculto')) {
             cargarHistorial();
-            renderChips();
+            renderSugerencias(sugerenciasActuales);
             input.focus();
             if (window.speechSynthesis) window.speechSynthesis.getVoices();
         }
@@ -610,14 +608,28 @@
             });
             var data = await res.json();
             quitarEscribiendo();
-            agregarBurbuja(data.respuesta || data.error || 'Error al obtener respuesta.', 'ia', true);
+            
+            if (data.respuesta) {
+                agregarBurbuja(data.respuesta, 'ia', true);
+            } else if (data.error) {
+                agregarBurbuja(data.error, 'ia', true);
+            } else {
+                agregarBurbuja('Error desconocido.', 'ia', true);
+            }
+
+            if (data.sugerencias && Array.isArray(data.sugerencias)) {
+                sugerenciasActuales = data.sugerencias;
+            } else {
+                sugerenciasActuales = userRole === 'administrador' ? chipsAdmin : chipsVendedor;
+            }
+
         } catch(err) {
             quitarEscribiendo();
             agregarBurbuja('Error de conexión. Verifica tu internet e intenta de nuevo.', 'ia', true);
         } finally {
             enviar.disabled = false;
             micBtn.disabled  = false;
-            renderChips(); // Volver a mostrar chips
+            renderSugerencias(sugerenciasActuales); // Mostrar chips contextuales
             input.focus();
         }
     });
