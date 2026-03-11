@@ -61,7 +61,7 @@ class AgenteIAController extends Controller
         $usuario = auth()->user();
         $nombre = $usuario ? $usuario->name : 'Usuario';
         $rol = $usuario ? ($usuario->getRoleNames()->first() ?? 'desconocido') : 'desconocido';
-        $esAdmin = $usuario && $usuario->hasRole('admin');
+        $esAdmin = $usuario && $usuario->hasRole('administrador');
 
         // Datos del inventario (cacheados 5 min para no sobrecargar la BD)
         // Todos los roles necesitan ver qué hay en stock para vender.
