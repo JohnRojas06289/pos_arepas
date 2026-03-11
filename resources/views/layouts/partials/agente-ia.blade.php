@@ -1,5 +1,7 @@
-{{-- Widget de Agente IA - Gemini Flash --}}
+{{-- Widget de Agente IA — Gemini Flash --}}
+@if(config('services.gemini.api_key'))
 <style>
+/* ===== AGENTE IA — BOTÓN FLOTANTE ===== */
 #agente-ia-btn {
     position: fixed;
     bottom: 24px;
@@ -8,219 +10,353 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #4f46e5;
-    color: white;
+    background: var(--color-accent);
+    color: var(--color-secondary);
     border: none;
-    box-shadow: 0 4px 12px rgba(79,70,229,0.4);
-    font-size: 1.4rem;
+    box-shadow: 0 4px 20px rgba(240,199,94,0.45);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.3rem;
+    transition: all 0.25s ease;
 }
-#agente-ia-btn:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(79,70,229,0.5); }
+#agente-ia-btn:hover {
+    background: var(--color-accent-dark);
+    transform: scale(1.08);
+    box-shadow: 0 6px 24px rgba(240,199,94,0.55);
+}
+/* Pulso de disponibilidad */
+#agente-ia-btn::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--color-accent);
+    opacity: 0;
+    animation: ia-pulse 2.5s ease-in-out infinite;
+}
+@keyframes ia-pulse {
+    0%   { transform: scale(1);   opacity: 0.6; }
+    70%  { transform: scale(1.3); opacity: 0; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
 
+/* ===== PANEL ===== */
 #agente-ia-panel {
     position: fixed;
-    bottom: 90px;
+    bottom: 92px;
     right: 24px;
-    z-index: 1049;
-    width: 360px;
-    max-height: 520px;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    z-index: 1050;
+    width: 380px;
+    height: 560px;
+    max-height: calc(100vh - 110px);
+    border-radius: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+    transform-origin: bottom right;
 }
-#agente-ia-panel.oculto { opacity: 0; pointer-events: none; transform: translateY(16px); }
+#agente-ia-panel.oculto {
+    opacity: 0;
+    transform: scale(0.85) translateY(12px);
+    pointer-events: none;
+}
 
+/* ===== HEADER ===== */
 #agente-ia-header {
-    background: #4f46e5;
-    color: white;
-    padding: 14px 16px;
-    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.95rem;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, #3d4f4f 100%);
+    color: #fff;
+    border-radius: 20px 20px 0 0;
+    flex-shrink: 0;
+}
+.ia-header-info { display: flex; align-items: center; gap: 10px; }
+.ia-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    color: var(--color-secondary);
+    flex-shrink: 0;
+}
+.ia-header-name  { font-weight: 700; font-size: 0.92rem; line-height: 1.2; }
+.ia-header-sub   { font-size: 0.7rem; opacity: 0.75; }
+.ia-online-dot {
+    width: 8px; height: 8px;
+    background: #4CAF7D;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    animation: ia-pulse 2s ease-in-out infinite;
 }
 #agente-ia-cerrar {
-    background: none;
+    background: rgba(255,255,255,0.12);
     border: none;
-    color: white;
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
     font-size: 1.1rem;
     cursor: pointer;
-    opacity: 0.8;
+    transition: background 0.18s ease;
     line-height: 1;
+    padding: 0;
 }
-#agente-ia-cerrar:hover { opacity: 1; }
+#agente-ia-cerrar:hover { background: rgba(255,255,255,0.22); }
 
+/* ===== MENSAJES ===== */
 #agente-ia-mensajes {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 14px;
+    padding: 14px 14px 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    background: #f8f9fa;
+    gap: 10px;
+    scroll-behavior: smooth;
 }
+#agente-ia-mensajes::-webkit-scrollbar { width: 4px; }
+#agente-ia-mensajes::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
 
+/* Burbujas */
 .ia-burbuja {
-    max-width: 85%;
-    padding: 9px 13px;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    line-height: 1.45;
+    max-width: 86%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 0.86rem;
+    line-height: 1.5;
     word-break: break-word;
-    white-space: pre-wrap;
+    animation: ia-slide-in 0.22s ease-out;
 }
-.ia-burbuja.ia { background: #fff; border: 1px solid #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; }
-.ia-burbuja.usuario { background: #4f46e5; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-.ia-escribiendo { color: #6b7280; font-size: 0.8rem; align-self: flex-start; padding: 4px 8px; }
+@keyframes ia-slide-in {
+    from { opacity:0; transform: translateY(6px); }
+    to   { opacity:1; transform: translateY(0); }
+}
+.ia-burbuja.ia {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+.ia-burbuja.usuario {
+    background: var(--color-primary);
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    margin-left: auto;
+}
 
+/* Controles de audio */
 .ia-audio-controls {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #e5e7eb;
     display: flex;
-    gap: 8px;
+    gap: 4px;
+    margin-top: 7px;
     flex-wrap: wrap;
 }
 .ia-audio-btn {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 4px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 500;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
-.ia-audio-btn:hover {
-    background: #f3f4f6;
-    border-color: #d1d5db;
-    transform: translateY(-1px);
-}
-.ia-audio-btn.ia-play-btn { color: #059669; }
-.ia-audio-btn.ia-pause-btn { color: #d97706; display: none; }
-.ia-audio-btn.ia-stop-btn { color: #dc2626; display: none; }
+.ia-audio-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
+/* Indicador "Escribiendo..." */
+#ia-escribiendo {
+    align-self: flex-start;
+    padding: 10px 14px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+.ia-dot {
+    width: 7px; height: 7px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: ia-bounce 1.2s ease-in-out infinite;
+}
+.ia-dot:nth-child(2) { animation-delay: 0.2s; }
+.ia-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ia-bounce {
+    0%,80%,100% { transform: translateY(0); opacity:0.5; }
+    40%          { transform: translateY(-5px); opacity:1; }
+}
+
+/* ===== CHIPS DE SUGERENCIAS ===== */
+#ia-sugerencias {
+    padding: 8px 12px 4px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-color);
+}
+.ia-chip {
+    padding: 4px 11px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.ia-chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-subtle);
+}
+
+/* ===== FORMULARIO DE INPUT ===== */
 #agente-ia-form {
     display: flex;
-    padding: 10px 12px;
-    border-top: 1px solid #e5e7eb;
-    background: #fff;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 10px 12px 14px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+    flex-shrink: 0;
 }
 #agente-ia-input {
     flex: 1;
-    border: 1px solid #d1d5db;
-    border-radius: 24px;
-    padding: 8px 14px;
+    background: var(--bg-primary);
+    border: 1.5px solid var(--border-input);
+    border-radius: 16px;
+    padding: 9px 14px;
     font-size: 0.875rem;
-    outline: none;
+    color: var(--text-primary);
     resize: none;
-    min-height: 38px;
     max-height: 80px;
-    overflow-y: auto;
+    min-height: 38px;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.18s ease;
+    line-height: 1.4;
 }
-#agente-ia-input:focus { border-color: #4f46e5; }
-#agente-ia-enviar {
-    background: #4f46e5;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 38px;
-    height: 38px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-    transition: background 0.15s;
-}
-#agente-ia-enviar:hover { background: #4338ca; }
-#agente-ia-enviar:disabled { background: #9ca3af; cursor: not-allowed; }
+#agente-ia-input:focus { border-color: var(--color-primary); }
+#agente-ia-input::placeholder { color: var(--text-muted); }
 
+/* Botón micrófono */
 #agente-ia-mic {
-    background: #f3f4f6;
-    color: #4b5563;
-    border: 1px solid #d1d5db;
+    width: 36px; height: 36px;
     border-radius: 50%;
-    width: 38px;
-    height: 38px;
+    border: 1.5px solid var(--border-input);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
+    transition: all 0.18s ease;
     flex-shrink: 0;
-    transition: all 0.2s;
 }
-#agente-ia-mic:hover { background: #e5e7eb; color: #1f2937; }
-#agente-ia-mic.grabando { 
-    background: #ef4444; 
-    color: white; 
-    border-color: #ef4444;
-    animation: pulse-mic 1.5s infinite; 
-}
-#agente-ia-mic:disabled { opacity: 0.5; cursor: not-allowed; }
-
-@keyframes pulse-mic {
-    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+#agente-ia-mic:hover { border-color: var(--color-primary); color: var(--color-primary); }
+#agente-ia-mic.grabando {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #fff;
+    animation: ia-pulse 1s ease-in-out infinite;
 }
 
-/* Mobile: panel ocupa toda la pantalla */
-@media (max-width: 576px) {
+/* Botón enviar */
+#agente-ia-enviar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+#agente-ia-enviar:hover { background: var(--color-primary-dark); transform: scale(1.06); }
+#agente-ia-enviar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ===== MÓVIL: panel pantalla completa ===== */
+@media (max-width: 575.98px) {
     #agente-ia-panel {
-        width: 100vw;
-        max-height: 100dvh;
-        bottom: 0;
-        right: 0;
+        top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%;
+        max-height: 100%;
         border-radius: 0;
+        border: none;
     }
+    #agente-ia-panel.oculto { transform: translateY(100%); }
+    #agente-ia-header { border-radius: 0; }
     #agente-ia-btn { bottom: 16px; right: 16px; }
 }
 </style>
 
-<button id="agente-ia-btn" title="Asistente IA">
-    <i class="fas fa-robot"></i>
+{{-- ===== BOTÓN FLOTANTE ===== --}}
+<button id="agente-ia-btn" title="Asistente Arepas IA" aria-label="Abrir asistente IA">
+    <i class="fas fa-comments"></i>
 </button>
 
-<div id="agente-ia-panel" class="oculto">
+{{-- ===== PANEL DE CHAT ===== --}}
+<div id="agente-ia-panel" class="oculto" role="dialog" aria-label="Chat asistente IA">
+
+    {{-- Header --}}
     <div id="agente-ia-header">
-        <span><i class="fas fa-robot me-2"></i>Asistente Arepas IA</span>
-        <button id="agente-ia-cerrar" title="Cerrar">&times;</button>
+        <div class="ia-header-info">
+            <div class="ia-avatar"><i class="fas fa-robot"></i></div>
+            <div>
+                <div class="ia-header-name">
+                    <span class="ia-online-dot"></span>Asistente Arepas &#127807;
+                </div>
+                <div class="ia-header-sub">Gemini Flash — siempre disponible</div>
+            </div>
+        </div>
+        <button id="agente-ia-cerrar" title="Cerrar" aria-label="Cerrar chat">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
-    <div id="agente-ia-mensajes">
-        <div class="ia-burbuja ia">¡Hola! Soy tu asistente IA. Puedo ayudarte con inventario, ventas, precios y navegación del sistema. ¿En qué te ayudo?</div>
-    </div>
+
+    {{-- Mensajes --}}
+    <div id="agente-ia-mensajes"></div>
+
+    {{-- Chips de sugerencias --}}
+    <div id="ia-sugerencias"></div>
+
+    {{-- Formulario --}}
     <form id="agente-ia-form" autocomplete="off">
-        <button type="button" id="agente-ia-mic" title="Hablar por micrófono">
+        <button type="button" id="agente-ia-mic" title="Hablar" aria-label="Entrada de voz">
             <i class="fas fa-microphone"></i>
         </button>
-        <textarea id="agente-ia-input" placeholder="Escribe tu pregunta..." rows="1"></textarea>
-        <button type="submit" id="agente-ia-enviar" title="Enviar">
+        <textarea id="agente-ia-input" placeholder="Pregunta algo sobre ventas, inventario..." rows="1" aria-label="Mensaje"></textarea>
+        <button type="submit" id="agente-ia-enviar" title="Enviar" aria-label="Enviar mensaje">
             <i class="fas fa-paper-plane"></i>
         </button>
     </form>
+
 </div>
 
 <script>
 (function () {
     const userId     = '{{ auth()->id() ?? "guest" }}';
     const userName   = '{{ auth()->user() ? auth()->user()->name : "Usuario" }}';
-    const userRole   = '{{ auth()->user() ? (auth()->user()->getRoleNames()->first() ?? "Usuario") : "Usuario" }}';
+    const userRole   = '{{ auth()->user() ? (auth()->user()->getRoleNames()->first() ?? "usuario") : "usuario" }}';
     const SESSION_KEY = 'agente_ia_historial_' + userId;
 
     const btn        = document.getElementById('agente-ia-btn');
@@ -231,160 +367,159 @@
     const input      = document.getElementById('agente-ia-input');
     const enviar     = document.getElementById('agente-ia-enviar');
     const micBtn     = document.getElementById('agente-ia-mic');
+    const sugsEl     = document.getElementById('ia-sugerencias');
     const csrfToken  = document.querySelector('meta[name="csrf-token"]').content;
     const chatUrl    = '{{ route("agente-ia.chat") }}';
 
-    // --- Web Speech API (Reconocimiento y Síntesis) ---
+    // ---- Chips de sugerencias según rol ----
+    const chipsAdmin = [
+        '¿Cuánto vendimos hoy?',
+        '¿Qué productos tienen stock bajo?',
+        '¿Cuál es el producto más vendido?',
+        'Resumen del día',
+        '¿Qué ventas se hicieron esta semana?',
+    ];
+    const chipsVendedor = [
+        '¿Hay stock disponible?',
+        '¿Cómo registro una venta?',
+        '¿Cómo abro una caja?',
+        '¿Cuánto llevo vendido hoy?',
+        'Ayuda con el sistema',
+    ];
+    const chips = userRole === 'administrador' ? chipsAdmin : chipsVendedor;
+
+    function renderChips() {
+        sugsEl.innerHTML = '';
+        // Mostrar solo 3 chips aleatorios
+        var shown = chips.slice().sort(function(){ return Math.random()-0.5; }).slice(0,3);
+        shown.forEach(function(c) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ia-chip';
+            btn.textContent = c;
+            btn.addEventListener('click', function() {
+                input.value = c;
+                form.dispatchEvent(new Event('submit'));
+            });
+            sugsEl.appendChild(btn);
+        });
+    }
+
+    // ---- Web Speech API ----
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
     let isRecording = false;
 
     if (SpeechRecognition) {
         recognition = new SpeechRecognition();
-        recognition.lang = 'es-CO'; // Español Colombia
+        recognition.lang = 'es-CO';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-
         recognition.onstart = function() {
             isRecording = true;
             micBtn.classList.add('grabando');
-            input.placeholder = "Escuchando...";
+            input.placeholder = 'Escuchando...';
         };
-
         recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            input.value = transcript;
-            form.dispatchEvent(new Event('submit')); // Enviar automáticamente
+            input.value = event.results[0][0].transcript;
+            form.dispatchEvent(new Event('submit'));
         };
-
-        recognition.onerror = function(event) {
-            console.error("Error en reconocimiento de voz: ", event.error);
-            detenerGrabacion();
-        };
-
-        recognition.onend = function() {
-            detenerGrabacion();
-        };
+        recognition.onerror = function() { detenerGrabacion(); };
+        recognition.onend   = function() { detenerGrabacion(); };
     } else {
-        micBtn.style.display = 'none'; // Navegador no soporta Speech API
+        micBtn.style.display = 'none';
     }
 
     function detenerGrabacion() {
         isRecording = false;
         micBtn.classList.remove('grabando');
-        input.placeholder = "Escribe o habla tu pregunta...";
+        input.placeholder = 'Pregunta algo sobre ventas, inventario...';
     }
 
     micBtn.addEventListener('click', function() {
         if (!recognition) return;
-        if (isRecording) {
-            recognition.stop();
-        } else {
-            recognition.start();
-        }
+        isRecording ? recognition.stop() : recognition.start();
     });
 
-    // --- Fin API de Voz ---
-
-
-    // Restaurar historial de la sesión
+    // ---- Historial en sessionStorage ----
     function cargarHistorial() {
         try {
-            const guardado = sessionStorage.getItem(SESSION_KEY);
+            var guardado = sessionStorage.getItem(SESSION_KEY);
             if (guardado) {
-                const items = JSON.parse(guardado);
+                var items = JSON.parse(guardado);
                 mensajes.innerHTML = '';
+                if (items.length === 0) { agregarBienvenida(); return; }
                 items.forEach(function(m) { agregarBurbuja(m.texto, m.tipo, false); });
-                if (items.length === 0) agregarBienvenida();
+            } else {
+                agregarBienvenida();
             }
-        } catch (e) { /* sessionStorage no disponible */ }
+        } catch(e) { agregarBienvenida(); }
     }
 
     function guardarHistorial() {
         try {
-            const burbujas = mensajes.querySelectorAll('.ia-burbuja');
-            const items = [];
+            var burbujas = mensajes.querySelectorAll('.ia-burbuja');
+            var items = [];
             burbujas.forEach(function(b) {
-                items.push({ texto: b.textContent, tipo: b.classList.contains('usuario') ? 'usuario' : 'ia' });
+                items.push({ texto: b.getAttribute('data-raw') || b.textContent, tipo: b.classList.contains('usuario') ? 'usuario' : 'ia' });
             });
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(items));
-        } catch (e) {}
+        } catch(e) {}
     }
 
     function agregarBienvenida() {
-        const saludo = `¡Hola, ${userName}! Soy tu asistente IA. Como ${userRole}, puedo ayudarte con tus tareas en Arepas Boyacenses. ¿En qué te puedo ayudar hoy?`;
-        agregarBurbuja(saludo, 'ia', false);
+        var esAdmin = userRole === 'administrador';
+        var msg = '¡Hola ' + userName + '! Soy tu asistente IA de Arepas Boyacenses. ' +
+            (esAdmin
+                ? 'Como administrador puedo mostrarte ventas, inventario, estadísticas y más.'
+                : 'Puedo ayudarte con ventas, stock de productos y navegación del sistema.') +
+            ' ¿En qué te ayudo hoy?';
+        agregarBurbuja(msg, 'ia', false);
+    }
+
+    function formatIaText(texto) {
+        var t = texto.replace(/#/g, '');
+        t = t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        t = t.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        t = t.replace(/\n- (.*?)(?=\n|$)/g, '<br>&bull; $1');
+        t = t.replace(/\n/g, '<br>');
+        return t;
     }
 
     function agregarBurbuja(texto, tipo, guardar) {
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.classList.add('ia-burbuja', tipo);
+        div.setAttribute('data-raw', texto);
 
         if (tipo === 'ia') {
-            // Eliminar los # para limpiar los titulares
-            let formattedText = texto.replace(/#/g, '');
-            // Negritas markdown a etiqueta HTML
-            formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // Cursivas (asterisco simple)
-            formattedText = formattedText.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            // Listas (guion convertido a li)
-            formattedText = formattedText.replace(/\n- (.*?)(?=\n|$)/g, '<br>&bull; $1');
-            // Saltos de línea
-            formattedText = formattedText.replace(/\n/g, '<br>');
+            var formatted = formatIaText(texto);
+            div.innerHTML = '<div style="flex-grow:1;">' + formatted + '</div>' +
+                '<div class="ia-audio-controls">' +
+                  '<button class="ia-audio-btn ia-play-btn" type="button"><i class="fas fa-volume-up"></i> Leer</button>' +
+                  '<button class="ia-audio-btn ia-pause-btn" type="button" style="display:none;"><i class="fas fa-pause"></i> Pausar</button>' +
+                  '<button class="ia-audio-btn ia-stop-btn"  type="button" style="display:none;"><i class="fas fa-stop"></i> Detener</button>' +
+                '</div>';
 
-            div.innerHTML = `
-                <div style="flex-grow: 1;">${formattedText}</div>
-                <div class="ia-audio-controls">
-                    <button class="ia-audio-btn ia-play-btn" title="Escuchar" type="button">
-                        <i class="fas fa-volume-up"></i> Leer
-                    </button>
-                    <button class="ia-audio-btn ia-pause-btn" title="Pausar / Reanudar" type="button">
-                        <i class="fas fa-pause"></i> Pausar
-                    </button>
-                    <button class="ia-audio-btn ia-stop-btn" title="Detener" type="button">
-                        <i class="fas fa-stop"></i> Detener
-                    </button>
-                </div>
-            `;
-
-            const btnPlay = div.querySelector('.ia-play-btn');
-            const btnPause = div.querySelector('.ia-pause-btn');
-            const btnStop = div.querySelector('.ia-stop-btn');
+            var btnPlay  = div.querySelector('.ia-play-btn');
+            var btnPause = div.querySelector('.ia-pause-btn');
+            var btnStop  = div.querySelector('.ia-stop-btn');
 
             btnPlay.addEventListener('click', function() {
                 if (!window.speechSynthesis) return;
-
-                window.speechSynthesis.cancel(); // Detener cualquier otro audio actual
-
-                // Ocultar botones de pausa/stop en otros mensajes
-                document.querySelectorAll('.ia-pause-btn, .ia-stop-btn').forEach(b => {
-                    b.style.display = ''; // Reset inline
-                    b.classList.remove('active');
-                });
-                
+                window.speechSynthesis.cancel();
+                document.querySelectorAll('.ia-pause-btn,.ia-stop-btn').forEach(function(b){ b.style.display='none'; });
                 btnPause.style.display = 'inline-flex';
-                btnPause.classList.add('active');
+                btnStop.style.display  = 'inline-flex';
                 btnPause.innerHTML = '<i class="fas fa-pause"></i> Pausar';
-                btnStop.style.display = 'inline-flex';
-                btnStop.classList.add('active');
 
-                // Asegurar que solo el Play de este mensaje está
-                const textoLimpio = texto.replace(/\*/g, '').replace(/#/g, '').replace(/-/g, '');
-                const utterance = new SpeechSynthesisUtterance(textoLimpio);
-                utterance.lang = 'es-CO';
-                utterance.rate = 1.05;
-                utterance.pitch = 1.1;
-
-                const voices = window.speechSynthesis.getVoices();
-                const spanishVoice = voices.find(v => v.lang.startsWith('es-') && (v.name.includes('Google') || v.name.includes('Microsoft')));
-                if (spanishVoice) utterance.voice = spanishVoice;
-
-                utterance.onend = function() {
-                    btnPause.style.display = '';
-                    btnStop.style.display = '';
-                };
-
-                window.speechSynthesis.speak(utterance);
+                var textoLimpio = texto.replace(/[*#\-]/g,'');
+                var utter = new SpeechSynthesisUtterance(textoLimpio);
+                utter.lang = 'es-CO'; utter.rate = 1.05; utter.pitch = 1.1;
+                var voices = window.speechSynthesis.getVoices();
+                var sv = voices.find(function(v){ return v.lang.startsWith('es-') && (v.name.includes('Google')||v.name.includes('Microsoft')); });
+                if (sv) utter.voice = sv;
+                utter.onend = function() { btnPause.style.display='none'; btnStop.style.display='none'; };
+                window.speechSynthesis.speak(utter);
             });
 
             btnPause.addEventListener('click', function() {
@@ -401,8 +536,7 @@
             btnStop.addEventListener('click', function() {
                 if (!window.speechSynthesis) return;
                 window.speechSynthesis.cancel();
-                btnPause.style.display = '';
-                btnStop.style.display = '';
+                btnPause.style.display='none'; btnStop.style.display='none';
             });
         } else {
             div.textContent = texto;
@@ -414,92 +548,80 @@
     }
 
     function mostrarEscribiendo() {
-        const div = document.createElement('div');
-        div.classList.add('ia-escribiendo');
+        var div = document.createElement('div');
         div.id = 'ia-escribiendo';
-        div.textContent = 'Escribiendo...';
+        div.innerHTML = '<span class="ia-dot"></span><span class="ia-dot"></span><span class="ia-dot"></span>';
         mensajes.appendChild(div);
         mensajes.scrollTop = mensajes.scrollHeight;
     }
-
     function quitarEscribiendo() {
-        const e = document.getElementById('ia-escribiendo');
+        var e = document.getElementById('ia-escribiendo');
         if (e) e.remove();
     }
 
-    btn.addEventListener('click', function () {
+    // ---- Toggle del panel ----
+    btn.addEventListener('click', function() {
         panel.classList.toggle('oculto');
         if (!panel.classList.contains('oculto')) {
             cargarHistorial();
+            renderChips();
             input.focus();
-            
-            // Forzar carga de voces (en algunos navegadores tarda o necesita activación por interacción)
-            if (window.speechSynthesis) {
-                window.speechSynthesis.getVoices();
-            }
+            if (window.speechSynthesis) window.speechSynthesis.getVoices();
         }
     });
 
-    cerrar.addEventListener('click', function () { 
-        panel.classList.add('oculto'); 
-        if (window.speechSynthesis) window.speechSynthesis.cancel(); // Callar al cerrar
+    cerrar.addEventListener('click', function() {
+        panel.classList.add('oculto');
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
     });
 
-    // Auto-resize del textarea
-    input.addEventListener('input', function () {
+    // ---- Textarea auto-resize ----
+    input.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 80) + 'px';
     });
-
-    // Enter envía (Shift+Enter nueva línea)
-    input.addEventListener('keydown', function (e) {
+    input.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             form.dispatchEvent(new Event('submit'));
         }
     });
 
-    form.addEventListener('submit', async function (e) {
+    // ---- Envío del mensaje ----
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const texto = input.value.trim();
+        var texto = input.value.trim();
         if (!texto) return;
 
         agregarBurbuja(texto, 'usuario', true);
+        sugsEl.innerHTML = ''; // Ocultar chips mientras se espera
         input.value = '';
         input.style.height = 'auto';
         enviar.disabled = true;
-        micBtn.disabled = true;
+        micBtn.disabled  = true;
         mostrarEscribiendo();
-
-        // Si estaba hablando, lo callamos para procesar la nueva pregunta
         if (window.speechSynthesis) window.speechSynthesis.cancel();
 
         try {
-            const res = await fetch(chatUrl, {
+            var res  = await fetch(chatUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ mensaje: texto }),
+                headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN':csrfToken, 'Accept':'application/json' },
+                body: JSON.stringify({ mensaje: texto })
             });
-            const data = await res.json();
+            var data = await res.json();
             quitarEscribiendo();
-            
-            if (data.respuesta) {
-                agregarBurbuja(data.respuesta, 'ia', true);
-            } else {
-                agregarBurbuja(data.error || 'Error al obtener respuesta.', 'ia', true);
-            }
-        } catch (err) {
+            agregarBurbuja(data.respuesta || data.error || 'Error al obtener respuesta.', 'ia', true);
+        } catch(err) {
             quitarEscribiendo();
             agregarBurbuja('Error de conexión. Verifica tu internet e intenta de nuevo.', 'ia', true);
         } finally {
             enviar.disabled = false;
-            micBtn.disabled = false;
+            micBtn.disabled  = false;
+            renderChips(); // Volver a mostrar chips
             input.focus();
         }
     });
+
 })();
 </script>
+@endif
