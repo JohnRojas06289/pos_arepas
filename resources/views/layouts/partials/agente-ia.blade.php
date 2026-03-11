@@ -558,7 +558,8 @@
     }
 
     // ---- Toggle del panel ----
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation(); // Evitar que el click en el botón cierre el panel inmediatamente
         panel.classList.toggle('oculto');
         if (!panel.classList.contains('oculto')) {
             cargarHistorial();
@@ -571,6 +572,17 @@
     cerrar.addEventListener('click', function() {
         panel.classList.add('oculto');
         if (window.speechSynthesis) window.speechSynthesis.cancel();
+    });
+
+    // ---- Cerrar al hacer clic fuera del panel ----
+    document.addEventListener('click', function(event) {
+        if (!panel.classList.contains('oculto')) {
+            // Si el clic NO es dentro del panel Y NO es en el botón de abrir/cerrar
+            if (!panel.contains(event.target) && !btn.contains(event.target)) {
+                panel.classList.add('oculto');
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+            }
+        }
     });
 
     // ---- Textarea auto-resize ----
