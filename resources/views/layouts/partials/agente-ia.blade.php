@@ -82,6 +82,36 @@
 .ia-burbuja.usuario { background: #4f46e5; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
 .ia-escribiendo { color: #6b7280; font-size: 0.8rem; align-self: flex-start; padding: 4px 8px; }
 
+.ia-audio-controls {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ia-audio-btn {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+}
+.ia-audio-btn:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+}
+.ia-audio-btn.ia-play-btn { color: #059669; }
+.ia-audio-btn.ia-pause-btn { color: #d97706; }
+.ia-audio-btn.ia-stop-btn { color: #dc2626; }
+
 #agente-ia-form {
     display: flex;
     padding: 10px 12px;
@@ -304,14 +334,14 @@
 
             div.innerHTML = `
                 <div style="flex-grow: 1;">${formattedText}</div>
-                <div style="margin-top: 8px; display: flex; gap: 15px;">
-                    <button class="ia-play-btn" title="Escuchar" style="background: none; border: none; color: #28a745; cursor: pointer; padding: 0;">
+                <div class="ia-audio-controls">
+                    <button class="ia-audio-btn ia-play-btn" title="Escuchar" type="button">
                         <i class="fas fa-volume-up"></i> Leer
                     </button>
-                    <button class="ia-pause-btn" title="Pausar / Reanudar" style="background: none; border: none; color: #ffc107; cursor: pointer; padding: 0; display: none;">
+                    <button class="ia-audio-btn ia-pause-btn" title="Pausar / Reanudar" type="button" style="display: none;">
                         <i class="fas fa-pause"></i> Pausar
                     </button>
-                    <button class="ia-stop-btn" title="Detener" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 0; display: none;">
+                    <button class="ia-audio-btn ia-stop-btn" title="Detener" type="button" style="display: none;">
                         <i class="fas fa-stop"></i> Detener
                     </button>
                 </div>
