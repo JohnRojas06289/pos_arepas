@@ -8,7 +8,8 @@
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
 
     /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
-    #layoutSidenav_content main { padding: 0 !important; margin: 0 !important; }
+    /* padding-top:60px clears the fixed topnav; pos-container fills Y=60px→100vh */
+    #layoutSidenav_content main { padding: 60px 0 0 0 !important; margin: 0 !important; }
 
     /* Sidebar de categorías */
     .category-sidebar {
