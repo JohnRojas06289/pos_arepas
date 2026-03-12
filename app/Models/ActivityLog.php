@@ -25,4 +25,12 @@ class ActivityLog extends Model
     {
         return Carbon::parse($this->attributes['created_at'])->format('d/m/Y H:i');
     }
+
+    /**
+     * Verifica si este log corresponde a la creación de una venta.
+     */
+    public function isVentaLog(): bool
+    {
+        return $this->action === 'Creación de una venta' && $this->module === 'Ventas';
+    }
 }
