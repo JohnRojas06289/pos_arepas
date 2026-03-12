@@ -179,7 +179,12 @@ class InventarioControlller extends Controller
     {
         $producto = Producto::findOrfail($request->producto_id);
         $ubicaciones = Ubicacione::all();
-        return view('inventario.create', compact('producto', 'ubicaciones'));
+
+        $inventario        = Inventario::where('producto_id', $producto->id)->first();
+        $isReinitializing  = $inventario !== null;
+        $ultimoKardex      = Kardex::where('producto_id', $producto->id)->latest('id')->first();
+
+        return view('inventario.create', compact('producto', 'ubicaciones', 'isReinitializing', 'inventario', 'ultimoKardex'));
     }
 
     /**
@@ -189,16 +194,29 @@ class InventarioControlller extends Controller
     {
         DB::beginTransaction();
         try {
-            $kardex->crearRegistro($request->validated(), TipoTransaccionEnum::Apertura);
-            Inventario::create($request->validated());
+            $inventarioExistente = Inventario::where('producto_id', $request->producto_id)->first();
 
-            // Update product sale price
+            if ($inventarioExistente) {
+                // REINICIALIZACIÓN: actualizar el inventario existente
+                $inventarioExistente->update([
+                    'cantidad'          => $request->cantidad,
+                    'fecha_vencimiento' => $request->fecha_vencimiento,
+                ]);
+                $kardex->crearRegistro($request->validated(), TipoTransaccionEnum::Apertura);
+            } else {
+                // INICIALIZACIÓN NUEVA
+                $kardex->crearRegistro($request->validated(), TipoTransaccionEnum::Apertura);
+                Inventario::create($request->validated());
+            }
+
+            // Actualizar precio de venta del producto
             $producto = Producto::findOrFail($request->producto_id);
             $producto->update(['precio' => $request->precio_venta]);
 
             DB::commit();
+            $msg = $inventarioExistente ? 'Producto reinicializado correctamente' : 'Producto inicializado';
             ActivityLogService::log('Inicialiación de producto', 'Productos', $request->validated());
-            return redirect()->route('productos.index')->with('success', 'Producto inicializado');
+            return redirect()->route('productos.index')->with('success', $msg);
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al inicializar el producto', ['error' => $e->getMessage()]);
