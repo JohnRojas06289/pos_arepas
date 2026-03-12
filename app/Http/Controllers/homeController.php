@@ -44,7 +44,7 @@ class homeController extends Controller
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
             
             // Ventas agrupadas por cliente del día actual (FIADO + EFECTIVO + etc)
-            $ventasPorCliente = Venta::with(['user', 'cliente.persona'])
+            $ventasPorCliente = Venta::with(['user', 'cliente.persona', 'productos'])
                 ->whereBetween('created_at', [$hoyInicio, $hoyFin])
                 ->get()
                 ->groupBy('cliente_id');

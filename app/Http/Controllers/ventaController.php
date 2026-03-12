@@ -63,9 +63,12 @@ class ventaController extends Controller
         $empresa = $this->empresaService->obtenerEmpresa();
         
         // Verificar que existen clientes
-        $clientes = Cliente::whereHas('persona', function ($query) {
-            $query->where('estado', 1);
-        })->get();
+        $clientes = Cliente::join('personas', 'clientes.persona_id', '=', 'personas.id')
+            ->where('personas.estado', 1)
+            ->orderBy('personas.razon_social', 'asc')
+            ->select('clientes.*')
+            ->with('persona')
+            ->get();
         
         if ($clientes->isEmpty()) {
             return redirect()->route('panel')
@@ -91,14 +94,18 @@ class ventaController extends Controller
                 'productos.categoria_id'
             )
             ->where('productos.estado', 1)
+            ->orderBy('productos.nombre', 'asc')
             ->get();
 
         // ELIMINADO EL BLOQUEO DE INVENTARIO VACÍO POR SOLICITUD DEL USUARIO
         
-        $categorias = Cache::remember('categorias_activas', 3600, function () {
-            return Categoria::whereHas('caracteristica', function ($query) {
-                $query->where('estado', 1);
-            })->get();
+        $categorias = Cache::remember('categorias_activas_sorted', 3600, function () {
+            return Categoria::with('caracteristica')
+                ->join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
+                ->where('c.estado', 1)
+                ->orderBy('c.nombre', 'asc')
+                ->select('categorias.*')
+                ->get();
         });
 
         $comprobantes = $comprobanteService->obtenerComprobantes();

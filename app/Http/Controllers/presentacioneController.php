@@ -27,7 +27,12 @@ class presentacioneController extends Controller
      */
     public function index(): View
     {
-        $presentaciones = Presentacione::with('caracteristica')->latest()->get();
+        $presentaciones = Presentacione::with('caracteristica')
+            ->join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->select('presentaciones.*')
+            ->get();
         return view('presentacione.index', compact('presentaciones'));
     }
 

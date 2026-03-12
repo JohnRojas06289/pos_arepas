@@ -33,7 +33,7 @@ class userController extends Controller
         $users = User::whereDoesntHave('roles', function ($query) {
             $query->where('name', 'administrador');
         })
-            ->latest()
+            ->orderBy('name', 'asc')
             ->get();
 
         return view('user.index', compact('users'));

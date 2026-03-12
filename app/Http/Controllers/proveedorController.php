@@ -29,7 +29,12 @@ class proveedorController extends Controller
      */
     public function index(): View
     {
-        $proveedores = Proveedore::with('persona.documento')->latest()->get();
+        $proveedores = Proveedore::with('persona.documento')
+            ->join('personas', 'proveedores.persona_id', '=', 'personas.id')
+            ->where('personas.estado', 1)
+            ->orderBy('personas.razon_social', 'asc')
+            ->select('proveedores.*')
+            ->get();
         return view('proveedore.index', compact('proveedores'));
     }
 

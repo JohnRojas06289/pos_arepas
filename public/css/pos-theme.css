@@ -79,29 +79,88 @@
    CSS CUSTOM PROPERTIES — TEMA OSCURO
    =================================================== */
 [data-theme="dark"] {
-  --bg-primary:    #1E1E2E;
-  --bg-secondary:  #2A2A3C;
-  --bg-sidebar:    #16161F;
-  --bg-sidebar-hover: rgba(240, 199, 94, 0.09);
-  --bg-navbar:     #16161F;
-  --bg-card:       #2A2A3C;
-  --bg-input:      #22223A;
-  --bg-hover:      rgba(240, 199, 94, 0.06);
+  --bg-primary:    #121218;
+  --bg-secondary:  #1A1A24;
+  --bg-sidebar:    #0D0D12;
+  --bg-sidebar-hover: rgba(240, 199, 94, 0.10);
+  --bg-navbar:     #0D0D12;
+  --bg-card:       #1E1E2A;
+  --bg-input:      #16161F;
+  --bg-hover:      rgba(240, 199, 94, 0.08);
 
-  --text-primary:      #E8E8ED;
-  --text-secondary:    #9CA3AF;
-  --text-muted:        #6B7280;
-  --text-sidebar:      rgba(232, 232, 237, 0.85);
-  --text-sidebar-muted: rgba(232, 232, 237, 0.38);
+  --text-primary:      #F0F0F5;
+  --text-secondary:    #A0A0B0;
+  --text-muted:        #6A6A7A;
+  --text-sidebar:      rgba(240, 240, 245, 0.90);
+  --text-sidebar-muted: rgba(240, 240, 245, 0.42);
 
-  --border-color:   #3A3A4C;
-  --border-sidebar: rgba(255, 255, 255, 0.06);
-  --border-input:   #3A3A4C;
+  --border-color:   #2E2E3E;
+  --border-sidebar: rgba(255, 255, 255, 0.07);
+  --border-input:   #2E2E3E;
 
-  --card-shadow:       0 2px 10px rgba(0,0,0,0.30);
-  --card-shadow-hover: 0 8px 24px rgba(0,0,0,0.42);
-  --navbar-shadow:     0 2px 8px rgba(0,0,0,0.35);
-  --dropdown-shadow:   0 10px 30px rgba(0,0,0,0.40);
+  --card-shadow:       0 4px 12px rgba(0,0,0,0.50);
+  --card-shadow-hover: 0 10px 28px rgba(0,0,0,0.60);
+  --navbar-shadow:     0 2px 10px rgba(0,0,0,0.55);
+  --dropdown-shadow:   0 12px 36px rgba(0,0,0,0.60);
+}
+
+/* Alternancia de filas en tablas — modo oscuro */
+[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255,255,255,0.04) !important;
+}
+[data-theme="dark"] .table thead th {
+  background: #0D0D12 !important;
+}
+[data-theme="dark"] .table tbody td {
+  color: var(--text-primary) !important;
+}
+
+/* Badges con mejor contraste en modo oscuro */
+[data-theme="dark"] .badge.bg-primary   { background-color: #C8553D !important; color: #fff !important; }
+[data-theme="dark"] .badge.bg-success   { background-color: #3a9068 !important; color: #fff !important; }
+[data-theme="dark"] .badge.bg-danger    { background-color: #c73c4e !important; color: #fff !important; }
+[data-theme="dark"] .badge.bg-warning   { background-color: #d4891a !important; color: #fff !important; }
+[data-theme="dark"] .badge.bg-info      { background-color: #4a82bc !important; color: #fff !important; }
+
+/* Inputs claramente diferenciados del fondo de la card */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: #16161F !important;
+  border-color: #2E2E3E !important;
+  color: #F0F0F5 !important;
+}
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: #16161F !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(200,85,61,0.18) !important;
+}
+
+/* Botones en modo oscuro */
+[data-theme="dark"] .btn-secondary {
+  background: #2A2A38 !important;
+  border-color: #3A3A50 !important;
+  color: #C0C0D0 !important;
+}
+[data-theme="dark"] .btn-secondary:hover {
+  background: #363648 !important;
+  border-color: var(--color-primary) !important;
+  color: #F0F0F5 !important;
+}
+[data-theme="dark"] .btn-outline-secondary {
+  color: #A0A0B0 !important;
+  border-color: #3A3A50 !important;
+}
+[data-theme="dark"] .btn-outline-secondary:hover {
+  background: #2A2A3A !important;
+  color: var(--color-primary) !important;
+}
+
+/* Input group en modo oscuro */
+[data-theme="dark"] .input-group-text {
+  background: #16161F !important;
+  border-color: #2E2E3E !important;
+  color: #A0A0B0 !important;
 }
 
 /* ===================================================
@@ -1095,4 +1154,80 @@ a, .clickable { cursor: pointer; }
 
 @media (max-width: 575.98px) {
   .kpi-label { font-size: 0.65rem !important; }
+}
+
+/* ===================================================
+   SIDEBAR MÓVIL — COMPORTAMIENTO MEJORADO
+   =================================================== */
+@media (max-width: 991.98px) {
+  /* Sidebar oculto por defecto en móvil */
+  #layoutSidenav #layoutSidenav_nav {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    width: 280px !important;
+    max-width: 85vw !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+    z-index: 1045 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Sidebar visible cuando se activa */
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+    transform: translateX(0) !important;
+  }
+
+  /* El contenido no se desplaza lateralmente en móvil */
+  #layoutSidenav #layoutSidenav_content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Overlay oscuro detrás del sidebar */
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_content::before {
+    content: '' !important;
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0,0,0,0.55) !important;
+    z-index: 1044 !important;
+    opacity: 1 !important;
+    backdrop-filter: blur(2px) !important;
+    cursor: pointer !important;
+  }
+
+  /* Botón hamburguesa siempre visible */
+  #sidebarToggle {
+    display: inline-flex !important;
+    visibility: visible !important;
+  }
+
+  /* Evitar barra blanca residual — quitar el padding-left que el SB Admin asigna al nav fijo */
+  .sb-nav-fixed #layoutSidenav #layoutSidenav_content {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+  .sb-nav-fixed.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+}
+
+@media (min-width: 992px) {
+  /* En desktop: comportamiento original SB Admin */
+  #layoutSidenav #layoutSidenav_nav {
+    transform: none !important;
+    position: relative !important;
+    height: auto !important;
+  }
+  .sb-nav-fixed #layoutSidenav #layoutSidenav_nav {
+    position: fixed !important;
+    height: 100vh !important;
+  }
 }

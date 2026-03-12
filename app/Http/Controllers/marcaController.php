@@ -27,7 +27,12 @@ class marcaController extends Controller
      */
     public function index(): View
     {
-        $marcas = Marca::with('caracteristica')->latest()->get();
+        $marcas = Marca::with('caracteristica')
+            ->join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->select('marcas.*')
+            ->get();
         return view('marca.index', compact('marcas'));
     }
 

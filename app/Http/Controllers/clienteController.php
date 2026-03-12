@@ -37,10 +37,10 @@ class clienteController extends Controller
     public function index(): View
     {
         $clientes = Cliente::with('persona.documento')
-            ->whereHas('persona', function($query) {
-                $query->where('estado', 1); // smallint column, not boolean
-            })
-            ->latest()
+            ->join('personas', 'clientes.persona_id', '=', 'personas.id')
+            ->where('personas.estado', 1)
+            ->orderBy('personas.razon_social', 'asc')
+            ->select('clientes.*')
             ->get();
         return view('cliente.index', compact('clientes'));
     }

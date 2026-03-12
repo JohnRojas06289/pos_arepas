@@ -393,7 +393,8 @@
             btn.type = 'button';
             btn.className = 'ia-chip';
             btn.textContent = c;
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Evitar que el click cierre el panel
                 input.value = c;
                 form.dispatchEvent(new Event('submit'));
             });
@@ -600,6 +601,7 @@
     // ---- Envío del mensaje ----
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        e.stopPropagation(); // Evitar propagación que cierre el panel
         var texto = input.value.trim();
         if (!texto) return;
 

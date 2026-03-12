@@ -168,7 +168,9 @@
                                          data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}"
                                          data-total="{{ number_format($v->total, 0, ',', '.') }}"
                                          data-vendedor="{{ $v->user?->name ?? 'N/A' }}"
-                                         data-metodo="{{ $v->metodo_pago }}"></div>
+                                         data-metodo="{{ $v->metodo_pago }}"
+                                         data-productos="{{ json_encode($v->productos->map(fn($p) => ['nombre' => $p->nombre, 'cantidad' => $p->pivot->cantidad, 'precio' => $p->pivot->precio_venta])->values()) }}">
+                                    </div>
                                     @endforeach
                                 </div>
                             </td>
@@ -191,7 +193,7 @@
 
 {{-- Modal: transacciones del cliente --}}
 <div class="modal fade" id="transaccionesModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background:var(--color-primary);">
                 <h5 class="modal-title" style="color:#fff;font-size:0.95rem;font-weight:700;">
@@ -199,21 +201,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Fecha y hora</th>
-                                <th>Total</th>
-                                <th>Método</th>
-                                <th>Vendedor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transaccionesModalBody"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="modal-body p-0" id="transaccionesModalBody"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
@@ -227,22 +215,97 @@
 <script>
 function showTransacciones(clienteId, clienteNombre) {
     document.getElementById('modalClientName').textContent = clienteNombre;
-    var tbody = document.getElementById('transaccionesModalBody');
-    tbody.innerHTML = '';
+    var container = document.getElementById('transaccionesModalBody');
+    container.innerHTML = '';
+
     var items = document.getElementById('data_transacciones_' + clienteId).querySelectorAll('.tx-item');
     var colors = { efectivo: 'success', nequi: 'info', daviplata: 'warning', fiado: 'danger', tarjeta: 'primary' };
-    items.forEach(function(item) {
-        var metodo = (item.getAttribute('data-metodo') || '').toLowerCase();
-        var color  = colors[metodo] || 'secondary';
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-            '<td style="font-size:0.82rem;">' + item.getAttribute('data-fecha') + '</td>' +
-            '<td class="fw-bold text-cop" style="color:var(--color-success);">$' + item.getAttribute('data-total') + '</td>' +
-            '<td><span class="badge bg-' + color + '">' + item.getAttribute('data-metodo') + '</span></td>' +
-            '<td style="font-size:0.82rem;color:var(--text-secondary);">' + item.getAttribute('data-vendedor') + '</td>';
-        tbody.appendChild(tr);
+
+    items.forEach(function(item, idx) {
+        var metodo   = (item.getAttribute('data-metodo') || '').toLowerCase();
+        var color    = colors[metodo] || 'secondary';
+        var fecha    = item.getAttribute('data-fecha');
+        var total    = item.getAttribute('data-total');
+        var vendedor = item.getAttribute('data-vendedor');
+        var productosRaw = item.getAttribute('data-productos');
+        var productos = [];
+        try { productos = JSON.parse(productosRaw || '[]'); } catch(e) {}
+
+        // --- Fila principal de la transacción ---
+        var txId = 'tx-detail-' + clienteId + '-' + idx;
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'border-bottom:1px solid var(--border-color);';
+
+        var headerRow = document.createElement('div');
+        headerRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;gap:8px;flex-wrap:wrap;';
+        headerRow.innerHTML =
+            '<div style="font-size:0.82rem;color:var(--text-secondary);">' +
+                '<i class="fas fa-clock me-1"></i>' + fecha +
+            '</div>' +
+            '<div class="fw-bold text-cop" style="color:var(--color-success);font-size:0.95rem;">$' + total + '</div>' +
+            '<div><span class="badge bg-' + color + '" style="font-size:0.7rem;">' + item.getAttribute('data-metodo') + '</span></div>' +
+            '<div style="font-size:0.8rem;color:var(--text-secondary);"><i class="fas fa-user me-1"></i>' + vendedor + '</div>' +
+            (productos.length > 0
+                ? '<button type="button" onclick="toggleDetalle(\'' + txId + '\', this)" ' +
+                  'style="border:none;background:var(--color-info-subtle);color:var(--color-info);border-radius:6px;padding:3px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;">' +
+                  '<i class="fas fa-chevron-down me-1"></i>' + productos.length + ' producto(s)</button>'
+                : '<span style="font-size:0.75rem;color:var(--text-muted);">Sin productos</span>');
+
+        wrap.appendChild(headerRow);
+
+        // --- Tabla de productos colapsable ---
+        if (productos.length > 0) {
+            var detalle = document.createElement('div');
+            detalle.id = txId;
+            detalle.style.cssText = 'display:none;padding:0 1rem 0.75rem;';
+
+            var tbl = '<table style="width:100%;font-size:0.8rem;border-collapse:collapse;">' +
+                '<thead><tr style="border-bottom:1px solid var(--border-color);">' +
+                '<th style="padding:6px 8px;text-align:left;color:var(--text-secondary);font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">Producto</th>' +
+                '<th style="padding:6px 8px;text-align:center;color:var(--text-secondary);font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">Cant.</th>' +
+                '<th style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">Precio unit.</th>' +
+                '<th style="padding:6px 8px;text-align:right;color:var(--text-secondary);font-weight:700;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">Subtotal</th>' +
+                '</tr></thead><tbody>';
+
+            productos.forEach(function(p) {
+                var subtotal = (parseFloat(p.cantidad) * parseFloat(p.precio));
+                tbl += '<tr style="border-bottom:1px solid var(--border-color);">' +
+                    '<td style="padding:6px 8px;color:var(--text-primary);font-weight:500;">' + escapeHtml(p.nombre) + '</td>' +
+                    '<td style="padding:6px 8px;text-align:center;color:var(--text-secondary);">' + p.cantidad + '</td>' +
+                    '<td style="padding:6px 8px;text-align:right;font-family:monospace;color:var(--text-secondary);">$' + numberFormat(p.precio) + '</td>' +
+                    '<td style="padding:6px 8px;text-align:right;font-family:monospace;font-weight:600;color:var(--color-success);">$' + numberFormat(subtotal) + '</td>' +
+                    '</tr>';
+            });
+            tbl += '</tbody></table>';
+            detalle.innerHTML = tbl;
+            wrap.appendChild(detalle);
+        }
+
+        container.appendChild(wrap);
     });
+
     new bootstrap.Modal(document.getElementById('transaccionesModal')).show();
+}
+
+function toggleDetalle(id, btn) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var visible = el.style.display !== 'none';
+    el.style.display = visible ? 'none' : 'block';
+    var icon = btn.querySelector('i');
+    if (icon) {
+        icon.className = visible ? 'fas fa-chevron-down me-1' : 'fas fa-chevron-up me-1';
+    }
+}
+
+function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str || ''));
+    return d.innerHTML;
+}
+
+function numberFormat(n) {
+    return Math.round(parseFloat(n) || 0).toLocaleString('es-CO');
 }
 </script>
 @endpush

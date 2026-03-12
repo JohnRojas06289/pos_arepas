@@ -30,10 +30,10 @@ class categoriaController extends Controller
     public function index(): View
     {
         $categorias = Categoria::with('caracteristica')
-            ->whereHas('caracteristica', function($query) {
-                $query->where('estado', 1);
-            })
-            ->latest()
+            ->join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->select('categorias.*')
             ->get();
         return view('categoria.index', ['categorias' => $categorias]);
     }

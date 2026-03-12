@@ -17,7 +17,7 @@ class EmpleadoController extends Controller
      */
     public function index(): View
     {
-        $empleados = Empleado::latest()->get();
+        $empleados = Empleado::orderBy('razon_social', 'asc')->get();
         return view('empleado.index', compact('empleados'));
     }
 

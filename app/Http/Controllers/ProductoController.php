@@ -54,16 +54,19 @@ class ProductoController extends Controller
         $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
             ->select('marcas.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
             ->select('presentaciones.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
             ->select('categorias.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         // Get the last product code and suggest the next one (numeric sorting safely)
@@ -114,16 +117,19 @@ class ProductoController extends Controller
         $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
             ->select('marcas.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
             ->select('presentaciones.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
             ->select('categorias.id as id', 'c.nombre as nombre')
             ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
             ->get();
 
         return view('producto.edit', compact('producto', 'marcas', 'presentaciones', 'categorias'));

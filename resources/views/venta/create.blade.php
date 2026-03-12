@@ -414,6 +414,27 @@
             width: 20%;
         }
     }
+
+    /* Barra alfabética */
+    .alpha-letter:hover,
+    .alpha-letter.active {
+        background: var(--color-primary) !important;
+        color: #fff !important;
+        border-radius: 3px;
+    }
+    .alpha-letter.has-items {
+        color: var(--color-primary) !important;
+        font-weight: 800 !important;
+    }
+    .alpha-letter.no-items {
+        opacity: 0.3 !important;
+        cursor: default !important;
+    }
+    @media (max-width: 576px) {
+        #alpha-bar { width: 18px !important; }
+        .alpha-letter { font-size: 8px !important; padding: 1px 2px !important; }
+        #productsContainer { padding-right: 20px !important; }
+    }
 </style>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 @endpush
@@ -441,7 +462,7 @@
         </div>
 
         <!-- Column 2: Products -->
-        <div class="col-12 col-md product-grid">
+        <div class="col-12 col-md product-grid" style="position:relative;">
             <div class="sticky-top pb-3 pt-1 mb-2" style="z-index:10;background:var(--bg-primary);">
                 <div class="input-group input-group-lg" style="border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow);">
                     <span class="input-group-text" style="background:var(--bg-input);border:1.5px solid var(--border-input);border-right:none;border-radius:12px 0 0 12px;">
@@ -452,12 +473,14 @@
                 </div>
             </div>
 
-            <div class="row g-3" id="productsContainer">
+            {{-- Grilla de productos con padding-right para la barra alfabética --}}
+            <div class="row g-3" id="productsContainer" style="padding-right:24px;">
                 @foreach ($productos as $item)
-                <div class="col-6 col-md-3 col-lg-20 product-item" 
+                <div class="col-6 col-md-3 col-lg-20 product-item"
                      id="product-{{$item->id}}"
                      data-stock="{{$item->cantidad}}"
                      data-category="{{$item->categoria_id}}"
+                     data-nombre="{{ strtoupper(substr(trim($item->nombre), 0, 1)) }}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
                     <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
@@ -479,6 +502,39 @@
                         </div>
                     </div>
                 </div>
+                @endforeach
+            </div>
+
+            {{-- Barra alfabética vertical --}}
+            <div id="alpha-bar" style="
+                position:absolute;
+                top:0; right:0;
+                width:22px;
+                height:100%;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:flex-start;
+                padding-top:60px;
+                z-index:9;
+                background:transparent;
+                user-select:none;
+                touch-action:none;
+            ">
+                @foreach(range('A','Z') as $letter)
+                <span class="alpha-letter" data-letter="{{ $letter }}" style="
+                    font-size:10px;
+                    font-weight:700;
+                    line-height:1;
+                    padding:2px 3px;
+                    cursor:pointer;
+                    color:var(--text-muted);
+                    border-radius:3px;
+                    transition:all 0.15s ease;
+                    width:100%;
+                    text-align:center;
+                    flex-shrink:0;
+                ">{{ $letter }}</span>
                 @endforeach
             </div>
         </div>
@@ -1266,5 +1322,112 @@
             btnPay.innerHTML = originalBtnHtml;
         });
     });
+
+    // ================================================================
+    // BARRA ALFABÉTICA VERTICAL
+    // ================================================================
+    (function initAlphaBar() {
+        var alphaBar  = document.getElementById('alpha-bar');
+        var container = document.getElementById('productsContainer');
+        var grid      = document.querySelector('.product-grid');
+        if (!alphaBar || !container || !grid) return;
+
+        var letters = alphaBar.querySelectorAll('.alpha-letter');
+
+        // Detectar qué letras tienen productos
+        function updateLetterAvailability() {
+            var available = new Set();
+            container.querySelectorAll('.product-item:not([style*="display: none"])').forEach(function(el) {
+                var l = el.getAttribute('data-nombre') || '';
+                if (l) available.add(l.toUpperCase());
+            });
+            letters.forEach(function(el) {
+                var l = el.getAttribute('data-letter');
+                el.classList.remove('has-items', 'no-items');
+                if (available.has(l)) {
+                    el.classList.add('has-items');
+                } else {
+                    el.classList.add('no-items');
+                }
+            });
+        }
+
+        // Scroll hasta la primera tarjeta con esa letra
+        function scrollToLetter(letter) {
+            letter = letter.toUpperCase();
+            var items = Array.from(container.querySelectorAll('.product-item:not([style*="display: none"])'));
+            // Buscar coincidencia exacta, luego la siguiente disponible
+            var target = items.find(function(el) {
+                return (el.getAttribute('data-nombre') || '').toUpperCase() === letter;
+            });
+            if (!target) {
+                // Buscar la primera letra después
+                var sorted = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                var idx    = sorted.indexOf(letter);
+                for (var i = idx + 1; i < sorted.length && !target; i++) {
+                    target = items.find(function(el) {
+                        return (el.getAttribute('data-nombre') || '').toUpperCase() === sorted[i];
+                    });
+                }
+            }
+            if (!target) return;
+
+            // Resaltar letra
+            letters.forEach(function(el) { el.classList.remove('active'); });
+            var activeLetter = alphaBar.querySelector('[data-letter="' + letter + '"]');
+            if (activeLetter) activeLetter.classList.add('active');
+
+            // Hacer scroll en el contenedor del grid
+            var targetRect = target.getBoundingClientRect();
+            var gridRect   = grid.getBoundingClientRect();
+            grid.scrollTop += (targetRect.top - gridRect.top) - 60; // 60px offset para la búsqueda sticky
+        }
+
+        // Click en letra
+        letters.forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (el.classList.contains('no-items')) return;
+                scrollToLetter(el.getAttribute('data-letter'));
+            });
+        });
+
+        // Touch deslizante (arrastrar el dedo por la barra)
+        var touchActive = false;
+        alphaBar.addEventListener('touchstart', function(e) {
+            touchActive = true;
+            handleTouch(e);
+        }, { passive: false });
+        alphaBar.addEventListener('touchmove', function(e) {
+            if (!touchActive) return;
+            e.preventDefault();
+            handleTouch(e);
+        }, { passive: false });
+        alphaBar.addEventListener('touchend', function() { touchActive = false; });
+
+        function handleTouch(e) {
+            var touch  = e.touches[0];
+            var el     = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (el && el.classList.contains('alpha-letter') && !el.classList.contains('no-items')) {
+                scrollToLetter(el.getAttribute('data-letter'));
+            }
+        }
+
+        // Inicializar disponibilidad al cargar
+        updateLetterAvailability();
+
+        // Actualizar al buscar / filtrar categoría
+        var searchOrig = window.filterCategory;
+        window.filterCategory = function(catId, btn) {
+            if (searchOrig) searchOrig(catId, btn);
+            setTimeout(updateLetterAvailability, 50);
+        };
+        var searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                setTimeout(updateLetterAvailability, 50);
+            });
+        }
+    })();
 </script>
 @endpush
