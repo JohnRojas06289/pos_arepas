@@ -415,25 +415,54 @@
         }
     }
 
-    /* Barra alfabética */
-    .alpha-letter:hover,
+    /* ── Barra alfabética ── */
+    #alpha-bar {
+        width: 22px;
+        flex-shrink: 0;
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between; /* letras distribuidas a lo alto */
+        padding: 4px 0;
+        background: rgba(0,0,0,0.03);
+        border-left: 1px solid var(--border-color);
+        user-select: none;
+        touch-action: none;
+        z-index: 5;
+    }
+    [data-theme="dark"] #alpha-bar {
+        background: rgba(255,255,255,0.03);
+    }
+    .alpha-letter {
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 1;
+        padding: 1px 2px;
+        cursor: pointer;
+        color: var(--text-muted);
+        border-radius: 3px;
+        transition: all 0.12s ease;
+        width: 100%;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .alpha-letter:hover {
+        background: var(--color-primary) !important;
+        color: #fff !important;
+    }
     .alpha-letter.active {
         background: var(--color-primary) !important;
         color: #fff !important;
-        border-radius: 3px;
     }
     .alpha-letter.has-items {
-        color: var(--color-primary) !important;
-        font-weight: 800 !important;
+        color: var(--color-primary);
+        font-weight: 800;
     }
     .alpha-letter.no-items {
-        opacity: 0.3 !important;
-        cursor: default !important;
-    }
-    @media (max-width: 576px) {
-        #alpha-bar { width: 18px !important; }
-        .alpha-letter { font-size: 8px !important; padding: 1px 2px !important; }
-        #productsContainer { padding-right: 20px !important; }
+        opacity: 0.25;
+        cursor: default;
     }
 </style>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
@@ -462,7 +491,7 @@
         </div>
 
         <!-- Column 2: Products -->
-        <div class="col-12 col-md product-grid" style="position:relative;">
+        <div class="col-12 col-md product-grid" id="productGrid">
             <div class="sticky-top pb-3 pt-1 mb-2" style="z-index:10;background:var(--bg-primary);">
                 <div class="input-group input-group-lg" style="border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow);">
                     <span class="input-group-text" style="background:var(--bg-input);border:1.5px solid var(--border-input);border-right:none;border-radius:12px 0 0 12px;">
@@ -473,8 +502,7 @@
                 </div>
             </div>
 
-            {{-- Grilla de productos con padding-right para la barra alfabética --}}
-            <div class="row g-3" id="productsContainer" style="padding-right:24px;">
+            <div class="row g-3" id="productsContainer">
                 @foreach ($productos as $item)
                 <div class="col-6 col-md-3 col-lg-20 product-item"
                      id="product-{{$item->id}}"
@@ -504,39 +532,13 @@
                 </div>
                 @endforeach
             </div>
+        </div>
 
-            {{-- Barra alfabética vertical --}}
-            <div id="alpha-bar" style="
-                position:absolute;
-                top:0; right:0;
-                width:22px;
-                height:100%;
-                display:flex;
-                flex-direction:column;
-                align-items:center;
-                justify-content:flex-start;
-                padding-top:60px;
-                z-index:9;
-                background:transparent;
-                user-select:none;
-                touch-action:none;
-            ">
-                @foreach(range('A','Z') as $letter)
-                <span class="alpha-letter" data-letter="{{ $letter }}" style="
-                    font-size:10px;
-                    font-weight:700;
-                    line-height:1;
-                    padding:2px 3px;
-                    cursor:pointer;
-                    color:var(--text-muted);
-                    border-radius:3px;
-                    transition:all 0.15s ease;
-                    width:100%;
-                    text-align:center;
-                    flex-shrink:0;
-                ">{{ $letter }}</span>
-                @endforeach
-            </div>
+        <!-- Barra alfabética — columna independiente, fuera del scroll de productos -->
+        <div id="alpha-bar" class="d-none d-md-flex">
+            @foreach(range('A','Z') as $letter)
+            <span class="alpha-letter" data-letter="{{ $letter }}">{{ $letter }}</span>
+            @endforeach
         </div>
 
         <!-- Column 3: Cart -->
@@ -1327,63 +1329,67 @@
     // BARRA ALFABÉTICA VERTICAL
     // ================================================================
     (function initAlphaBar() {
-        var alphaBar  = document.getElementById('alpha-bar');
-        var container = document.getElementById('productsContainer');
-        var grid      = document.querySelector('.product-grid');
-        if (!alphaBar || !container || !grid) return;
+        var alphaBar       = document.getElementById('alpha-bar');
+        var productsEl     = document.getElementById('productsContainer');
+        var scrollContainer = document.getElementById('productGrid'); // el div que scrollea
+        if (!alphaBar || !productsEl || !scrollContainer) return;
 
         var letters = alphaBar.querySelectorAll('.alpha-letter');
 
-        // Detectar qué letras tienen productos
-        function updateLetterAvailability() {
+        // ── Qué letras tienen productos visibles ──
+        function updateAvailability() {
             var available = new Set();
-            container.querySelectorAll('.product-item:not([style*="display: none"])').forEach(function(el) {
-                var l = el.getAttribute('data-nombre') || '';
-                if (l) available.add(l.toUpperCase());
+            productsEl.querySelectorAll('.product-item').forEach(function(el) {
+                if (el.style.display === 'none') return;
+                var l = (el.getAttribute('data-nombre') || '').toUpperCase();
+                if (l) available.add(l);
             });
             letters.forEach(function(el) {
                 var l = el.getAttribute('data-letter');
                 el.classList.remove('has-items', 'no-items');
-                if (available.has(l)) {
-                    el.classList.add('has-items');
-                } else {
-                    el.classList.add('no-items');
-                }
+                el.classList.add(available.has(l) ? 'has-items' : 'no-items');
             });
         }
 
-        // Scroll hasta la primera tarjeta con esa letra
+        // ── Scroll al primer producto con esa letra (o la siguiente disponible) ──
         function scrollToLetter(letter) {
             letter = letter.toUpperCase();
-            var items = Array.from(container.querySelectorAll('.product-item:not([style*="display: none"])'));
-            // Buscar coincidencia exacta, luego la siguiente disponible
-            var target = items.find(function(el) {
-                return (el.getAttribute('data-nombre') || '').toUpperCase() === letter;
+            var ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            var allItems = Array.from(productsEl.querySelectorAll('.product-item')).filter(function(el) {
+                return el.style.display !== 'none';
             });
-            if (!target) {
-                // Buscar la primera letra después
-                var sorted = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                var idx    = sorted.indexOf(letter);
-                for (var i = idx + 1; i < sorted.length && !target; i++) {
-                    target = items.find(function(el) {
-                        return (el.getAttribute('data-nombre') || '').toUpperCase() === sorted[i];
-                    });
-                }
+
+            var target = null;
+            // Intentar la letra exacta, luego buscar la siguiente con items
+            for (var start = ALPHABET.indexOf(letter); start < ALPHABET.length && !target; start++) {
+                var l = ALPHABET[start];
+                target = allItems.find(function(el) {
+                    return (el.getAttribute('data-nombre') || '').toUpperCase() === l;
+                }) || null;
+                if (start === ALPHABET.indexOf(letter) && !target) continue; // solo salta si era la pedida
+                if (target) break;
             }
             if (!target) return;
 
-            // Resaltar letra
+            // Resaltar letra activa
             letters.forEach(function(el) { el.classList.remove('active'); });
-            var activeLetter = alphaBar.querySelector('[data-letter="' + letter + '"]');
-            if (activeLetter) activeLetter.classList.add('active');
+            var matchLetter = (target.getAttribute('data-nombre') || '').toUpperCase();
+            var activeEl = alphaBar.querySelector('[data-letter="' + matchLetter + '"]');
+            if (activeEl) activeEl.classList.add('active');
 
-            // Hacer scroll en el contenedor del grid
-            var targetRect = target.getBoundingClientRect();
-            var gridRect   = grid.getBoundingClientRect();
-            grid.scrollTop += (targetRect.top - gridRect.top) - 60; // 60px offset para la búsqueda sticky
+            // Calcular desplazamiento dentro del scrollContainer
+            // offsetTop del target relativo al scrollContainer
+            var offsetTop = 0;
+            var node = target;
+            while (node && node !== scrollContainer) {
+                offsetTop += node.offsetTop;
+                node = node.offsetParent;
+            }
+            // Restar el alto de la barra de búsqueda sticky (≈ 64px)
+            scrollContainer.scrollTo({ top: Math.max(0, offsetTop - 64), behavior: 'smooth' });
         }
 
-        // Click en letra
+        // ── Click ──
         letters.forEach(function(el) {
             el.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -1392,41 +1398,54 @@
             });
         });
 
-        // Touch deslizante (arrastrar el dedo por la barra)
-        var touchActive = false;
-        alphaBar.addEventListener('touchstart', function(e) {
-            touchActive = true;
-            handleTouch(e);
-        }, { passive: false });
-        alphaBar.addEventListener('touchmove', function(e) {
-            if (!touchActive) return;
-            e.preventDefault();
-            handleTouch(e);
-        }, { passive: false });
-        alphaBar.addEventListener('touchend', function() { touchActive = false; });
+        // ── Touch deslizante ──
+        alphaBar.addEventListener('touchstart', function(e) { handleTouch(e); }, { passive: false });
+        alphaBar.addEventListener('touchmove',  function(e) { e.preventDefault(); handleTouch(e); }, { passive: false });
 
         function handleTouch(e) {
-            var touch  = e.touches[0];
-            var el     = document.elementFromPoint(touch.clientX, touch.clientY);
+            var touch = e.touches[0];
+            var el = document.elementFromPoint(touch.clientX, touch.clientY);
             if (el && el.classList.contains('alpha-letter') && !el.classList.contains('no-items')) {
                 scrollToLetter(el.getAttribute('data-letter'));
             }
         }
 
-        // Inicializar disponibilidad al cargar
-        updateLetterAvailability();
+        // ── Resaltar letra activa al hacer scroll ──
+        scrollContainer.addEventListener('scroll', function() {
+            var containerRect = scrollContainer.getBoundingClientRect();
+            var midY = containerRect.top + 64 + 10; // just below sticky search
+            var allItems = Array.from(productsEl.querySelectorAll('.product-item')).filter(function(el) {
+                return el.style.display !== 'none';
+            });
+            var current = null;
+            for (var i = 0; i < allItems.length; i++) {
+                var rect = allItems[i].getBoundingClientRect();
+                if (rect.top <= midY) {
+                    current = allItems[i];
+                } else {
+                    break;
+                }
+            }
+            if (current) {
+                var l = (current.getAttribute('data-nombre') || '').toUpperCase();
+                letters.forEach(function(el) { el.classList.remove('active'); });
+                var activeEl = alphaBar.querySelector('[data-letter="' + l + '"]');
+                if (activeEl) activeEl.classList.add('active');
+            }
+        }, { passive: true });
 
-        // Actualizar al buscar / filtrar categoría
-        var searchOrig = window.filterCategory;
+        // ── Inicializar ──
+        updateAvailability();
+
+        // ── Actualizar al filtrar categoría o buscar ──
+        var _origFilter = window.filterCategory;
         window.filterCategory = function(catId, btn) {
-            if (searchOrig) searchOrig(catId, btn);
-            setTimeout(updateLetterAvailability, 50);
+            if (_origFilter) _origFilter(catId, btn);
+            setTimeout(updateAvailability, 60);
         };
         var searchInput = document.getElementById('searchInput');
         if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                setTimeout(updateLetterAvailability, 50);
-            });
+            searchInput.addEventListener('input', function() { setTimeout(updateAvailability, 60); });
         }
     })();
 </script>
