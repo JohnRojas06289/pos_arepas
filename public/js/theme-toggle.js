@@ -65,7 +65,8 @@
     var isDark = theme === DARK;
     var textColor   = isDark ? '#9CA3AF' : '#6b7280';
     var gridColor   = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-    Chart.defaults.global.defaultFontColor = textColor;
+    // Chart.js v3+ API
+    Chart.defaults.color = textColor;
   }
 
   // Exponer para uso externo si se necesita

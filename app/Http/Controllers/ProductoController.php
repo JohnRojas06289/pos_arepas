@@ -19,9 +19,9 @@ use Throwable;
 
 class ProductoController extends Controller
 {
-    protected $productoService;
+    protected ProductoService $productoService;
 
-    function __construct(ProductoService $productoService)
+    public function __construct(ProductoService $productoService)
     {
         $this->productoService = $productoService;
         $this->middleware('permission:ver-producto|crear-producto|editar-producto|eliminar-producto', ['only' => ['index']]);
@@ -30,15 +30,13 @@ class ProductoController extends Controller
         $this->middleware('permission:eliminar-producto', ['only' => ['destroy']]);
         $this->middleware('permission:ver-producto', ['only' => ['export']]);
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     public function index(): View
     {
         $productos = Producto::with([
             'categoria.caracteristica',
             'marca.caracteristica',
-            'presentacione.caracteristica'
+            'presentacione.caracteristica',
         ])
             ->orderByRaw('LENGTH(codigo) ASC, codigo ASC')
             ->get();
@@ -46,45 +44,23 @@ class ProductoController extends Controller
         return view('producto.index', compact('productos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(): View
     {
-        $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
-            ->select('marcas.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
+        [$marcas, $presentaciones, $categorias] = $this->getFormSelectOptions();
 
-        $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
-            ->select('presentaciones.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
-
-        $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
-            ->select('categorias.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
-
-        // Get the last product code and suggest the next one (numeric sorting safely)
-        $ultimoProducto = Producto::orderByRaw('LENGTH(codigo) DESC, codigo DESC')->first();
-        $codigoSugerido = $ultimoProducto && $ultimoProducto->codigo ? (string)((int)$ultimoProducto->codigo + 1) : '1';
+        $ultimoProducto  = Producto::orderByRaw('LENGTH(codigo) DESC, codigo DESC')->first();
+        $codigoSugerido  = $ultimoProducto && $ultimoProducto->codigo
+            ? (string) ((int) $ultimoProducto->codigo + 1)
+            : '1';
 
         return view('producto.create', compact('marcas', 'presentaciones', 'categorias', 'codigoSugerido'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreProductoRequest $request): RedirectResponse
     {
         try {
             $data = $request->validated();
 
-            // MANUAL UNIQUE CHECK (Vercel SQLite Compatibility)
             if (Producto::where('nombre', $data['nombre'])->exists()) {
                 return redirect()->back()->withErrors(['nombre' => 'El nombre del producto ya existe.'])->withInput();
             }
@@ -94,6 +70,7 @@ class ProductoController extends Controller
 
             $this->productoService->crearProducto($data);
             ActivityLogService::log('Creación de producto', 'Productos', $data);
+
             return redirect()->route('productos.index')->with('success', 'Producto registrado');
         } catch (Throwable $e) {
             Log::error('Error al crear el producto', ['error' => $e->getMessage()]);
@@ -101,77 +78,37 @@ class ProductoController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Producto $producto): View
     {
-        $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
-            ->select('marcas.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
-
-        $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
-            ->select('presentaciones.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
-
-        $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
-            ->select('categorias.id as id', 'c.nombre as nombre')
-            ->where('c.estado', 1)
-            ->orderBy('c.nombre', 'asc')
-            ->get();
+        [$marcas, $presentaciones, $categorias] = $this->getFormSelectOptions();
 
         return view('producto.edit', compact('producto', 'marcas', 'presentaciones', 'categorias'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
     {
         try {
             $data = $request->validated();
 
-             // MANUAL VALIDATION (Vercel SQLite Compatibility) - Check Unique
             if (Producto::where('nombre', $data['nombre'])->where('id', '!=', $producto->id)->exists()) {
                 return redirect()->back()->withErrors(['nombre' => 'El nombre ya existe.'])->withInput();
             }
             if (!empty($data['codigo']) && Producto::where('codigo', $data['codigo'])->where('id', '!=', $producto->id)->exists()) {
-                 return redirect()->back()->withErrors(['codigo' => 'El código ya existe.'])->withInput();
+                return redirect()->back()->withErrors(['codigo' => 'El código ya existe.'])->withInput();
+            }
+            if (!empty($data['marca_id']) && !Marca::where('id', $data['marca_id'])->exists()) {
+                return redirect()->back()->withErrors(['marca_id' => 'La marca seleccionada no existe.'])->withInput();
+            }
+            if (!empty($data['categoria_id']) && !Categoria::where('id', $data['categoria_id'])->exists()) {
+                return redirect()->back()->withErrors(['categoria_id' => 'La categoría seleccionada no existe.'])->withInput();
+            }
+            if (!empty($data['presentacione_id']) && !Presentacione::where('id', $data['presentacione_id'])->exists()) {
+                return redirect()->back()->withErrors(['presentacione_id' => 'La presentación seleccionada no existe.'])->withInput();
             }
 
-            // Verify Foreign Keys (Manual 'exists')
-            if (!empty($data['marca_id']) && !\App\Models\Marca::where('id', $data['marca_id'])->exists()) {
-                 return redirect()->back()->withErrors(['marca_id' => 'La marca seleccionada no existe.'])->withInput();
-            }
-             if (!empty($data['categoria_id']) && !\App\Models\Categoria::where('id', $data['categoria_id'])->exists()) {
-                 return redirect()->back()->withErrors(['categoria_id' => 'La categoría seleccionada no existe.'])->withInput();
-            }
-             if (!empty($data['presentacione_id']) && !\App\Models\Presentacione::where('id', $data['presentacione_id'])->exists()) {
-                 return redirect()->back()->withErrors(['presentacione_id' => 'La presentación seleccionada no existe.'])->withInput();
-            }
-            
-            \Illuminate\Support\Facades\Log::info('Producto update request', [
-                'has_file' => $request->hasFile('img_path'),
-                'file_valid' => $request->hasFile('img_path') ? $request->file('img_path')->isValid() : false,
-                'file_error' => $request->hasFile('img_path') ? $request->file('img_path')->getError() : 'N/A',
-                'file_size' => $request->hasFile('img_path') ? $request->file('img_path')->getSize() : 'N/A',
-                'post_data' => $request->except(['img_path']),
-            ]);
+            $this->productoService->editarProducto($data, $producto);
+            ActivityLogService::log('Edición de producto', 'Productos', $data);
 
-            $this->productoService->editarProducto($request->validated(), $producto);
-            ActivityLogService::log('Edición de producto', 'Productos', $request->validated());
             return redirect()->route('productos.index')->with('success', 'Producto editado');
         } catch (Throwable $e) {
             Log::error('Error al editar el producto', ['error' => $e->getMessage()]);
@@ -180,52 +117,33 @@ class ProductoController extends Controller
     }
 
     /**
-     * Export products to CSV/Excel file
+     * Exportar productos a CSV.
      */
-    public function export()
+    public function export(): mixed
     {
         try {
-            // Get all products with relationships
             $productos = Producto::with([
                 'categoria.caracteristica',
                 'marca.caracteristica',
                 'presentacione.caracteristica',
-                'inventario'
+                'inventario',
             ])->get();
 
-            // Create filename with current date
             $filename = 'productos_' . date('Y-m-d') . '.csv';
-
-            // Set headers for CSV download
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
+            $headers  = [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Pragma' => 'no-cache',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0'
+                'Pragma'              => 'no-cache',
+                'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires'             => '0',
             ];
 
-            // Create callback for streaming CSV
-            $callback = function() use ($productos) {
+            $callback = function () use ($productos) {
                 $file = fopen('php://output', 'w');
-                
-                // Add BOM for UTF-8 (helps Excel recognize special characters)
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+                fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-                // Add CSV headers
-                fputcsv($file, [
-                    'Código',
-                    'Nombre',
-                    'Descripción',
-                    'Precio',
-                    'Categoría',
-                    'Marca',
-                    'Presentación',
-                    'Stock',
-                    'Estado'
-                ]);
+                fputcsv($file, ['Código', 'Nombre', 'Descripción', 'Precio', 'Categoría', 'Marca', 'Presentación', 'Stock', 'Estado']);
 
-                // Add product data
                 foreach ($productos as $producto) {
                     fputcsv($file, [
                         $producto->codigo,
@@ -236,7 +154,7 @@ class ProductoController extends Controller
                         $producto->marca->caracteristica->nombre ?? 'Sin marca',
                         $producto->presentacione->caracteristica->nombre ?? 'Sin presentación',
                         $producto->inventario->stock ?? 0,
-                        $producto->estado ? 'Activo' : 'Inactivo'
+                        $producto->estado ? 'Activo' : 'Inactivo',
                     ]);
                 }
 
@@ -244,9 +162,8 @@ class ProductoController extends Controller
             };
 
             ActivityLogService::log('Exportación de productos', 'Productos', ['total' => $productos->count()]);
-            
-            return response()->stream($callback, 200, $headers);
 
+            return response()->stream($callback, 200, $headers);
         } catch (Throwable $e) {
             Log::error('Error al exportar productos', ['error' => $e->getMessage()]);
             return redirect()->route('productos.index')->with('error', 'Error al exportar: ' . $e->getMessage());
@@ -254,112 +171,93 @@ class ProductoController extends Controller
     }
 
     /**
-     * Import products from CSV file
+     * Importar productos desde CSV.
      */
     public function import(Request $request): RedirectResponse
     {
         try {
-            // Validate file upload
-            $request->validate([
-                'file' => 'required|file|mimes:csv,txt|max:2048'
-            ]);
+            $request->validate(['file' => 'required|file|mimes:csv,txt|max:2048']);
 
-            $file = $request->file('file');
-            $path = $file->getRealPath();
-            
-            // Open and read CSV
-            $csv = fopen($path, 'r');
-            
-            // Skip BOM if present
+            $path = $request->file('file')->getRealPath();
+            $csv  = fopen($path, 'r');
+
             $bom = fread($csv, 3);
             if ($bom !== "\xEF\xBB\xBF") {
                 rewind($csv);
             }
-            
-            // Read header
+
             $header = fgetcsv($csv);
-            
             if (!$header) {
                 return redirect()->route('productos.index')->with('error', 'El archivo CSV está vacío o no tiene el formato correcto.');
             }
 
             $created = 0;
-            $failed = 0;
-            $errors = [];
+            $failed  = 0;
+            $errors  = [];
 
-            // Process each row
             while (($row = fgetcsv($csv)) !== false) {
                 try {
-                    // Skip empty rows
                     if (empty(array_filter($row))) {
                         continue;
                     }
 
-                    // Map CSV columns to data
                     $data = array_combine($header, $row);
-                    
-                    // Validate required fields
+
                     if (empty($data['Nombre'])) {
                         throw new \Exception('Nombre es requerido');
                     }
 
-                    // Find or create relationships
                     $categoria = null;
                     if (!empty($data['Categoría']) && $data['Categoría'] !== 'Sin categoría') {
-                        $categoriaCaract = Caracteristica::where('nombre', $data['Categoría'])->first();
-                        if ($categoriaCaract) {
-                            $categoria = Categoria::where('caracteristica_id', $categoriaCaract->id)->first();
+                        $caract = Caracteristica::where('nombre', $data['Categoría'])->first();
+                        if ($caract) {
+                            $categoria = Categoria::where('caracteristica_id', $caract->id)->first();
                         }
                     }
 
                     $marca = null;
                     if (!empty($data['Marca']) && $data['Marca'] !== 'Sin marca') {
-                        $marcaCaract = Caracteristica::where('nombre', $data['Marca'])->first();
-                        if ($marcaCaract) {
-                            $marca = Marca::where('caracteristica_id', $marcaCaract->id)->first();
+                        $caract = Caracteristica::where('nombre', $data['Marca'])->first();
+                        if ($caract) {
+                            $marca = Marca::where('caracteristica_id', $caract->id)->first();
                         }
                     }
 
                     $presentacion = null;
                     if (!empty($data['Presentación']) && $data['Presentación'] !== 'Sin presentación') {
-                        $presentacionCaract = Caracteristica::where('nombre', $data['Presentación'])->first();
-                        if ($presentacionCaract) {
-                            $presentacion = Presentacione::where('caracteristica_id', $presentacionCaract->id)->first();
+                        $caract = Caracteristica::where('nombre', $data['Presentación'])->first();
+                        if ($caract) {
+                            $presentacion = Presentacione::where('caracteristica_id', $caract->id)->first();
                         }
                     }
 
-                    // Create product
                     $producto = Producto::create([
-                        'codigo' => !empty($data['Código']) ? $data['Código'] : null,
-                        'nombre' => $data['Nombre'],
-                        'descripcion' => $data['Descripción'] ?? null,
-                        'precio' => !empty($data['Precio']) ? (float)$data['Precio'] : 0,
-                        'categoria_id' => $categoria?->id,
-                        'marca_id' => $marca?->id,
+                        'codigo'           => !empty($data['Código']) ? $data['Código'] : null,
+                        'nombre'           => $data['Nombre'],
+                        'descripcion'      => $data['Descripción'] ?? null,
+                        'precio'           => !empty($data['Precio']) ? (float) $data['Precio'] : 0,
+                        'categoria_id'     => $categoria?->id,
+                        'marca_id'         => $marca?->id,
                         'presentacione_id' => $presentacion?->id,
-                        'estado' => (isset($data['Estado']) && $data['Estado'] === 'Activo') ? 1 : 0
+                        'estado'           => (isset($data['Estado']) && $data['Estado'] === 'Activo') ? 1 : 0,
                     ]);
 
-                    // Create inventory record if stock is provided
                     if (isset($data['Stock']) && is_numeric($data['Stock'])) {
-                        $producto->inventario()->create([
-                            'stock' => (int)$data['Stock']
-                        ]);
+                        $producto->inventario()->create(['stock' => (int) $data['Stock']]);
                     }
 
                     $created++;
-
                 } catch (\Exception $e) {
                     $failed++;
-                    $errors[] = "Fila " . ($created + $failed + 1) . ": " . $e->getMessage();
+                    $errors[] = 'Fila ' . ($created + $failed + 1) . ': ' . $e->getMessage();
                 }
             }
 
             fclose($csv);
 
             ActivityLogService::log('Importación de productos', 'Productos', [
-                'creados' => $created,
-                'fallidos' => $failed
+                'creados'  => $created,
+                'fallidos' => $failed,
             ]);
 
             $message = "Importación completada: {$created} productos creados";
@@ -368,35 +266,37 @@ class ProductoController extends Controller
             }
 
             return redirect()->route('productos.index')->with('success', $message);
-
         } catch (Throwable $e) {
             Log::error('Error al importar productos', ['error' => $e->getMessage()]);
             return redirect()->route('productos.index')->with('error', 'Error al importar: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        /*
-        $message = '';
-        $producto = Producto::find($id);
-        if ($producto->estado == 1) {
-            Producto::where('id', $producto->id)
-                ->update([
-                    'estado' => 0
-                ]);
-            $message = 'Producto eliminado';
-        } else {
-            Producto::where('id', $producto->id)
-                ->update([
-                    'estado' => 1
-                ]);
-            $message = 'Producto restaurado';
-        }
+    // ── Helpers privados ──────────────────────────────────────────────────
 
-        return redirect()->route('productos.index')->with('success', $message);*/
+    /**
+     * Devuelve [marcas, presentaciones, categorias] para los selects del formulario.
+     */
+    private function getFormSelectOptions(): array
+    {
+        $marcas = Marca::join('caracteristicas as c', 'marcas.caracteristica_id', '=', 'c.id')
+            ->select('marcas.id as id', 'c.nombre as nombre')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->get();
+
+        $presentaciones = Presentacione::join('caracteristicas as c', 'presentaciones.caracteristica_id', '=', 'c.id')
+            ->select('presentaciones.id as id', 'c.nombre as nombre')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->get();
+
+        $categorias = Categoria::join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
+            ->select('categorias.id as id', 'c.nombre as nombre')
+            ->where('c.estado', 1)
+            ->orderBy('c.nombre', 'asc')
+            ->get();
+
+        return [$marcas, $presentaciones, $categorias];
     }
 }

@@ -9,25 +9,21 @@ use App\Models\User;
 use App\Models\Venta;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class homeController extends Controller
 {
-    public function index(Request $request): View|RedirectResponse|\Illuminate\Http\Response
+    public function index(): View|RedirectResponse
     {
-        if (!Auth::check()) {
-            return redirect()->route('login.index');
-        }
-
         if (!Auth::user()->can('ver-panel')) {
             return redirect()->route('ventas.create');
         }
 
         try {
-            // Panel simplificado: Solo mostrar las ventas de HOY
             $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
             $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
 
@@ -42,8 +38,7 @@ class homeController extends Controller
             $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
-            
-            // Ventas agrupadas por cliente del día actual (FIADO + EFECTIVO + etc)
+
             $ventasPorCliente = Venta::with(['user', 'cliente.persona', 'productos'])
                 ->whereBetween('created_at', [$hoyInicio, $hoyFin])
                 ->get()
@@ -57,27 +52,27 @@ class homeController extends Controller
                 'ventasFiado',
                 'ventasPorCliente'
             ));
-        } catch (\Exception $e) {
-            return response("Error en Dashboard: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+        } catch (\Throwable $e) {
+            Log::error('Error en Dashboard', ['error' => $e->getMessage()]);
+            return redirect()->route('panel')->with('error', 'Ocurrió un error cargando el panel.');
         }
     }
 
-    public function estadisticas(Request $request): View|RedirectResponse|\Illuminate\Http\Response
+    public function estadisticas(Request $request): View|RedirectResponse
     {
-        if (!Auth::check() || !Auth::user()->hasRole('administrador')) {
+        if (!Auth::user()->hasRole('administrador')) {
             return redirect()->route('panel')->with('error', 'Acceso denegado');
         }
 
         try {
-            // Filtros de fecha para la gráfica de ventas
             $fechaInicio = $request->input('fecha_inicio', Carbon::now()->subDays(7)->format('Y-m-d'));
-            $fechaFin = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
-    
-            // Métricas Principales — totales del período filtrado por método de pago
+            $fechaFin    = $request->input('fecha_fin', Carbon::now()->format('Y-m-d'));
+
             $periodoInicio = $fechaInicio . ' 00:00:00';
             $periodoFin    = $fechaFin    . ' 23:59:59';
 
-            $ventasHoy = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])->sum('total');
+            // Totales del período por método de pago
+            $ventasPeriodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])->sum('total');
 
             $ventasPorMetodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])
                 ->select('metodo_pago', DB::raw('SUM(total) as total'))
@@ -88,21 +83,22 @@ class homeController extends Controller
             $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
-            
-            $totalClientes = Cliente::count();
+
+            $totalClientes  = Cliente::count();
             $totalProductos = Producto::count();
-            $totalCompras = Compra::count();
-            $totalUsuarios = User::count();
-    
-            // Gráfica de Ventas por Día (Filtrada)
+            $totalCompras   = Compra::count();
+            $totalUsuarios  = User::count();
+
+            // Gráfica de ventas por día (período filtrado)
             $totalVentasPorDia = DB::table('ventas')
                 ->selectRaw('DATE(created_at) as fecha, SUM(total) as total')
-                ->whereBetween('created_at', [$fechaInicio . ' 00:00:00', $fechaFin . ' 23:59:59'])
+                ->whereBetween('created_at', [$periodoInicio, $periodoFin])
                 ->groupByRaw('DATE(created_at)')
                 ->orderBy('fecha', 'asc')
-                ->get()->toArray();
-    
-            // Productos más vendidos (Top 3)
+                ->get()
+                ->toArray();
+
+            // Top 3 productos más vendidos
             $productosMasVendidos = DB::table('producto_venta')
                 ->join('productos', 'producto_venta.producto_id', '=', 'productos.id')
                 ->select('productos.nombre', DB::raw('SUM(producto_venta.cantidad) as total_vendido'))
@@ -110,8 +106,8 @@ class homeController extends Controller
                 ->orderByDesc('total_vendido')
                 ->limit(3)
                 ->get();
-    
-            // Productos menos vendidos (Top 3)
+
+            // Top 3 productos menos vendidos
             $productosMenosVendidos = DB::table('producto_venta')
                 ->join('productos', 'producto_venta.producto_id', '=', 'productos.id')
                 ->select('productos.nombre', DB::raw('SUM(producto_venta.cantidad) as total_vendido'))
@@ -119,41 +115,31 @@ class homeController extends Controller
                 ->orderBy('total_vendido', 'asc')
                 ->limit(3)
                 ->get();
-    
-            // Productos con Más Stock (Top 5)
+
+            // Top 5 con más stock
             $productosMasStock = DB::table('productos')
                 ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
+                ->select('productos.nombre', 'inventario.cantidad')
                 ->orderByDesc('inventario.cantidad')
-                ->select('productos.nombre', 'inventario.cantidad')
-                ->limit(5)
-                ->get();
-    
-            // Productos con Menos Stock (Top 5)
-            $productosMenosStock = DB::table('productos')
-                ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
-                ->where('inventario.cantidad', '>', 0)
-                ->orderBy('inventario.cantidad', 'asc')
-                ->select('productos.nombre', 'inventario.cantidad')
-                ->limit(5)
-                ->get();
-    
-            // Productos con Stock Bajo (Top 5)
-            $productosStockBajo = DB::table('productos')
-                ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
-                ->where('inventario.cantidad', '>', 0)
-                ->orderBy('inventario.cantidad', 'asc')
-                ->select('productos.nombre', 'inventario.cantidad')
                 ->limit(5)
                 ->get();
 
-            // Ventas agrupadas por cliente del periodo seleccionado
+            // Top 5 con menos stock (excluyendo sin stock)
+            $productosStockBajo = DB::table('productos')
+                ->join('inventario', 'productos.id', '=', 'inventario.producto_id')
+                ->select('productos.nombre', 'inventario.cantidad')
+                ->where('inventario.cantidad', '>', 0)
+                ->orderBy('inventario.cantidad', 'asc')
+                ->limit(5)
+                ->get();
+
             $ventasPorCliente = Venta::with(['user', 'cliente.persona'])
                 ->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
                 ->get()
                 ->groupBy('cliente_id');
-    
+
             return view('admin.estadisticas.index', compact(
-                'ventasHoy',
+                'ventasPeriodo',
                 'ventasEfectivo',
                 'ventasNequi',
                 'ventasDaviplata',
@@ -166,14 +152,14 @@ class homeController extends Controller
                 'productosMasVendidos',
                 'productosMenosVendidos',
                 'productosMasStock',
-                'productosMenosStock',
                 'productosStockBajo',
                 'ventasPorCliente',
                 'fechaInicio',
                 'fechaFin'
             ));
-        } catch (\Exception $e) {
-            return response("Error en Estadísticas: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+        } catch (\Throwable $e) {
+            Log::error('Error en Estadísticas', ['error' => $e->getMessage()]);
+            return redirect()->route('panel')->with('error', 'Ocurrió un error cargando las estadísticas.');
         }
     }
 }

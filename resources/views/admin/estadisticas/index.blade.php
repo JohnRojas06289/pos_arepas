@@ -66,7 +66,7 @@
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
                         <div class="kpi-label">Total período</div>
-                        <div class="kpi-value" style="font-size:1.35rem;">${{ number_format($ventasHoy, 0, ',', '.') }}</div>
+                        <div class="kpi-value" style="font-size:1.35rem;">${{ number_format($ventasPeriodo, 0, ',', '.') }}</div>
                         <div class="small" style="color:var(--text-secondary);font-size:0.72rem;">
                             {{ $fechaInicio == $fechaFin ? 'Hoy' : $fechaInicio . ' — ' . $fechaFin }}
                         </div>
@@ -488,7 +488,7 @@ new Chart(document.getElementById('ventasChart'), {
 
 // ---- Gráfico de inventario dinámico ----
 var dataMasStock    = @json($productosMasStock);
-var dataMenosStock  = @json($productosMenosStock);
+var dataMenosStock  = @json($productosStockBajo);
 var stockChartInst  = null;
 
 function renderStockChart(data, label) {

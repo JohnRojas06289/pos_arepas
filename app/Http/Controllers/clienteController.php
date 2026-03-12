@@ -176,7 +176,7 @@ class clienteController extends Controller
 
             // 2. Distribuir el abono en las ventas pendientes (FIFO)
             $ventasPendientes = $cliente->ventas()
-                ->whereRaw('"pagado" = false')
+                ->where('pagado', false)
                 ->orderBy('created_at', 'asc')
                 ->get();
 

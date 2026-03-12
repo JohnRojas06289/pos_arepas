@@ -6,8 +6,6 @@ use App\Enums\MetodoPagoEnum;
 use App\Events\CreateCompraDetalleEvent;
 use App\Http\Requests\StoreCompraRequest;
 use App\Models\Compra;
-use App\Models\Comprobante;
-use App\Models\Empresa;
 use App\Models\Producto;
 use App\Models\Proveedore;
 use App\Services\ActivityLogService;
@@ -15,7 +13,6 @@ use App\Services\ComprobanteService;
 use App\Services\EmpresaService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,19 +23,15 @@ class compraController extends Controller
 {
     protected EmpresaService $empresaService;
 
-    function __construct(EmpresaService $empresaService)
+    public function __construct(EmpresaService $empresaService)
     {
         $this->middleware('permission:ver-compra|crear-compra|mostrar-compra|eliminar-compra', ['only' => ['index']]);
         $this->middleware('permission:crear-compra', ['only' => ['create', 'store']]);
         $this->middleware('permission:mostrar-compra', ['only' => ['show']]);
-        //$this->middleware('permission:eliminar-compra', ['only' => ['destroy']]);
         $this->middleware('check-show-compra-user', ['only' => ['show']]);
         $this->empresaService = $empresaService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(): View
     {
         $compras = Compra::with('comprobante', 'proveedore.persona')
@@ -49,18 +42,13 @@ class compraController extends Controller
         return view('compra.index', compact('compras'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(ComprobanteService $comprobanteService): View
     {
-        $proveedores = Proveedore::whereHas('persona', function ($query) {
-            $query->where('estado', 1);
-        })->get();
-        $comprobantes = $comprobanteService->obtenerComprobantes();
-        $productos = Producto::where('estado', 1)->get();
+        $proveedores = Proveedore::whereHas('persona', fn ($q) => $q->where('estado', 1))->get();
+        $comprobantes      = $comprobanteService->obtenerComprobantes();
+        $productos         = Producto::where('estado', 1)->get();
         $optionsMetodoPago = MetodoPagoEnum::cases();
-        $empresa = $this->empresaService->obtenerEmpresa();
+        $empresa           = $this->empresaService->obtenerEmpresa();
 
         return view('compra.create', compact(
             'proveedores',
@@ -71,60 +59,51 @@ class compraController extends Controller
         ));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreCompraRequest $request): RedirectResponse
     {
         DB::beginTransaction();
         try {
+            $compraModel = new Compra();
 
-            //Llenar tabla compras
-            $compra = new Compra();
-            $request->merge([
-                'user_id' => Auth::id(),
-                'impuesto' => 0,
-                'comprobante_path' => isset($request->file_comprobante)
-                    ? $compra->handleUploadFile($request->file_comprobante)
-                    : null
-            ]);
-            $compra = Compra::create($request->all());
+            $comprobantePath = $request->hasFile('file_comprobante')
+                ? $compraModel->handleUploadFile($request->file('file_comprobante'))
+                : null;
 
-            //Llenar tabla compra_producto
-            //1.Recuperar los arrays
-            $arrayProducto_id = $request->get('arrayidproducto');
-            $arrayCantidad = $request->get('arraycantidad');
-            $arrayPrecioCompra = $request->get('arraypreciocompra');
-            $arrayFechaVencimiento = $request->get('arrayfechavencimiento');
-            //2.Realizar el llenado
+            $compra = Compra::create(array_merge($request->validated(), [
+                'user_id'          => Auth::id(),
+                'impuesto'         => 0,
+                'comprobante_path' => $comprobantePath,
+            ]));
 
-            $siseArray = count($arrayProducto_id);
-            $cont = 0;
-            while ($cont < $siseArray) {
+            $productoIds        = $request->get('arrayidproducto', []);
+            $cantidades         = $request->get('arraycantidad', []);
+            $preciosCompra      = $request->get('arraypreciocompra', []);
+            $fechasVencimiento  = $request->get('arrayfechavencimiento', []);
+            $totalProductos     = count($productoIds);
+
+            for ($i = 0; $i < $totalProductos; $i++) {
                 $compra->productos()->syncWithoutDetaching([
-                    $arrayProducto_id[$cont] => [
-                        'id' => Str::uuid()->toString(),
-                        'cantidad' => $arrayCantidad[$cont],
-                        'precio_compra' => $arrayPrecioCompra[$cont],
-                        'fecha_vencimiento' => $arrayFechaVencimiento[$cont]
-                    ]
+                    $productoIds[$i] => [
+                        'id'               => Str::uuid()->toString(),
+                        'cantidad'         => $cantidades[$i],
+                        'precio_compra'    => $preciosCompra[$i],
+                        'fecha_vencimiento'=> $fechasVencimiento[$i],
+                    ],
                 ]);
 
-                //3.Despachar evento de Creacion de registro
                 CreateCompraDetalleEvent::dispatch(
                     $compra,
-                    $arrayProducto_id[$cont],
-                    $arrayCantidad[$cont],
-                    $arrayPrecioCompra[$cont],
-                    $arrayFechaVencimiento[$cont]
+                    $productoIds[$i],
+                    $cantidades[$i],
+                    $preciosCompra[$i],
+                    $fechasVencimiento[$i]
                 );
-
-                $cont++;
             }
 
             DB::commit();
-            ActivityLogService::log('Creación de compra', 'Compras', $request->all());
-            return redirect()->route('compras.index')->with('success', 'compra exitosa');
+            ActivityLogService::log('Creación de compra', 'Compras', $request->validated());
+
+            return redirect()->route('compras.index')->with('success', 'Compra registrada con éxito');
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al crear la compra', ['error' => $e->getMessage()]);
@@ -132,42 +111,9 @@ class compraController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Compra $compra): View
     {
         $empresa = $this->empresaService->obtenerEmpresa();
         return view('compra.show', compact('compra', 'empresa'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        /*
-        Compra::where('id', $id)
-            ->update([
-                'estado' => 0
-            ]);
-
-        return redirect()->route('compras.index')->with('success', 'Compra eliminada');*/
     }
 }
