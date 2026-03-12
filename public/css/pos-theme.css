@@ -1176,8 +1176,11 @@ a, .clickable { cursor: pointer; }
   }
 
   /* Sidebar visible cuando se activa */
-  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
+  .sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav,
+  .sb-nav-fixed.sb-sidenav-toggled #layoutSidenav #layoutSidenav_nav {
     transform: translateX(0) !important;
+    width: 280px !important;
+    max-width: 85vw !important;
   }
 
   /* El contenido no se desplaza lateralmente en móvil */

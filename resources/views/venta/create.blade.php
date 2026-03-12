@@ -7,8 +7,8 @@
     body { overflow: hidden; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
 
-    /* Fix for extra spacing at the top */
-    main { padding: 0 !important; margin: 0 !important; }
+    /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
+    #layoutSidenav_content main { padding: 0 !important; margin: 0 !important; }
 
     /* Sidebar de categorías */
     .category-sidebar {
