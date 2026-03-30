@@ -33,8 +33,8 @@ class Venta extends Model
     ];
 
     protected $casts = [
-        'pagado'          => 'boolean',
-        'revertida'       => 'boolean',
+        'pagado'          => 'integer',
+        'revertida'       => 'integer',
         'saldo_pendiente' => 'decimal:2',
     ];
 

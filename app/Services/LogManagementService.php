@@ -54,7 +54,7 @@ class LogManagementService
                 );
             }
 
-            $venta->revertida = true;
+            $venta->revertida = 1;
             $venta->save();
 
             ActivityLogService::log('Reversión de venta', 'Ventas', [
