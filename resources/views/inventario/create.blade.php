@@ -42,7 +42,7 @@
                     id="cantidad"
                     required='true'
                     type='number'
-                    :value="isset($inventario) ? $inventario->cantidad : old('cantidad')"
+                    :defaultValue="isset($inventario) ? $inventario->cantidad : old('cantidad')"
                 />
             </div>
 
@@ -52,7 +52,7 @@
                     id="fecha_vencimiento"
                     type='date'
                     labelText='Fecha de Vencimiento'
-                    :value="isset($inventario) && $inventario->fecha_vencimiento ? $inventario->fecha_vencimiento->format('Y-m-d') : old('fecha_vencimiento')"
+                    :defaultValue="isset($inventario) && $inventario->fecha_vencimiento ? $inventario->fecha_vencimiento->format('Y-m-d') : old('fecha_vencimiento')"
                 />
             </div>
 
@@ -63,7 +63,7 @@
                     type='number'
                     labelText='Costo unitario'
                     required='true'
-                    :value="isset($ultimoKardex) ? $ultimoKardex->costo_unitario : old('costo_unitario')"
+                    :defaultValue="isset($ultimoKardex) ? $ultimoKardex->costo_unitario : old('costo_unitario')"
                 />
             </div>
 
@@ -74,7 +74,7 @@
                     type='number'
                     labelText='Precio de venta'
                     required='true'
-                    :value="$producto->precio ?? old('precio_venta')"
+                    :defaultValue="$producto->precio ?? old('precio_venta')"
                 />
             </div>
         </div>
