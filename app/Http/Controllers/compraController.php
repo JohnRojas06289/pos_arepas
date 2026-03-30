@@ -47,9 +47,7 @@ class compraController extends Controller
 
     public function create(ComprobanteService $comprobanteService): View
     {
-        $proveedores = Proveedore::with('persona.documento')
-            ->whereHas('persona', fn ($q) => $q->where('estado', 1))
-            ->get();
+        $proveedores = Proveedore::whereHas('persona', fn ($q) => $q->where('estado', 1))->get();
         $comprobantes      = $comprobanteService->obtenerComprobantes();
         $productos         = Producto::where('estado', 1)->get();
         $optionsMetodoPago = MetodoPagoEnum::cases();
