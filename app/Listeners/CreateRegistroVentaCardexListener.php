@@ -49,6 +49,7 @@ class CreateRegistroVentaCardexListener
             ]);
         } catch (\Exception $e) {
             \Log::error('CreateRegistroVentaCardexListener: Error', ['error' => $e->getMessage()]);
+            throw $e;
         }
     }
 }

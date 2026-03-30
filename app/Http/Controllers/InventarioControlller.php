@@ -250,26 +250,37 @@ class InventarioControlller extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreInventarioRequest $request, string $id)
+    public function update(StoreInventarioRequest $request, string $id, Kardex $kardex)
     {
         $inventario = Inventario::findOrFail($id);
-        
+
         DB::beginTransaction();
         try {
-            // Updated Product Price
             $producto = $inventario->producto;
             if ($request->has('precio_venta')) {
                 $producto->update(['precio' => $request->precio_venta]);
             }
 
-            // Update Inventory (excluding fields not in table)
-            // We use except() because validated() returns fields like costo_unitario/precio_venta that don't exist in 'inventario' table
+            $cantidadAnterior = $inventario->cantidad;
+
             $data = $request->safe()->except(['costo_unitario', 'precio_venta']);
             $inventario->update($data);
-            
-            // Note: Costo Unitario updates typically require a new Kardex entry. 
-            // For now, we are prioritizing fixing the crash and price update.
-            // If cost needs adjustment, a specific Kardex flow should be triggered.
+
+            // Si la cantidad cambió, registrar el ajuste en el Kardex
+            if ((int) $request->cantidad !== (int) $cantidadAnterior) {
+                $costoUnitario = $request->costo_unitario
+                    ?? Kardex::where('producto_id', $inventario->producto_id)->latest('id')->value('costo_unitario')
+                    ?? 0;
+
+                $kardex->crearRegistro(
+                    [
+                        'producto_id'    => $inventario->producto_id,
+                        'cantidad'       => $request->cantidad,
+                        'costo_unitario' => $costoUnitario,
+                    ],
+                    TipoTransaccionEnum::Apertura
+                );
+            }
 
             DB::commit();
             ActivityLogService::log('Actualización de inventario', 'Inventario', $request->validated());

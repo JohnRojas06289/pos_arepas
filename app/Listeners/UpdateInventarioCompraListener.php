@@ -43,6 +43,7 @@ class UpdateInventarioCompraListener
             ]);
         } catch (\Exception $e) {
             \Log::error('UpdateInventarioCompraListener: Error', ['error' => $e->getMessage()]);
+            throw $e;
         }
     }
 }

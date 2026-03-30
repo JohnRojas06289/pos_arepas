@@ -41,10 +41,11 @@ class UpdateInventarioVentaListener
             \Log::info('UpdateInventarioVentaListener: Stock updated', [
                 'producto_id' => $event->producto_id,
                 'cantidad_anterior' => $cantidadAnterior,
-                'cantidad_nueva' => $registro->cantidad
+                'cantidad_nueva' => $cantidadAnterior - $event->cantidad,
             ]);
         } catch (\Exception $e) {
             \Log::error('UpdateInventarioVentaListener: Error', ['error' => $e->getMessage()]);
+            throw $e;
         }
     }
 }

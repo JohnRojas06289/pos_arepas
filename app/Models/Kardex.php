@@ -51,13 +51,14 @@ class Kardex extends Model
 
         $ultimoRegistro = $this->where('producto_id', $data['producto_id'])
             ->latest('id')
+            ->lockForUpdate()
             ->first();
 
         $saldo = $ultimoRegistro ? $ultimoRegistro->saldo : 0;
 
         if ($tipo == TipoTransaccionEnum::Apertura) {
             $saldo = $data['cantidad'];
-        } elseif ($tipo == TipoTransaccionEnum::Compra) {
+        } elseif ($tipo == TipoTransaccionEnum::Compra || $tipo == TipoTransaccionEnum::Reversa) {
             $entrada = $data['cantidad'];
             $saldo += $entrada;
         } elseif ($tipo == TipoTransaccionEnum::Venta || $tipo == TipoTransaccionEnum::Ajuste) {
@@ -98,6 +99,9 @@ class Kardex extends Model
                 break;
             case TipoTransaccionEnum::Ajuste:
                 $descripcion = 'Ajuste de producto';
+                break;
+            case TipoTransaccionEnum::Reversa:
+                $descripcion = 'Reversión de la venta n°' . ($data['venta_id'] ?? '');
                 break;
         }
 
