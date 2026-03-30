@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -56,14 +55,6 @@ class compraController extends Controller
         $optionsMetodoPago = MetodoPagoEnum::cases();
         $empresa           = $this->empresaService->obtenerEmpresa();
 
-        Log::info('Compras.create: datos cargados', [
-            'user_id' => Auth::id(),
-            'proveedores_count' => $proveedores->count(),
-            'comprobantes_count' => $comprobantes->count(),
-            'productos_count' => $productos->count(),
-            'metodos_pago' => collect($optionsMetodoPago)->map(fn ($m) => $m->value)->values()->all(),
-        ]);
-
         return view('compra.create', compact(
             'proveedores',
             'comprobantes',
@@ -77,19 +68,6 @@ class compraController extends Controller
     {
         DB::beginTransaction();
         try {
-            Log::info('Compras.store: inicio', [
-                'user_id' => Auth::id(),
-                'proveedore_id' => $request->input('proveedore_id'),
-                'comprobante_id' => $request->input('comprobante_id'),
-                'metodo_pago' => $request->input('metodo_pago'),
-                'fecha_hora' => $request->input('fecha_hora'),
-                'total' => $request->input('total'),
-                'subtotal' => $request->input('subtotal'),
-                'productos_count' => count($request->get('arrayidproducto', [])),
-                'cantidades_count' => count($request->get('arraycantidad', [])),
-                'precios_count' => count($request->get('arraypreciocompra', [])),
-            ]);
-
             $compraModel = new Compra();
 
             $comprobantePath = $request->hasFile('file_comprobante')
@@ -133,36 +111,7 @@ class compraController extends Controller
             return redirect()->route('compras.index')->with('success', 'Compra registrada con éxito');
         } catch (Throwable $e) {
             DB::rollBack();
-            $context = [
-                'user_id' => Auth::id(),
-                'exception_class' => get_class($e),
-                'error' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'payload' => [
-                    'proveedore_id' => $request->input('proveedore_id'),
-                    'comprobante_id' => $request->input('comprobante_id'),
-                    'metodo_pago' => $request->input('metodo_pago'),
-                    'fecha_hora' => $request->input('fecha_hora'),
-                    'total' => $request->input('total'),
-                    'subtotal' => $request->input('subtotal'),
-                    'numero_comprobante' => $request->input('numero_comprobante'),
-                    'productos_count' => count($request->get('arrayidproducto', [])),
-                    'cantidades_count' => count($request->get('arraycantidad', [])),
-                    'precios_count' => count($request->get('arraypreciocompra', [])),
-                    'vencimientos_count' => count($request->get('arrayfechavencimiento', [])),
-                ],
-            ];
-
-            if ($e instanceof QueryException) {
-                $context['sql'] = $e->getSql();
-                $context['bindings'] = $e->getBindings();
-                $context['error_info'] = $e->errorInfo;
-            }
-
-            Log::error('Compras.store: error al crear compra', $context);
+            Log::error('Error al crear la compra', ['error' => $e->getMessage()]);
             return redirect()->route('compras.index')->with('error', 'Ups, algo falló');
         }
     }
