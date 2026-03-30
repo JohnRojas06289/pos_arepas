@@ -44,11 +44,15 @@
                         <label class="form-label mb-0 small">Hasta</label>
                         <input type="date" name="hasta" class="form-control form-control-sm" value="{{ $hasta }}">
                     </div>
-                    <div class="col-auto">
+                    <div class="col-auto d-flex flex-wrap gap-1 align-items-center">
                         <button type="submit" class="btn btn-sm btn-secondary">
                             <i class="fas fa-filter me-1"></i>Filtrar
                         </button>
-                        <a href="{{ route('activityLog.index') }}" class="btn btn-sm btn-outline-secondary ms-1">Últimos 30 días</a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPreset('hoy')">Hoy</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPreset('ayer')">Ayer</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPreset('antier')">Antier</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPreset('semana')">Esta semana</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setPreset('30dias')">Últimos 30 días</button>
                     </div>
                     <div class="col-auto ms-auto text-muted small align-self-center">
                         {{ $activityLogs->total() }} registro(s)
@@ -233,6 +237,36 @@
 <script>
 function setModulo(modulo) {
     document.getElementById('modulo_input').value = modulo;
+    document.getElementById('filterForm').submit();
+}
+
+function setPreset(preset) {
+    var today = new Date();
+    var fmt = function(d) {
+        return d.getFullYear() + '-' +
+            String(d.getMonth() + 1).padStart(2, '0') + '-' +
+            String(d.getDate()).padStart(2, '0');
+    };
+    var desde, hasta;
+    switch (preset) {
+        case 'hoy':
+            desde = hasta = fmt(today); break;
+        case 'ayer':
+            var ayer = new Date(today); ayer.setDate(today.getDate() - 1);
+            desde = hasta = fmt(ayer); break;
+        case 'antier':
+            var antier = new Date(today); antier.setDate(today.getDate() - 2);
+            desde = hasta = fmt(antier); break;
+        case 'semana':
+            var lunes = new Date(today);
+            lunes.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+            desde = fmt(lunes); hasta = fmt(today); break;
+        case '30dias':
+            var hace30 = new Date(today); hace30.setDate(today.getDate() - 30);
+            desde = fmt(hace30); hasta = fmt(today); break;
+    }
+    document.querySelector('[name="desde"]').value = desde;
+    document.querySelector('[name="hasta"]').value = hasta;
     document.getElementById('filterForm').submit();
 }
 </script>
