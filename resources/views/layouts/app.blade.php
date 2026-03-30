@@ -35,7 +35,6 @@
     <div id="layoutSidenav">
         @include('layouts.include.navigation-menu')
         <div id="layoutSidenav_content">
-            @include('layouts.partials.alert')
             <main>
                 @yield('content')
             </main>
@@ -43,8 +42,9 @@
     </div>
 
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/scripts.js') }}"></script>
     <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('js/scripts.js') }}"></script>
+    @include('layouts.partials.alert')
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
