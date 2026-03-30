@@ -329,10 +329,10 @@
                             <tbody>
                                 @foreach($productosStockBajo as $p)
                                 <tr>
-                                    <td style="font-size:0.85rem;font-weight:500;">{{ $p['nombre'] ?? $p->nombre }}</td>
+                                    <td style="font-size:0.85rem;font-weight:500;">{{ $p->nombre }}</td>
                                     <td>
                                         <span class="badge" style="background:var(--color-danger-subtle);color:var(--color-danger);">
-                                            {{ $p['cantidad'] ?? $p->cantidad }} uds
+                                            {{ $p->cantidad }} uds
                                         </span>
                                     </td>
                                 </tr>
