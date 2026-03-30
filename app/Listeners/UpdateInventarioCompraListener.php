@@ -28,7 +28,16 @@ class UpdateInventarioCompraListener
             $registro = Inventario::where('producto_id', $event->producto_id)->first();
 
             if (!$registro) {
-                \Log::error('UpdateInventarioCompraListener: Inventario not found', ['producto_id' => $event->producto_id]);
+                \Log::warning('UpdateInventarioCompraListener: Inventario not found, creating new record', ['producto_id' => $event->producto_id]);
+                $registro = Inventario::create([
+                    'producto_id'       => $event->producto_id,
+                    'cantidad'          => $event->cantidad,
+                    'fecha_vencimiento' => $event->fecha_vencimiento,
+                ]);
+                \Log::info('UpdateInventarioCompraListener: Inventario record created', [
+                    'producto_id' => $event->producto_id,
+                    'cantidad'    => $event->cantidad,
+                ]);
                 return;
             }
 

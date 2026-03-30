@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Inventario;
 use App\Models\Producto;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -23,6 +24,11 @@ class ProductoService
             'marca_id' => $data['marca_id'],
             'categoria_id' => $data['categoria_id'],
             'presentacione_id' => $data['presentacione_id'],
+        ]);
+
+        Inventario::create([
+            'producto_id' => $producto->id,
+            'cantidad'    => 0,
         ]);
 
         return $producto;
