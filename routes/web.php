@@ -58,6 +58,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     // ── Inventario ────────────────────────────────────────────────────────
     Route::get('inventario/ventas-detalle/{producto}', [InventarioControlller::class, 'ventasDetalle'])
         ->name('inventario.ventas-detalle');
+    Route::get('inventario/compras-detalle/{producto}', [InventarioControlller::class, 'comprasDetalle'])
+        ->name('inventario.compras-detalle');
     Route::resource('inventario', InventarioControlller::class)->except('show');
     Route::resource('kardex', KardexController::class)->only('index');
 

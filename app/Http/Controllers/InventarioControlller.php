@@ -54,6 +54,18 @@ class InventarioControlller extends Controller
     }
 
     /**
+     * Calculate units purchased per product for a given date range
+     */
+    private function getComprasPorProducto(string $productoId, array $dateRange): int
+    {
+        return (int) DB::table('compra_producto')
+            ->join('compras', 'compras.id', '=', 'compra_producto.compra_id')
+            ->where('compra_producto.producto_id', $productoId)
+            ->whereBetween('compras.created_at', $dateRange)
+            ->sum('compra_producto.cantidad');
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request): View
@@ -62,8 +74,10 @@ class InventarioControlller extends Controller
         
         // Sales period filter
         $periodo = $request->periodo ?? 'hoy';
+        $periodo_compras = $request->periodo_compras ?? 'hoy';
         $dateRanges = $this->getDateRanges();
         $selectedRange = $dateRanges[$periodo] ?? $dateRanges['hoy'];
+        $selectedRangeCompras = $dateRanges[$periodo_compras] ?? $dateRanges['hoy'];
         
         // Check if date filter is applied
         $fecha = $request->fecha;
@@ -102,9 +116,10 @@ class InventarioControlller extends Controller
                         ];
                     }
                     
-                    // Add sales count for the selected period
-                    $producto->vendidos_periodo = $this->getVentasPorProducto($producto->id, $selectedRange);
-                    
+                    // Add sales and purchases count for the selected period
+                    $producto->vendidos_periodo  = $this->getVentasPorProducto($producto->id, $selectedRange);
+                    $producto->comprados_periodo = $this->getComprasPorProducto($producto->id, $selectedRangeCompras);
+
                     return $producto;
                 });
         } else {
@@ -115,13 +130,14 @@ class InventarioControlller extends Controller
                 })
                 ->orderBy('nombre', 'asc')
                 ->get()
-                ->map(function($producto) use ($selectedRange) {
-                    $producto->vendidos_periodo = $this->getVentasPorProducto($producto->id, $selectedRange);
+                ->map(function($producto) use ($selectedRange, $selectedRangeCompras) {
+                    $producto->vendidos_periodo  = $this->getVentasPorProducto($producto->id, $selectedRange);
+                    $producto->comprados_periodo = $this->getComprasPorProducto($producto->id, $selectedRangeCompras);
                     return $producto;
                 });
         }
-            
-        return view('inventario.index', compact('productos', 'categorias', 'periodo'));
+
+        return view('inventario.index', compact('productos', 'categorias', 'periodo', 'periodo_compras'));
     }
 
     /**
@@ -169,6 +185,55 @@ class InventarioControlller extends Controller
             'periodo' => $periodoLabels[$periodo] ?? 'Hoy',
             'total_vendidos' => $ventas->sum('cantidad'),
             'ventas' => $ventas,
+        ]);
+    }
+
+    /**
+     * Get purchases detail for a product in a given period (AJAX)
+     */
+    public function comprasDetalle(Request $request, string $productoId): JsonResponse
+    {
+        $periodo = $request->periodo ?? 'hoy';
+        $dateRanges = $this->getDateRanges();
+        $selectedRange = $dateRanges[$periodo] ?? $dateRanges['hoy'];
+
+        $producto = Producto::findOrFail($productoId);
+
+        $compras = DB::table('compra_producto')
+            ->join('compras', 'compras.id', '=', 'compra_producto.compra_id')
+            ->leftJoin('proveedores', 'proveedores.id', '=', 'compras.proveedore_id')
+            ->leftJoin('personas', 'personas.id', '=', 'proveedores.persona_id')
+            ->where('compra_producto.producto_id', $productoId)
+            ->whereBetween('compras.created_at', $selectedRange)
+            ->select(
+                'compras.created_at',
+                'compras.numero_comprobante',
+                'compra_producto.cantidad',
+                'compra_producto.precio_compra',
+                'personas.razon_social as proveedor'
+            )
+            ->orderBy('compras.created_at', 'desc')
+            ->get()
+            ->map(function ($compra) {
+                $dt = Carbon::parse($compra->created_at);
+                return [
+                    'fecha'           => $dt->format('d/m/Y'),
+                    'hora'            => $dt->format('H:i'),
+                    'proveedor'       => $compra->proveedor ?? 'N/A',
+                    'cantidad'        => $compra->cantidad,
+                    'precio_unitario' => number_format($compra->precio_compra, 0, ',', '.'),
+                    'total'           => number_format($compra->cantidad * $compra->precio_compra, 0, ',', '.'),
+                    'comprobante'     => $compra->numero_comprobante ?? 'N/A',
+                ];
+            });
+
+        $periodoLabels = ['hoy' => 'Hoy', 'ayer' => 'Ayer', 'semana' => 'Esta Semana', 'mes' => 'Este Mes'];
+
+        return response()->json([
+            'producto'        => $producto->nombre,
+            'periodo'         => $periodoLabels[$periodo] ?? 'Hoy',
+            'total_comprados' => $compras->sum('cantidad'),
+            'compras'         => $compras,
         ]);
     }
 
