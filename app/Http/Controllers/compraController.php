@@ -124,7 +124,7 @@ class compraController extends Controller
     {
         $request->validate(['imagen' => 'required|image|max:10240']);
 
-        $apiKey = env('ANTHROPIC_API_KEY');
+        $apiKey = config('services.gemini.api_key');
         if (!$apiKey) {
             return response()->json(['error' => 'API key no configurada'], 500);
         }
@@ -138,31 +138,30 @@ class compraController extends Controller
         $prompt = "Analiza esta imagen de factura/recibo y extrae todos los productos listados.\n\n"
             . "Productos disponibles en el sistema (formato id|nombre):\n{$productosStr}\n\n"
             . "Para cada ítem de la factura devuelve SOLO un JSON array con este formato exacto:\n"
-            . '[{"producto_id":"id del producto más parecido o null","nombre_factura":"nombre en factura","cantidad":número,"precio_unitario":número}]'
+            . '[{"producto_id":"id del producto más parecido de la lista o null","nombre_factura":"nombre como aparece en la factura","cantidad":número,"precio_unitario":número}]'
             . "\n\nSolo devuelve el JSON array, sin texto adicional.";
 
         try {
-            $response = Http::timeout(30)->withHeaders([
-                'x-api-key'         => $apiKey,
-                'anthropic-version' => '2023-06-01',
-            ])->post('https://api.anthropic.com/v1/messages', [
-                'model'      => 'claude-haiku-4-5-20251001',
-                'max_tokens' => 1024,
-                'messages'   => [[
-                    'role'    => 'user',
-                    'content' => [
-                        ['type' => 'image', 'source' => ['type' => 'base64', 'media_type' => $mimeType, 'data' => $imageData]],
-                        ['type' => 'text',  'text'   => $prompt],
-                    ],
-                ]],
-            ]);
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
+
+            $response = Http::timeout(30)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($url, [
+                    'contents' => [[
+                        'parts' => [
+                            ['inline_data' => ['mime_type' => $mimeType, 'data' => $imageData]],
+                            ['text' => $prompt],
+                        ],
+                    ]],
+                    'generationConfig' => ['temperature' => 0.1, 'maxOutputTokens' => 2048],
+                ]);
 
             if (!$response->successful()) {
                 Log::error('scanFactura API error', ['body' => $response->body()]);
                 return response()->json(['error' => 'Error al procesar la imagen con IA'], 500);
             }
 
-            $text = $response->json('content.0.text', '[]');
+            $text = $response->json('candidates.0.content.parts.0.text', '[]');
             preg_match('/\[.*\]/s', $text, $matches);
             $items = json_decode($matches[0] ?? '[]', true) ?? [];
 
