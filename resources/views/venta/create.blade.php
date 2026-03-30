@@ -5,6 +5,7 @@
 @push('css')
 <style>
     body { overflow: hidden; }
+    #layoutSidenav_content { padding-top: 0 !important; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
     #agente-ia-btn, #agente-ia-panel { display: none !important; }
 
