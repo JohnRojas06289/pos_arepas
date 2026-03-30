@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use App\Enums\TipoTransaccionEnum;
-use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Log;
 
 class Kardex extends Model
 {
@@ -66,19 +64,15 @@ class Kardex extends Model
             $saldo -= $salida;
         }
 
-        try {
-            $this->create([
-                'producto_id' => $data['producto_id'],
-                'tipo_transaccion' => $tipo,
-                'descripcion_transaccion' => $this->getDescripcionTransaccion($data, $tipo),
-                'entrada' => $entrada,
-                'salida' => $salida,
-                'saldo' => $saldo,
-                'costo_unitario' => $data['costo_unitario'],
-            ]);
-        } catch (Exception $e) {
-            Log::error('Error al crear un registro en el cardex', ['error' => $e->getMessage()]);
-        }
+        $this->create([
+            'producto_id' => $data['producto_id'],
+            'tipo_transaccion' => $tipo,
+            'descripcion_transaccion' => $this->getDescripcionTransaccion($data, $tipo),
+            'entrada' => $entrada,
+            'salida' => $salida,
+            'saldo' => $saldo,
+            'costo_unitario' => $data['costo_unitario'],
+        ]);
     }
 
     /**

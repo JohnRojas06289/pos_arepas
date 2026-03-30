@@ -31,8 +31,7 @@ class UpdateInventarioVentaListener
             $registro = Inventario::where('producto_id', $event->producto_id)->first();
 
             if (!$registro) {
-                \Log::error('UpdateInventarioVentaListener: Inventario not found', ['producto_id' => $event->producto_id]);
-                return;
+                throw new \Exception("Inventario no encontrado para producto: {$event->producto_id}. La venta no puede procesarse sin registro de inventario.");
             }
 
             $cantidadAnterior = $registro->cantidad;

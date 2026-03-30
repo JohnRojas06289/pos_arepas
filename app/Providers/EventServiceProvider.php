@@ -28,12 +28,12 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         CreateCompraDetalleEvent::class => [
+            UpdateInventarioCompraListener::class,
             CreateRegistroCompraCardexListener::class,
-            UpdateInventarioCompraListener::class
         ],
         CreateVentaDetalleEvent::class => [
+            UpdateInventarioVentaListener::class,
             CreateRegistroVentaCardexListener::class,
-            UpdateInventarioVentaListener::class
         ],
         CreateVentaEvent::class => [
             CreateMovimientoVentaCajaListener::class,
