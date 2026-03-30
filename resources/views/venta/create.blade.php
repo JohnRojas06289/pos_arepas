@@ -613,9 +613,9 @@
                         </div>
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:var(--color-warning);color:#fff;border-color:var(--color-warning);font-size:0.72rem;"
-                                onclick="iniciarFiado()">
-                                <i class="fas fa-handshake me-1"></i>FIADO
+                                style="background:var(--color-success);color:#fff;border-color:var(--color-success);font-size:0.72rem;"
+                                onclick="pagarEfectivo()">
+                                <i class="fas fa-money-bill me-1"></i>EFECTIVO
                             </button>
                         </div>
                     </div>
@@ -624,10 +624,11 @@
                 <div class="mb-2">
                     <label class="form-label small text-muted mb-1">Pago Rápido (Efectivo):</label>
                     <div class="row g-1">
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();setExactCash()">Exacto</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(10000)">$10k</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(20000)">$20k</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(50000)">$50k</button></div>
+                        <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();setExactCash()">Exacto</button></div>
+                        <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(10000)">$10k</button></div>
+                        <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(20000)">$20k</button></div>
+                        <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(50000)">$50k</button></div>
+                        <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();addCash(100000)">$100k</button></div>
                     </div>
                 </div>
 
