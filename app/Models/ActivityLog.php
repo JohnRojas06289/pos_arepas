@@ -48,4 +48,40 @@ class ActivityLog extends Model
     {
         return $this->data['compra_id'] ?? null;
     }
+
+    /**
+     * Resumen compacto para mostrar en la tabla del index.
+     * Extrae total, cantidad y precio desde el data JSON sin queries adicionales.
+     */
+    public function getResumenAttribute(): array
+    {
+        $data = $this->data ?? [];
+
+        if ($this->isVentaLog() || ($this->module === 'Ventas' && isset($data['total']))) {
+            return [
+                'tipo'     => 'venta',
+                'total'    => $data['total'] ?? null,
+                'metodo'   => $data['metodo_pago'] ?? null,
+            ];
+        }
+
+        if ($this->isCompraLog() || ($this->module === 'Compras' && isset($data['total']))) {
+            return [
+                'tipo'   => 'compra',
+                'total'  => $data['total'] ?? null,
+                'metodo' => $data['metodo_pago'] ?? null,
+            ];
+        }
+
+        if (isset($data['cantidad'])) {
+            return [
+                'tipo'         => 'inventario',
+                'cantidad'     => $data['cantidad'],
+                'precio_venta' => $data['precio_venta'] ?? null,
+                'costo'        => $data['costo_unitario'] ?? null,
+            ];
+        }
+
+        return ['tipo' => 'otro'];
+    }
 }

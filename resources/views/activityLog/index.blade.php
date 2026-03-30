@@ -85,6 +85,7 @@
                             <th>Usuario</th>
                             <th>Módulo</th>
                             <th>Acción</th>
+                            <th>Detalle</th>
                             <th class="text-end pe-3">Acciones</th>
                         </tr>
                     </thead>
@@ -116,6 +117,30 @@
                                 <span class="badge bg-{{ $color }} badge-module">{{ $log->module ?? '—' }}</span>
                             </td>
                             <td>{{ $log->action }}</td>
+                            <td style="font-size:0.82rem;">
+                                @php $resumen = $log->resumen; @endphp
+                                @if($resumen['tipo'] === 'venta' && isset($resumen['total']))
+                                    <span style="color:var(--color-success);font-weight:600;">${{ number_format($resumen['total'], 0, ',', '.') }}</span>
+                                    @if(isset($resumen['metodo']))
+                                    <br><span class="text-muted">{{ $resumen['metodo'] }}</span>
+                                    @endif
+                                @elseif($resumen['tipo'] === 'compra' && isset($resumen['total']))
+                                    <span style="color:var(--color-primary);font-weight:600;">${{ number_format($resumen['total'], 0, ',', '.') }}</span>
+                                    @if(isset($resumen['metodo']))
+                                    <br><span class="text-muted">{{ $resumen['metodo'] }}</span>
+                                    @endif
+                                @elseif($resumen['tipo'] === 'inventario')
+                                    <span style="font-weight:600;">{{ $resumen['cantidad'] }} uds</span>
+                                    @if(isset($resumen['precio_venta']))
+                                    <br><span class="text-muted">Venta: ${{ number_format($resumen['precio_venta'], 0, ',', '.') }}</span>
+                                    @endif
+                                    @if(isset($resumen['costo']))
+                                    <br><span class="text-muted">Costo: ${{ number_format($resumen['costo'], 0, ',', '.') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
                             <td class="text-end pe-3">
                                 <div class="d-flex justify-content-end gap-1">
 
