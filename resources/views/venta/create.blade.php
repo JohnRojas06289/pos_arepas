@@ -6,6 +6,7 @@
 <style>
     body { overflow: hidden; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
+    #agente-ia-btn, #agente-ia-panel { display: none !important; }
 
     /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
     /* padding-top:60px clears the fixed topnav; pos-container fills Y=60px→100vh */
@@ -525,7 +526,7 @@
                         <div class="card-body p-2 text-center">
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
                             <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio, 0, ',', '.') }}</div>
-                            <small class="text-{{ $item->cantidad > 5 ? 'success' : 'danger' }} d-block stock-display" style="font-size: 0.7rem;">
+                            <small class="text-{{ $item->cantidad > 5 ? 'success' : ($item->cantidad > 0 ? 'warning' : 'danger') }} d-block stock-display" style="font-size: 0.7rem;">
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
                         </div>
@@ -643,12 +644,12 @@
                     </div>
                 </div>
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3" id="btnPay" disabled>
-                        <i class="fa-solid fa-cash-register me-2"></i> COBRAR <i class="fa-solid fa-check ms-2"></i>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3 w-50" id="btnPay" disabled>
+                        <i class="fa-solid fa-cash-register me-2"></i> COBRAR
                     </button>
-                    <button type="button" class="btn btn-light btn-sm text-danger" onclick="cancelarVenta()">
-                        <i class="fa-solid fa-times me-1"></i> Cancelar Venta
+                    <button type="button" class="btn btn-outline-danger btn-lg fw-bold py-3 w-50" onclick="cancelarVenta()">
+                        <i class="fa-solid fa-times me-1"></i> Cancelar
                     </button>
                 </div>
                 
@@ -711,21 +712,42 @@
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
+
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
+
             oscillator.frequency.value = frequency;
             oscillator.type = 'sine';
-            
+
             gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
+
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + duration);
         } catch(e) {
             // Silenciar errores de audio
         }
+    }
+
+    function playSuccessSound() {
+        if (!soundEnabled) return;
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const notes = [523, 659, 784, 1047]; // Do, Mi, Sol, Do (acorde C mayor)
+            notes.forEach(function(freq, i) {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                const start = audioContext.currentTime + i * 0.1;
+                gain.gain.setValueAtTime(0.18, start);
+                gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
+                osc.start(start);
+                osc.stop(start + 0.25);
+            });
+        } catch(e) {}
     }
 
     function formatNumber(num) {
@@ -889,21 +911,6 @@
     function addToCart(id, nombre, precio, stock, sigla) {
         id = id.toString();
         var existingItem = cart.find(function(item) { return item.id === id; });
-        var currentQty = existingItem ? existingItem.cantidad : 0;
-        
-        if (currentQty + 1 > stock) {
-            playSound(200, 0.2); // Sonido de error
-            Swal.fire({ 
-                icon: 'error', 
-                title: 'Stock insuficiente', 
-                toast: true, 
-                position: 'top-end', 
-                showConfirmButton: false, 
-                timer: 2000,
-                timerProgressBar: true
-            });
-            return;
-        }
 
         // Sonido de éxito
         playSound(800, 0.1);
@@ -955,20 +962,6 @@
             return;
         }
         
-        if (newQty > maxStock) {
-            playSound(200, 0.2);
-            Swal.fire({ 
-                icon: 'error', 
-                title: 'Stock insuficiente (máx: ' + maxStock + ')', 
-                toast: true, 
-                position: 'top-end', 
-                showConfirmButton: false, 
-                timer: 2000 
-            });
-            renderCart();
-            return;
-        }
-
         var item = cart.find(function(i) { return i.id === id; });
         if (item) {
             item.cantidad = newQty;
@@ -1027,7 +1020,7 @@
                             '<small class="text-muted">Cantidad:</small>' +
                             '<input type="number" class="form-control form-control-sm" style="width: 60px;" ' +
                                 'value="' + item.cantidad + '" ' +
-                                'min="1" max="' + item.stock + '" ' +
+                                'min="1" ' +
                                 'onchange="updateQuantityManual(\'' + item.id + '\', this.value, ' + item.stock + ')" ' +
                                 'onclick="this.select()">' +
                             '<small class="text-muted">' + item.sigla + '</small>' +
@@ -1255,17 +1248,19 @@
             }
         })
         .then(data => {
-            // Sonido de éxito al procesar venta
-            playSound(1200, 0.3);
+            // Sonido de éxito
+            playSuccessSound();
 
-            // Alerta de éxito pequeña
+            // Modal de éxito centrado
             Swal.fire({
                 icon: 'success',
-                toast: true,
-                position: 'top-end',
+                title: '¡Venta exitosa!',
+                text: data.message || 'La venta fue registrada correctamente.',
                 showConfirmButton: false,
-                timer: 2500,
-                title: data.message || 'Venta registrada con éxito'
+                timer: 1800,
+                timerProgressBar: true,
+                width: '320px',
+                customClass: { popup: 'swal-venta-exito' }
             });
 
             // Descontar inventario en la vista (DOM) sin recargar
@@ -1281,6 +1276,8 @@
                         stockDisplay.innerHTML = 'Stock: <span class="stock-count">' + newStock + '</span>';
                         if (newStock > 5) {
                             stockDisplay.className = 'text-success d-block stock-display';
+                        } else if (newStock > 0) {
+                            stockDisplay.className = 'text-warning d-block stock-display';
                         } else {
                             stockDisplay.className = 'text-danger d-block stock-display';
                         }
