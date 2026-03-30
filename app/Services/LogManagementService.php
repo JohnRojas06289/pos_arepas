@@ -15,7 +15,7 @@ class LogManagementService
     /**
      * Revierte una venta y restaura el inventario de cada producto.
      */
-    public static function reverseVenta(string $ventaId, int $userId): array
+    public static function reverseVenta(string $ventaId, string|int $userId): array
     {
         try {
             DB::beginTransaction();
