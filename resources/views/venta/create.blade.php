@@ -645,7 +645,7 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3 w-50" id="btnPay" disabled>
+                    <button type="submit" class="btn btn-success btn-lg fw-bold py-3 w-50" id="btnPay" disabled data-no-spinner="true">
                         <i class="fa-solid fa-cash-register me-2"></i> COBRAR
                     </button>
                     <button type="button" class="btn btn-outline-danger btn-lg fw-bold py-3 w-50" onclick="cancelarVenta()">
@@ -1257,7 +1257,7 @@
                 title: '¡Venta exitosa!',
                 text: data.message || 'La venta fue registrada correctamente.',
                 showConfirmButton: false,
-                timer: 1800,
+                timer: 900,
                 timerProgressBar: true,
                 width: '320px',
                 customClass: { popup: 'swal-venta-exito' }
