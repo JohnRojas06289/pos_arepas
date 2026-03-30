@@ -101,7 +101,7 @@ class compraController extends Controller
             }
 
             DB::commit();
-            ActivityLogService::log('Creación de compra', 'Compras', $request->validated());
+            ActivityLogService::log('Creación de compra', 'Compras', array_merge($request->validated(), ['compra_id' => $compra->id]));
 
             return redirect()->route('compras.index')->with('success', 'Compra registrada con éxito');
         } catch (Throwable $e) {

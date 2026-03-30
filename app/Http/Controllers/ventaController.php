@@ -140,7 +140,7 @@ class ventaController extends Controller
             CreateVentaEvent::dispatch($venta);
             DB::commit();
 
-            ActivityLogService::log('Creación de una venta', 'Ventas', $request->validated());
+            ActivityLogService::log('Creación de una venta', 'Ventas', array_merge($request->validated(), ['venta_id' => $venta->id]));
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => true, 'message' => 'Venta registrada con éxito']);

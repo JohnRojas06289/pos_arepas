@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MetodoPagoEnum;
 use App\Models\ActivityLog;
+use App\Models\Cliente;
+use App\Models\Compra;
 use App\Models\Venta;
 use App\Services\ActivityLogService;
 use App\Services\LogManagementService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -21,55 +26,67 @@ class ActivityLogController extends Controller
         $this->middleware('permission:revertir-venta', ['only' => ['reverseVenta']]);
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
-        $activityLogs = ActivityLog::with('user')->latest()->simplePaginate(50);
+        $modulo = $request->input('modulo', 'todos');
+        $desde  = $request->input('desde', now()->subDays(30)->toDateString());
+        $hasta  = $request->input('hasta', now()->toDateString());
 
-        // Precarga de ventas en batch para evitar N+1
-        $logs = $activityLogs->getCollection();
+        $query = ActivityLog::with('user')
+            ->whereBetween('created_at', [$desde . ' 00:00:00', $hasta . ' 23:59:59'])
+            ->latest();
 
-        if ($logs->isNotEmpty()) {
-            $userIds = $logs->pluck('user_id')->unique()->filter();
-            $minDate = $logs->min('created_at')->copy()->subSeconds(5);
-            $maxDate = $logs->max('created_at')->copy()->addSeconds(5);
-
-            $potentialSales = Venta::with('productos')
-                ->whereIn('user_id', $userIds)
-                ->whereBetween('created_at', [$minDate, $maxDate])
-                ->get();
-
-            $logs->each(function ($log) use ($potentialSales) {
-                if ($log->isVentaLog()) {
-                    $log->venta = $potentialSales->first(function ($venta) use ($log) {
-                        return $venta->user_id === $log->user_id
-                            && $venta->created_at->between(
-                                $log->created_at->copy()->subSeconds(5),
-                                $log->created_at->copy()->addSeconds(5)
-                            );
-                    });
-                }
-            });
+        if ($modulo !== 'todos') {
+            $query->where('module', $modulo);
         }
 
-        return view('activityLog.index', compact('activityLogs'));
+        $activityLogs = $query->paginate(50)->withQueryString();
+
+        $modulos = ActivityLog::select('module')
+            ->distinct()
+            ->orderBy('module')
+            ->pluck('module')
+            ->filter()
+            ->values();
+
+        return view('activityLog.index', compact('activityLogs', 'modulo', 'desde', 'hasta', 'modulos'));
     }
 
     public function show(string $id): View
     {
-        $log   = ActivityLog::with('user')->findOrFail($id);
-        $venta = null;
+        $log    = ActivityLog::with('user')->findOrFail($id);
+        $venta  = null;
+        $compra = null;
 
         if ($log->isVentaLog()) {
-            $venta = Venta::with('productos')
-                ->where('user_id', $log->user_id)
-                ->whereBetween('created_at', [
-                    $log->created_at->copy()->subSeconds(5),
-                    $log->created_at->copy()->addSeconds(5),
-                ])
-                ->first();
+            // Primero buscar por venta_id guardado en el log (logs nuevos)
+            if ($log->getVentaId()) {
+                $venta = Venta::with(['productos.presentacione', 'cliente.persona', 'comprobante', 'user'])
+                    ->find($log->getVentaId());
+            }
+            // Fallback por proximidad de timestamp para logs anteriores
+            if (!$venta) {
+                $venta = Venta::with(['productos.presentacione', 'cliente.persona', 'comprobante', 'user'])
+                    ->where('user_id', $log->user_id)
+                    ->whereBetween('created_at', [
+                        $log->created_at->copy()->subSeconds(5),
+                        $log->created_at->copy()->addSeconds(5),
+                    ])
+                    ->first();
+            }
         }
 
-        return view('activityLog.show', compact('log', 'venta'));
+        if ($log->isCompraLog()) {
+            if ($log->getCompraId()) {
+                $compra = Compra::with(['productos', 'proveedore.persona', 'comprobante', 'user'])
+                    ->find($log->getCompraId());
+            }
+        }
+
+        $clientes          = $log->isVentaLog() ? Cliente::with('persona')->whereHas('persona', fn($q) => $q->where('estado', 1))->get() : collect();
+        $metodosPago       = MetodoPagoEnum::cases();
+
+        return view('activityLog.show', compact('log', 'venta', 'compra', 'clientes', 'metodosPago'));
     }
 
     public function destroy(string $id): RedirectResponse
@@ -85,46 +102,87 @@ class ActivityLogController extends Controller
 
             $log->delete();
 
-            return redirect()->route('activityLog.index')->with('success', 'Registro de actividad eliminado');
+            return redirect()->route('activityLog.index')->with('success', 'Registro eliminado correctamente');
         } catch (Throwable $e) {
             Log::error('Error al eliminar registro de actividad', ['error' => $e->getMessage()]);
             return redirect()->route('activityLog.index')->with('error', 'Error al eliminar el registro');
         }
     }
 
-    /**
-     * Revierte una venta asociada a un registro de actividad.
-     */
     public function reverseVenta(string $logId): RedirectResponse
     {
         try {
             $log = ActivityLog::findOrFail($logId);
 
             if (!$log->isVentaLog()) {
-                return redirect()->route('activityLog.index')
-                    ->with('error', 'Este registro no corresponde a una venta');
+                return redirect()->back()->with('error', 'Este registro no corresponde a una venta');
             }
 
-            $venta = Venta::where('user_id', $log->user_id)
-                ->whereBetween('created_at', [
-                    $log->created_at->copy()->subSeconds(5),
-                    $log->created_at->copy()->addSeconds(5),
-                ])
-                ->first();
+            // Buscar por venta_id guardado en el log (logs nuevos)
+            $ventaId = $log->getVentaId();
 
-            if (!$venta) {
-                return redirect()->route('activityLog.index')
-                    ->with('error', 'No se pudo encontrar la venta asociada a este registro');
+            // Fallback por proximidad de timestamp para logs anteriores
+            if (!$ventaId) {
+                $venta = Venta::where('user_id', $log->user_id)
+                    ->whereBetween('created_at', [
+                        $log->created_at->copy()->subSeconds(5),
+                        $log->created_at->copy()->addSeconds(5),
+                    ])
+                    ->first();
+                $ventaId = $venta?->id;
             }
 
-            $result = LogManagementService::reverseVenta($venta->id, Auth::id());
+            if (!$ventaId) {
+                return redirect()->back()->with('error', 'No se pudo encontrar la venta asociada');
+            }
 
-            return redirect()->route('activityLog.index')
-                ->with($result['success'] ? 'success' : 'error', $result['message']);
+            $result = LogManagementService::reverseVenta($ventaId, Auth::id());
+
+            return redirect()->back()->with($result['success'] ? 'success' : 'error', $result['message']);
         } catch (Throwable $e) {
             Log::error('Error al revertir venta desde log', ['error' => $e->getMessage()]);
-            return redirect()->route('activityLog.index')
-                ->with('error', 'Error al revertir la venta');
+            return redirect()->back()->with('error', 'Error al revertir la venta');
+        }
+    }
+
+    /**
+     * Editar campos no-inventario de una venta (metodo_pago, cliente).
+     */
+    public function updateVenta(Request $request, string $logId): RedirectResponse
+    {
+        try {
+            $log = ActivityLog::findOrFail($logId);
+
+            if (!$log->isVentaLog()) {
+                return redirect()->back()->with('error', 'Este registro no corresponde a una venta');
+            }
+
+            $ventaId = $log->getVentaId();
+            if (!$ventaId) {
+                return redirect()->back()->with('error', 'No se puede editar: venta no vinculada directamente');
+            }
+
+            $venta = Venta::findOrFail($ventaId);
+
+            $validated = $request->validate([
+                'metodo_pago' => 'required|string',
+                'cliente_id'  => 'nullable|exists:clientes,id',
+            ]);
+
+            DB::beginTransaction();
+            $venta->update($validated);
+            ActivityLogService::log('Edición de venta', 'Ventas', [
+                'venta_id'           => $venta->id,
+                'numero_comprobante' => $venta->numero_comprobante,
+                'cambios'            => $validated,
+            ]);
+            DB::commit();
+
+            return redirect()->route('activityLog.show', $logId)->with('success', 'Venta actualizada correctamente');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al editar venta desde log', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error al actualizar la venta');
         }
     }
 }

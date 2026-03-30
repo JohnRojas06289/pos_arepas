@@ -33,4 +33,19 @@ class ActivityLog extends Model
     {
         return $this->action === 'Creación de una venta' && $this->module === 'Ventas';
     }
+
+    public function isCompraLog(): bool
+    {
+        return $this->action === 'Creación de compra' && $this->module === 'Compras';
+    }
+
+    public function getVentaId(): ?string
+    {
+        return $this->data['venta_id'] ?? null;
+    }
+
+    public function getCompraId(): ?string
+    {
+        return $this->data['compra_id'] ?? null;
+    }
 }

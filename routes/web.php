@@ -81,6 +81,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('profile', profileController::class)->only('index', 'update');
     Route::resource('empresa', EmpresaController::class)->only('index', 'update');
     Route::resource('activityLog', ActivityLogController::class)->except(['create', 'store', 'edit', 'update']);
+    Route::post('activityLog/{logId}/reverse-venta', [ActivityLogController::class, 'reverseVenta'])->name('activityLog.reverseVenta');
+    Route::put('activityLog/{logId}/update-venta', [ActivityLogController::class, 'updateVenta'])->name('activityLog.updateVenta');
 
     // ── Reportes ──────────────────────────────────────────────────────────
     Route::get('/export-pdf-comprobante-venta/{id}', [ExportPDFController::class, 'exportPdfComprobanteVenta'])
