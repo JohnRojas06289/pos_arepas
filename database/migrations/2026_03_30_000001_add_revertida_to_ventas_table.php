@@ -21,11 +21,13 @@ return new class extends Migration
         $driver = DB::getDriverName();
 
         if ($driver === 'pgsql') {
-            DB::statement('ALTER TABLE ventas ADD COLUMN revertida SMALLINT NOT NULL DEFAULT 0');
+            DB::statement('ALTER TABLE ventas ADD COLUMN IF NOT EXISTS revertida SMALLINT NOT NULL DEFAULT 0');
         } else {
-            Schema::table('ventas', function (Blueprint $table) {
-                $table->boolean('revertida')->default(false)->after('saldo_pendiente');
-            });
+            if (!Schema::hasColumn('ventas', 'revertida')) {
+                Schema::table('ventas', function (Blueprint $table) {
+                    $table->boolean('revertida')->default(false)->after('saldo_pendiente');
+                });
+            }
         }
     }
 
