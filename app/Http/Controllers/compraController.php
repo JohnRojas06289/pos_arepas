@@ -34,7 +34,7 @@ class compraController extends Controller
 
     public function index(): View
     {
-        $compras = Compra::with('comprobante', 'proveedore.persona')
+        $compras = Compra::with('comprobante', 'proveedore.persona', 'productos')
             ->where('user_id', Auth::id())
             ->latest()
             ->get();

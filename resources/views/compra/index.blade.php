@@ -41,6 +41,9 @@
                     <tr>
                         <th>Comprobante</th>
                         <th>Proveedor</th>
+                        <th>Productos</th>
+                        <th>Cantidad</th>
+                        <th>Precio compra</th>
                         <th>Fecha y hora</th>
                         <th>Usuario</th>
                         <th>Total</th>
@@ -57,6 +60,21 @@
                         <td>
                             <p class="fw-semibold mb-1">{{ ucfirst($item->proveedore?->persona?->tipo?->value ?? '') }}</p>
                             <p class="text-muted mb-0">{{$item->proveedore?->persona?->razon_social ?? 'Proveedor general'}}</p>
+                        </td>
+                        <td>
+                            @foreach($item->productos as $p)
+                                <p class="mb-0">{{ $p->nombre }}</p>
+                            @endforeach
+                        </td>
+                        <td>
+                            @foreach($item->productos as $p)
+                                <p class="mb-0">{{ $p->pivot->cantidad }}</p>
+                            @endforeach
+                        </td>
+                        <td>
+                            @foreach($item->productos as $p)
+                                <p class="mb-0">{{ number_format($p->pivot->precio_compra, 0, ',', '.') }}</p>
+                            @endforeach
                         </td>
                         <td>
                             <div class="row-not-space">
