@@ -42,6 +42,20 @@ class ActivityLogController extends Controller
 
         $activityLogs = $query->paginate(50)->withQueryString();
 
+        // Precargar ventas y compras en batch para evitar N+1
+        $logs = $activityLogs->getCollection();
+
+        $ventaIds  = $logs->map(fn($l) => $l->getVentaId())->filter()->values()->all();
+        $compraIds = $logs->map(fn($l) => $l->getCompraId())->filter()->values()->all();
+
+        $ventasMap  = $ventaIds  ? Venta::with('productos')->whereIn('id', $ventaIds)->get()->keyBy('id')  : collect();
+        $comprasMap = $compraIds ? Compra::with('productos')->whereIn('id', $compraIds)->get()->keyBy('id') : collect();
+
+        $logs->each(function ($log) use ($ventasMap, $comprasMap) {
+            $log->ventaCargada  = $ventasMap->get($log->getVentaId());
+            $log->compraCargada = $comprasMap->get($log->getCompraId());
+        });
+
         $modulos = ActivityLog::select('module')
             ->distinct()
             ->orderBy('module')

@@ -86,6 +86,7 @@
                             <th>Módulo</th>
                             <th>Acción</th>
                             <th>Detalle</th>
+                            <th>Productos</th>
                             <th class="text-end pe-3">Acciones</th>
                         </tr>
                     </thead>
@@ -141,6 +142,26 @@
                                     <span class="text-muted">—</span>
                                 @endif
                             </td>
+
+                            {{-- Columna Productos --}}
+                            <td style="font-size:0.8rem;max-width:200px;">
+                                @php
+                                    $transaccion = $log->ventaCargada ?? $log->compraCargada ?? null;
+                                @endphp
+                                @if($transaccion && $transaccion->productos->isNotEmpty())
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach($transaccion->productos as $p)
+                                        <li>
+                                            <span style="font-weight:500;">{{ $p->nombre }}</span>
+                                            <span class="text-muted"> ×{{ $p->pivot->cantidad }}</span>
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+
                             <td class="text-end pe-3">
                                 <div class="d-flex justify-content-end gap-1">
 
