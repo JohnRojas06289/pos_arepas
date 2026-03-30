@@ -12,9 +12,12 @@ use App\Services\ActivityLogService;
 use App\Services\ComprobanteService;
 use App\Services\EmpresaService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
@@ -115,5 +118,67 @@ class compraController extends Controller
     {
         $empresa = $this->empresaService->obtenerEmpresa();
         return view('compra.show', compact('compra', 'empresa'));
+    }
+
+    public function scanFactura(Request $request): JsonResponse
+    {
+        $request->validate(['imagen' => 'required|image|max:10240']);
+
+        $apiKey = env('ANTHROPIC_API_KEY');
+        if (!$apiKey) {
+            return response()->json(['error' => 'API key no configurada'], 500);
+        }
+
+        $imageData = base64_encode(file_get_contents($request->file('imagen')->path()));
+        $mimeType  = $request->file('imagen')->getMimeType();
+
+        $productos    = Producto::where('estado', 1)->get(['id', 'nombre']);
+        $productosStr = $productos->map(fn($p) => "{$p->id}|{$p->nombre}")->join("\n");
+
+        $prompt = "Analiza esta imagen de factura/recibo y extrae todos los productos listados.\n\n"
+            . "Productos disponibles en el sistema (formato id|nombre):\n{$productosStr}\n\n"
+            . "Para cada ítem de la factura devuelve SOLO un JSON array con este formato exacto:\n"
+            . '[{"producto_id":"id del producto más parecido o null","nombre_factura":"nombre en factura","cantidad":número,"precio_unitario":número}]'
+            . "\n\nSolo devuelve el JSON array, sin texto adicional.";
+
+        try {
+            $response = Http::timeout(30)->withHeaders([
+                'x-api-key'         => $apiKey,
+                'anthropic-version' => '2023-06-01',
+            ])->post('https://api.anthropic.com/v1/messages', [
+                'model'      => 'claude-haiku-4-5-20251001',
+                'max_tokens' => 1024,
+                'messages'   => [[
+                    'role'    => 'user',
+                    'content' => [
+                        ['type' => 'image', 'source' => ['type' => 'base64', 'media_type' => $mimeType, 'data' => $imageData]],
+                        ['type' => 'text',  'text'   => $prompt],
+                    ],
+                ]],
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('scanFactura API error', ['body' => $response->body()]);
+                return response()->json(['error' => 'Error al procesar la imagen con IA'], 500);
+            }
+
+            $text = $response->json('content.0.text', '[]');
+            preg_match('/\[.*\]/s', $text, $matches);
+            $items = json_decode($matches[0] ?? '[]', true) ?? [];
+
+            foreach ($items as &$item) {
+                if (!empty($item['producto_id'])) {
+                    $p = $productos->firstWhere('id', $item['producto_id']);
+                    $item['nombre_sistema'] = $p?->nombre;
+                } else {
+                    $item['nombre_sistema'] = null;
+                }
+            }
+
+            return response()->json(['items' => $items]);
+        } catch (Throwable $e) {
+            Log::error('scanFactura error', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error inesperado al procesar'], 500);
+        }
     }
 }
