@@ -5,18 +5,18 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="POS Arepas Boyacenses — Sistema de ventas" />
+    <meta name="description" content="POS Arepas Boyacenses - Sistema de ventas" />
     <meta name="author" content="POS Arepas Boyacenses" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Panel') | POS Arepas Boyacenses</title>
 
-    {{-- Aplicar tema guardado ANTES de pintar la página para evitar flash --}}
+    {{-- Aplicar tema guardado antes de pintar la página para evitar flash --}}
     <script>
-        (function(){
+        (function () {
             try {
                 var t = localStorage.getItem('pos-arepas-theme') || 'light';
                 document.documentElement.setAttribute('data-theme', t);
-            } catch(e){}
+            } catch (e) {}
         }());
     </script>
 
@@ -29,7 +29,7 @@
     @stack('css')
 </head>
 
-<body class="sb-nav-fixed">
+<body class="sb-nav-fixed @yield('body_class')">
 
     @include('layouts.include.navigation-header')
     <div id="layoutSidenav">
@@ -47,10 +47,10 @@
     <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const notificationIcon = document.getElementById('notificationsDropdown');
             if (notificationIcon) {
-                notificationIcon.addEventListener('click', function() {
+                notificationIcon.addEventListener('click', function () {
                     fetch("{{ route('notifications.markAsRead') }}", {
                             method: "POST",
                             headers: {
@@ -63,7 +63,9 @@
                         .then(data => {
                             if (data.success) {
                                 const badge = notificationIcon.querySelector('.badge');
-                                if (badge) badge.remove();
+                                if (badge) {
+                                    badge.remove();
+                                }
                             }
                         })
                         .catch(error => console.error('Error:', error));
@@ -74,24 +76,25 @@
 
     @stack('js')
 
-    <!-- Widget de Agente IA -->
     @include('layouts.partials.agente-ia')
 
-    {{-- Loading spinner en botones de submit para evitar doble-clic --}}
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('form:not(#agente-ia-form)').forEach(function (form) {
-            form.addEventListener('submit', function () {
-                var btn = form.querySelector('button[type="submit"]');
-                if (btn && !btn.dataset.noSpinner) {
-                    btn.disabled = true;
-                    var original = btn.innerHTML;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + original;
-                    setTimeout(function () { btn.disabled = false; btn.innerHTML = original; }, 8000);
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form:not(#agente-ia-form)').forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    var btn = form.querySelector('button[type="submit"]');
+                    if (btn && !btn.dataset.noSpinner) {
+                        btn.disabled = true;
+                        var original = btn.innerHTML;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>' + original;
+                        setTimeout(function () {
+                            btn.disabled = false;
+                            btn.innerHTML = original;
+                        }, 8000);
+                    }
+                });
             });
         });
-    });
     </script>
 
 </body>

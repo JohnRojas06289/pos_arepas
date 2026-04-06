@@ -22,29 +22,19 @@ class UpdateInventarioVentaListener
      */
     public function handle(CreateVentaDetalleEvent $event): void
     {
-        try {
-            \Log::info('UpdateInventarioVentaListener: Updating stock', [
-                'producto_id' => $event->producto_id,
-                'cantidad_vendida' => $event->cantidad
-            ]);
+        $registro = Inventario::where('producto_id', $event->producto_id)
+            ->lockForUpdate()
+            ->first();
 
-            $registro = Inventario::where('producto_id', $event->producto_id)->first();
-
-            if (!$registro) {
-                \Log::error('UpdateInventarioVentaListener: Inventario not found', ['producto_id' => $event->producto_id]);
-                return;
-            }
-
-            $cantidadAnterior = $registro->cantidad;
-            $registro->decrement('cantidad', $event->cantidad);
-
-            \Log::info('UpdateInventarioVentaListener: Stock updated', [
-                'producto_id' => $event->producto_id,
-                'cantidad_anterior' => $cantidadAnterior,
-                'cantidad_nueva' => $registro->cantidad
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('UpdateInventarioVentaListener: Error', ['error' => $e->getMessage()]);
+        if (!$registro) {
+            throw new \RuntimeException('No existe inventario inicializado para el producto vendido.');
         }
+
+        if ((int) $registro->cantidad < (int) $event->cantidad) {
+            throw new \RuntimeException('Stock insuficiente para completar la venta.');
+        }
+
+        $registro->decrement('cantidad', (int) $event->cantidad);
+        $registro->refresh();
     }
 }

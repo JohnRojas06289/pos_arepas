@@ -27,10 +27,10 @@ class VentaObsever
             $tipoComprobante = Comprobante::findOrFail($venta->comprobante_id)->nombre;
 
             if ($venta->metodo_pago === \App\Enums\MetodoPagoEnum::Fiado->value) {
-                $venta->pagado          = false;
-                $venta->saldo_pendiente = $venta->total - $venta->monto_recibido;
+                $venta->pagado = false;
+                $venta->saldo_pendiente = round(max(0, (float) $venta->total - (float) $venta->monto_recibido), 2);
             } else {
-                $venta->pagado          = true;
+                $venta->pagado = true;
                 $venta->saldo_pendiente = 0;
             }
 

@@ -50,7 +50,8 @@ class Cliente extends Model
     public function getSaldoPendiente(): float
     {
         return (float) $this->ventas()
-            ->whereRaw('pagado = false')
+            ->noRevertidas()
+            ->where('pagado', 0)
             ->sum('saldo_pendiente');
     }
 

@@ -27,9 +27,9 @@ class homeController extends Controller
             $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
             $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
 
-            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+            $ventasHoy = Venta::noRevertidas()->whereBetween('fecha_hora', [$hoyInicio, $hoyFin])->sum('total');
 
-            $ventasPorMetodo = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])
+            $ventasPorMetodo = Venta::noRevertidas()->whereBetween('fecha_hora', [$hoyInicio, $hoyFin])
                 ->select('metodo_pago', DB::raw('SUM(total) as total'))
                 ->groupBy('metodo_pago')
                 ->pluck('total', 'metodo_pago');
@@ -40,7 +40,8 @@ class homeController extends Controller
             $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
 
             $ventasPorCliente = Venta::with(['user', 'cliente.persona', 'productos'])
-                ->whereBetween('created_at', [$hoyInicio, $hoyFin])
+                ->noRevertidas()
+                ->whereBetween('fecha_hora', [$hoyInicio, $hoyFin])
                 ->get()
                 ->groupBy('cliente_id');
 
@@ -72,9 +73,9 @@ class homeController extends Controller
             $periodoFin    = $fechaFin    . ' 23:59:59';
 
             // Totales del período por método de pago
-            $ventasPeriodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])->sum('total');
+            $ventasPeriodo = Venta::noRevertidas()->whereBetween('fecha_hora', [$periodoInicio, $periodoFin])->sum('total');
 
-            $ventasPorMetodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])
+            $ventasPorMetodo = Venta::noRevertidas()->whereBetween('fecha_hora', [$periodoInicio, $periodoFin])
                 ->select('metodo_pago', DB::raw('SUM(total) as total'))
                 ->groupBy('metodo_pago')
                 ->pluck('total', 'metodo_pago');
@@ -91,9 +92,13 @@ class homeController extends Controller
 
             // Gráfica de ventas por día (período filtrado)
             $totalVentasPorDia = DB::table('ventas')
-                ->selectRaw('DATE(created_at) as fecha, SUM(total) as total')
-                ->whereBetween('created_at', [$periodoInicio, $periodoFin])
-                ->groupByRaw('DATE(created_at)')
+                ->selectRaw('DATE(fecha_hora) as fecha, SUM(total) as total')
+                ->where(function ($query) {
+                    $query->where('revertida', false)
+                        ->orWhereNull('revertida');
+                })
+                ->whereBetween('fecha_hora', [$periodoInicio, $periodoFin])
+                ->groupByRaw('DATE(fecha_hora)')
                 ->orderBy('fecha', 'asc')
                 ->get()
                 ->toArray();
@@ -134,7 +139,8 @@ class homeController extends Controller
                 ->get();
 
             $ventasPorCliente = Venta::with(['user', 'cliente.persona'])
-                ->whereBetween('fecha_hora', [$fechaInicio, $fechaFin])
+                ->noRevertidas()
+                ->whereBetween('fecha_hora', [$periodoInicio, $periodoFin])
                 ->get()
                 ->groupBy('cliente_id');
 

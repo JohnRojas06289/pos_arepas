@@ -23,32 +23,24 @@ class CreateRegistroVentaCardexListener
      */
     public function handle(CreateVentaDetalleEvent $event): void
     {
-        try {
-            $kardex = new Kardex();
+        $kardex = new Kardex();
 
-            $ultimoRegistro = $kardex->where('producto_id', $event->producto_id)
-                ->latest('id')
-                ->first();
+        $ultimoRegistro = $kardex->where('producto_id', $event->producto_id)
+            ->lockForUpdate()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
 
-            // Si no hay registros previos, usar el precio de venta como costo
-            $costoUnitario = $ultimoRegistro ? $ultimoRegistro->costo_unitario : $event->precio_venta;
+        $costoUnitario = $ultimoRegistro ? $ultimoRegistro->costo_unitario : $event->precio_venta;
 
-            $kardex->crearRegistro(
-                [
-                    'venta_id' => $event->venta->id,
-                    'producto_id' => $event->producto_id,
-                    'cantidad' => $event->cantidad,
-                    'costo_unitario' => $costoUnitario
-                ],
-                TipoTransaccionEnum::Venta
-            );
-            
-            \Log::info('CreateRegistroVentaCardexListener: Kardex created', [
+        $kardex->crearRegistro(
+            [
+                'venta_id' => $event->venta->id,
                 'producto_id' => $event->producto_id,
-                'cantidad' => $event->cantidad
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('CreateRegistroVentaCardexListener: Error', ['error' => $e->getMessage()]);
-        }
+                'cantidad' => $event->cantidad,
+                'costo_unitario' => $costoUnitario,
+            ],
+            TipoTransaccionEnum::Venta
+        );
     }
 }

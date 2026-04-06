@@ -14,9 +14,11 @@ use App\Services\ActivityLogService;
 use App\Services\ComprobanteService;
 use App\Services\EmpresaService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,26 +39,20 @@ class ventaController extends Controller
         $this->empresaService = $empresaService;
     }
 
-    /**
-     * Listado de ventas (últimos 90 días por defecto).
-     * El DataTable client-side maneja búsqueda, orden y paginación.
-     */
     public function index(Request $request): View
     {
         $desde = $request->input('desde', now()->subDays(90)->toDateString());
         $hasta = $request->input('hasta', now()->toDateString());
 
         $ventas = Venta::with(['comprobante', 'cliente.persona', 'user'])
-            ->whereBetween('created_at', [$desde . ' 00:00:00', $hasta . ' 23:59:59'])
-            ->latest()
+            ->noRevertidas()
+            ->whereBetween('fecha_hora', [$desde . ' 00:00:00', $hasta . ' 23:59:59'])
+            ->orderByDesc('fecha_hora')
             ->get();
 
         return view('venta.index', compact('ventas', 'desde', 'hasta'));
     }
 
-    /**
-     * Formulario del Punto de Venta.
-     */
     public function create(ComprobanteService $comprobanteService): View|RedirectResponse
     {
         $empresa = $this->empresaService->obtenerEmpresa();
@@ -80,7 +76,7 @@ class ventaController extends Controller
                 'productos.nombre',
                 'productos.codigo',
                 'productos.id',
-                DB::raw("COALESCE(i.cantidad, 0) as cantidad"),
+                DB::raw('COALESCE(i.cantidad, 0) as cantidad'),
                 'productos.precio',
                 'productos.img_path',
                 'productos.categoria_id'
@@ -98,7 +94,7 @@ class ventaController extends Controller
                 ->get();
         });
 
-        $comprobantes      = $comprobanteService->obtenerComprobantes();
+        $comprobantes = $comprobanteService->obtenerComprobantes();
         $optionsMetodoPago = MetodoPagoEnum::cases();
 
         return view('venta.create', compact(
@@ -111,60 +107,113 @@ class ventaController extends Controller
         ));
     }
 
-    /**
-     * Registrar una nueva venta.
-     */
     public function store(StoreVentaRequest $request): RedirectResponse|JsonResponse
     {
-        DB::beginTransaction();
+        $validated = $request->validated();
+        $productoIds = $validated['arrayidproducto'];
+        $cantidades = $validated['arraycantidad'];
+        $preciosVenta = $validated['arrayprecioventa'];
+        $ventaData = Arr::only($validated, [
+            'cliente_id',
+            'comprobante_id',
+            'metodo_pago',
+            'subtotal',
+            'total',
+            'monto_recibido',
+            'vuelto_entregado',
+        ]);
+
         try {
-            $venta = Venta::create($request->validated());
+            $venta = null;
 
-            $productoIds     = $request->get('arrayidproducto', []);
-            $cantidades      = $request->get('arraycantidad', []);
-            $preciosVenta    = $request->get('arrayprecioventa', []);
-            $totalProductos  = is_array($productoIds) ? count($productoIds) : 0;
+            for ($attempt = 0; $attempt < 3; $attempt++) {
+                try {
+                    DB::beginTransaction();
 
-            for ($i = 0; $i < $totalProductos; $i++) {
-                $venta->productos()->syncWithoutDetaching([
-                    $productoIds[$i] => [
-                        'id'           => Str::uuid()->toString(),
-                        'cantidad'     => $cantidades[$i],
-                        'precio_venta' => $preciosVenta[$i],
-                    ],
-                ]);
+                    $venta = Venta::create($ventaData);
 
-                CreateVentaDetalleEvent::dispatch($venta, $productoIds[$i], $cantidades[$i], $preciosVenta[$i]);
+                    foreach ($productoIds as $index => $productoId) {
+                        $venta->productos()->syncWithoutDetaching([
+                            $productoId => [
+                                'id' => Str::uuid()->toString(),
+                                'cantidad' => (int) $cantidades[$index],
+                                'precio_venta' => $preciosVenta[$index],
+                            ],
+                        ]);
+
+                        CreateVentaDetalleEvent::dispatch(
+                            $venta,
+                            $productoId,
+                            (int) $cantidades[$index],
+                            (float) $preciosVenta[$index]
+                        );
+                    }
+
+                    CreateVentaEvent::dispatch($venta);
+                    DB::commit();
+                    break;
+                } catch (QueryException $e) {
+                    DB::rollBack();
+
+                    if ($this->isNumeroComprobanteConflict($e) && $attempt < 2) {
+                        usleep(50000);
+                        continue;
+                    }
+
+                    throw $e;
+                } catch (Throwable $e) {
+                    DB::rollBack();
+                    throw $e;
+                }
             }
 
-            CreateVentaEvent::dispatch($venta);
-            DB::commit();
-
-            ActivityLogService::log('Creación de una venta', 'Ventas', $request->validated());
+            ActivityLogService::log('Creación de una venta', 'Ventas', [
+                'venta_id' => $venta?->id,
+                'cliente_id' => $venta?->cliente_id,
+                'total' => $venta?->total,
+                'productos' => count($productoIds),
+            ]);
 
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => true, 'message' => 'Venta registrada con éxito']);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Venta registrada con éxito',
+                    'venta_id' => $venta?->id,
+                    'numero_comprobante' => $venta?->numero_comprobante,
+                    'total' => $venta?->total,
+                    'show_url' => $venta ? route('ventas.show', $venta) : null,
+                ]);
             }
 
             return redirect()->route('ventas.create')->with('success', 'Venta registrada');
         } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error('Error al crear la venta', ['error' => $e->getMessage()]);
+            Log::error('Error al crear la venta', [
+                'error' => $e->getMessage(),
+            ]);
 
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Ups, algo falló'], 500);
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
             }
 
-            return redirect()->route('ventas.create')->with('error', 'Ups, algo falló');
+            return redirect()->route('ventas.create')->with('error', $e->getMessage());
         }
     }
 
-    /**
-     * Detalle de una venta.
-     */
     public function show(Venta $venta): View
     {
         $empresa = $this->empresaService->obtenerEmpresa();
+
         return view('venta.show', compact('venta', 'empresa'));
+    }
+
+    private function isNumeroComprobanteConflict(QueryException $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'numero_comprobante')
+            && (str_contains($message, 'unique') || str_contains($message, 'duplicate'));
     }
 }

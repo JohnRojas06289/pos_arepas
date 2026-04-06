@@ -5,15 +5,14 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Arepas Boyacenses — Iniciar Sesión</title>
+    <title>Arepas Boyacenses - Iniciar sesión</title>
 
-    {{-- Aplicar tema guardado ANTES de pintar para evitar flash --}}
     <script>
-        (function(){
+        (function () {
             try {
                 var t = localStorage.getItem('pos-arepas-theme') || 'light';
                 document.documentElement.setAttribute('data-theme', t);
-            } catch(e){}
+            } catch (e) {}
         }());
     </script>
 
@@ -23,7 +22,6 @@
     <script src="{{ asset('js/fontawesome.js') }}" crossorigin="anonymous"></script>
 
     <style>
-        /* ===== RESET ===== */
         *, *::before, *::after { box-sizing: border-box; }
 
         html, body {
@@ -43,31 +41,28 @@
             overflow: hidden;
         }
 
-        /* ===== FONDO CON PATRÓN CÁLIDO ===== */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse at 20% 20%, rgba(200,85,61,0.18) 0%, transparent 55%),
-                radial-gradient(ellipse at 80% 80%, rgba(240,199,94,0.22) 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 50%, rgba(45,58,58,0.07) 0%, transparent 70%);
+                radial-gradient(ellipse at 20% 20%, rgba(200, 85, 61, 0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 80%, rgba(240, 199, 94, 0.22) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, rgba(45, 58, 58, 0.07) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
 
-        /* Patrón de puntos sutil */
         body::after {
             content: '';
             position: fixed;
             inset: 0;
-            background-image: radial-gradient(circle, rgba(200,85,61,0.08) 1px, transparent 1px);
+            background-image: radial-gradient(circle, rgba(200, 85, 61, 0.08) 1px, transparent 1px);
             background-size: 28px 28px;
             pointer-events: none;
             z-index: 0;
         }
 
-        /* ===== CARD DE LOGIN ===== */
         .login-wrapper {
             position: relative;
             z-index: 1;
@@ -83,15 +78,13 @@
             background: var(--bg-card, #FFFFFF);
             border: 1px solid var(--border-color, #E5E1DB);
             border-radius: 20px;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.14), 0 4px 16px rgba(200,85,61,0.10);
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(200, 85, 61, 0.10);
             width: 100%;
             max-width: 420px;
-            padding: 0;
             overflow: hidden;
             transition: background-color 0.25s ease, border-color 0.25s ease;
         }
 
-        /* ===== CABECERA DE LA CARD ===== */
         .login-card-header {
             background: linear-gradient(135deg, var(--color-secondary, #2D3A3A) 0%, #3d4f4f 100%);
             padding: 2.25rem 2rem 1.75rem;
@@ -103,11 +96,10 @@
             line-height: 1;
             margin-bottom: 0.5rem;
             display: block;
-            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.25));
         }
 
         .login-brand {
-            font-family: 'Inter', sans-serif;
             font-size: 1.45rem;
             font-weight: 800;
             color: #FFFFFF;
@@ -118,34 +110,37 @@
 
         .login-subtitle {
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.65);
+            color: rgba(255, 255, 255, 0.7);
             margin-top: 4px;
             font-weight: 500;
             letter-spacing: 0.06em;
             text-transform: uppercase;
         }
 
-        /* ===== CUERPO DEL FORMULARIO ===== */
         .login-card-body {
             padding: 2rem;
         }
 
-        /* Alertas de error */
+        .login-helper {
+            color: var(--text-secondary, #6B7280);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
+
         .login-alert {
-            background: rgba(231,76,94,0.10);
-            border: none;
+            background: rgba(231, 76, 94, 0.10);
             border-left: 4px solid #E74C5E;
             border-radius: 10px;
             padding: 0.75rem 1rem;
             font-size: 0.84rem;
             color: #c73c4e;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
             display: flex;
             align-items: flex-start;
             gap: 8px;
         }
 
-        /* Labels */
         .login-label {
             font-weight: 600;
             font-size: 0.82rem;
@@ -155,7 +150,6 @@
             letter-spacing: 0.01em;
         }
 
-        /* Inputs */
         .login-input {
             width: 100%;
             background: var(--bg-input, #FFFFFF);
@@ -169,19 +163,20 @@
             outline: none;
             min-height: 44px;
         }
+
         .login-input:focus {
             border-color: #C8553D;
-            box-shadow: 0 0 0 3px rgba(200,85,61,0.12);
+            box-shadow: 0 0 0 3px rgba(200, 85, 61, 0.12);
         }
-        .login-input::placeholder { color: var(--text-muted, #9CA3AF); }
 
-        /* Grupo de password con toggle */
         .password-group {
             position: relative;
         }
+
         .password-group .login-input {
             padding-right: 3rem;
         }
+
         .toggle-password {
             position: absolute;
             right: 10px;
@@ -195,11 +190,12 @@
             display: flex;
             align-items: center;
             font-size: 0.9rem;
-            transition: color 0.15s ease;
         }
-        .toggle-password:hover { color: #C8553D; }
 
-        /* Botón de login */
+        .toggle-password:hover {
+            color: #C8553D;
+        }
+
         .login-btn {
             width: 100%;
             height: 48px;
@@ -207,59 +203,62 @@
             color: #FFFFFF;
             border: none;
             border-radius: 10px;
-            font-family: 'Inter', sans-serif;
             font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
-            box-shadow: 0 4px 14px rgba(200,85,61,0.30);
+            box-shadow: 0 4px 14px rgba(200, 85, 61, 0.30);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
             margin-top: 1.5rem;
         }
+
         .login-btn:hover {
             background: #A8432D;
-            box-shadow: 0 6px 20px rgba(200,85,61,0.40);
+            box-shadow: 0 6px 20px rgba(200, 85, 61, 0.40);
             transform: translateY(-1px);
         }
-        .login-btn:active { transform: translateY(0); }
 
-        /* Footer de la card */
         .login-card-footer {
             border-top: 1px solid var(--border-color, #E5E1DB);
             padding: 1rem 2rem;
             text-align: center;
             background: var(--bg-card, #FFFFFF);
         }
+
         .login-card-footer a {
             font-size: 0.8rem;
             color: var(--text-secondary, #6B7280);
             text-decoration: none;
             transition: color 0.15s ease;
         }
-        .login-card-footer a:hover { color: #C8553D; }
 
-        /* ===== MODO OSCURO ===== */
+        .login-card-footer a:hover {
+            color: #C8553D;
+        }
+
         [data-theme="dark"] body,
         [data-theme="dark"] {
             --login-bg: #0D0D12;
         }
+
         [data-theme="dark"] body {
             background-color: #0D0D12;
         }
+
         [data-theme="dark"] body::after {
-            background-image: radial-gradient(circle, rgba(240,199,94,0.06) 1px, transparent 1px);
-        }
-        [data-theme="dark"] body::before {
-            background:
-                radial-gradient(ellipse at 20% 20%, rgba(200,85,61,0.15) 0%, transparent 55%),
-                radial-gradient(ellipse at 80% 80%, rgba(240,199,94,0.12) 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, transparent 70%);
+            background-image: radial-gradient(circle, rgba(240, 199, 94, 0.06) 1px, transparent 1px);
         }
 
-        /* ===== RESPONSIVE ===== */
+        [data-theme="dark"] body::before {
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(200, 85, 61, 0.15) 0%, transparent 55%),
+                radial-gradient(ellipse at 80% 80%, rgba(240, 199, 94, 0.12) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
+        }
+
         @media (max-width: 480px) {
             .login-card { border-radius: 14px; }
             .login-card-body { padding: 1.5rem; }
@@ -268,7 +267,6 @@
             .login-logo { font-size: 2.5rem; }
         }
 
-        /* ===== FORM FIELD SPACING ===== */
         .form-field { margin-bottom: 1.1rem; }
     </style>
 </head>
@@ -276,18 +274,17 @@
 <body>
     <div class="login-wrapper">
         <div class="login-card">
-
-            {{-- Cabecera --}}
             <div class="login-card-header">
-                <span class="login-logo">🌽</span>
+                <span class="login-logo">&#127805;</span>
                 <h1 class="login-brand">Arepas Boyacenses</h1>
-                <p class="login-subtitle">Punto de Venta</p>
+                <p class="login-subtitle">Punto de venta</p>
             </div>
 
-            {{-- Cuerpo --}}
             <div class="login-card-body">
+                <p class="login-helper">
+                    Inicia sesión con tu usuario asignado para entrar al sistema y continuar con la operación del día.
+                </p>
 
-                {{-- Errores de validación --}}
                 @if ($errors->any())
                     @foreach ($errors->all() as $item)
                     <div class="login-alert" role="alert">
@@ -300,7 +297,6 @@
                 <form action="{{ route('login.login') }}" method="post">
                     @csrf
 
-                    {{-- Email --}}
                     <div class="form-field">
                         <label class="login-label" for="inputEmail">
                             <i class="fas fa-envelope me-1" style="color:#C8553D;"></i>
@@ -309,16 +305,17 @@
                         <input
                             autofocus
                             autocomplete="email"
-                            value="ventas@gmail.com"
+                            autocapitalize="off"
                             class="login-input"
                             name="email"
                             id="inputEmail"
                             type="email"
+                            value="{{ old('email') }}"
                             placeholder="correo@ejemplo.com"
+                            required
                         />
                     </div>
 
-                    {{-- Contraseña --}}
                     <div class="form-field">
                         <label class="login-label" for="inputPassword">
                             <i class="fas fa-lock me-1" style="color:#C8553D;"></i>
@@ -328,33 +325,30 @@
                             <input
                                 class="login-input"
                                 name="password"
-                                value="12345678"
                                 id="inputPassword"
                                 type="password"
-                                placeholder="••••••••"
+                                autocomplete="current-password"
+                                placeholder="Ingresa tu contraseña"
+                                required
                             />
-                            <button class="toggle-password" type="button" id="togglePassword" aria-label="Mostrar/ocultar contraseña">
+                            <button class="toggle-password" type="button" id="togglePassword" aria-label="Mostrar u ocultar contraseña">
                                 <i class="fas fa-eye" id="toggleIcon"></i>
                             </button>
                         </div>
                     </div>
 
-                    {{-- Botón --}}
                     <button type="submit" class="login-btn">
                         <i class="fas fa-sign-in-alt"></i>
                         Ingresar al sistema
                     </button>
                 </form>
-
             </div>
 
-            {{-- Footer --}}
             <div class="login-card-footer">
-                <a href="{{ route('panel') }}">
+                <a href="{{ url('/') }}">
                     <i class="fas fa-arrow-left me-1"></i>Volver al inicio
                 </a>
             </div>
-
         </div>
     </div>
 
@@ -362,7 +356,8 @@
     <script>
         document.getElementById('togglePassword').addEventListener('click', function () {
             var input = document.getElementById('inputPassword');
-            var icon  = document.getElementById('toggleIcon');
+            var icon = document.getElementById('toggleIcon');
+
             if (input.type === 'password') {
                 input.type = 'text';
                 icon.classList.replace('fa-eye', 'fa-eye-slash');

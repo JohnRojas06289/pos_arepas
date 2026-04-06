@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Panel — Ventas de Hoy')
+@section('title', 'Panel - Ventas de Hoy')
 
 @push('css')
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
@@ -12,7 +12,6 @@
 @section('content')
 <div class="container-fluid px-2 pt-3">
 
-    {{-- Encabezado --}}
     <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
         <div>
             <h4 class="mb-0" style="font-weight:800;color:var(--text-primary);">
@@ -26,14 +25,12 @@
         @can('crear-venta')
         <a href="{{ route('ventas.create') }}" class="btn btn-primary">
             <i class="fas fa-cash-register"></i>
-            <span>Nueva Venta</span>
+            <span>Nueva venta</span>
         </a>
         @endcan
     </div>
 
-    {{-- KPIs del día --}}
     <div class="row g-3 mb-4">
-
         <div class="col-6 col-md-4 col-xl">
             <div class="kpi-card success h-100">
                 <div class="d-flex align-items-center justify-content-between">
@@ -106,10 +103,8 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    {{-- Tabla: Ventas del día por cliente --}}
     <div class="card mb-4">
         <div class="card-header d-flex align-items-center justify-content-between">
             <div>
@@ -165,7 +160,7 @@
                                 <div id="data_transacciones_{{ $clienteId ? $clienteId : 'general' }}" class="d-none">
                                     @foreach($ventas as $v)
                                     <div class="tx-item"
-                                         data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}"
+                                         data-fecha="{{ \Carbon\Carbon::parse($v->fecha_hora)->format('d/m/Y H:i') }}"
                                          data-total="{{ number_format($v->total, 0, ',', '.') }}"
                                          data-vendedor="{{ $v->user?->name ?? 'N/A' }}"
                                          data-metodo="{{ $v->metodo_pago }}"
@@ -191,13 +186,12 @@
 
 </div>
 
-{{-- Modal: transacciones del cliente --}}
 <div class="modal fade" id="transaccionesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background:var(--color-primary);">
                 <h5 class="modal-title" style="color:#fff;font-size:0.95rem;font-weight:700;">
-                    <i class="fas fa-list me-2"></i>Transacciones — <span id="modalClientName"></span>
+                    <i class="fas fa-list me-2"></i>Transacciones - <span id="modalClientName"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -222,16 +216,15 @@ function showTransacciones(clienteId, clienteNombre) {
     var colors = { efectivo: 'success', nequi: 'info', daviplata: 'warning', fiado: 'danger', tarjeta: 'primary' };
 
     items.forEach(function(item, idx) {
-        var metodo   = (item.getAttribute('data-metodo') || '').toLowerCase();
-        var color    = colors[metodo] || 'secondary';
-        var fecha    = item.getAttribute('data-fecha');
-        var total    = item.getAttribute('data-total');
+        var metodo = (item.getAttribute('data-metodo') || '').toLowerCase();
+        var color = colors[metodo] || 'secondary';
+        var fecha = item.getAttribute('data-fecha');
+        var total = item.getAttribute('data-total');
         var vendedor = item.getAttribute('data-vendedor');
         var productosRaw = item.getAttribute('data-productos');
         var productos = [];
-        try { productos = JSON.parse(productosRaw || '[]'); } catch(e) {}
+        try { productos = JSON.parse(productosRaw || '[]'); } catch (e) {}
 
-        // --- Fila principal de la transacción ---
         var txId = 'tx-detail-' + clienteId + '-' + idx;
         var wrap = document.createElement('div');
         wrap.style.cssText = 'border-bottom:1px solid var(--border-color);';
@@ -253,7 +246,6 @@ function showTransacciones(clienteId, clienteNombre) {
 
         wrap.appendChild(headerRow);
 
-        // --- Tabla de productos colapsable ---
         if (productos.length > 0) {
             var detalle = document.createElement('div');
             detalle.id = txId;

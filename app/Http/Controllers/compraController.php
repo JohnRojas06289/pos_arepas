@@ -13,6 +13,7 @@ use App\Services\ComprobanteService;
 use App\Services\EmpresaService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,10 +46,10 @@ class compraController extends Controller
     public function create(ComprobanteService $comprobanteService): View
     {
         $proveedores = Proveedore::whereHas('persona', fn ($q) => $q->where('estado', 1))->get();
-        $comprobantes      = $comprobanteService->obtenerComprobantes();
-        $productos         = Producto::where('estado', 1)->get();
+        $comprobantes = $comprobanteService->obtenerComprobantes();
+        $productos = Producto::where('estado', 1)->get();
         $optionsMetodoPago = MetodoPagoEnum::cases();
-        $empresa           = $this->empresaService->obtenerEmpresa();
+        $empresa = $this->empresaService->obtenerEmpresa();
 
         return view('compra.create', compact(
             'proveedores',
@@ -61,7 +62,14 @@ class compraController extends Controller
 
     public function store(StoreCompraRequest $request): RedirectResponse
     {
+        $validated = $request->validated();
+        $productoIds = $validated['arrayidproducto'];
+        $cantidades = $validated['arraycantidad'];
+        $preciosCompra = $validated['arraypreciocompra'];
+        $fechasVencimiento = $validated['arrayfechavencimiento'] ?? [];
+
         DB::beginTransaction();
+
         try {
             $compraModel = new Compra();
 
@@ -69,51 +77,63 @@ class compraController extends Controller
                 ? $compraModel->handleUploadFile($request->file('file_comprobante'))
                 : null;
 
-            $compra = Compra::create(array_merge($request->validated(), [
-                'user_id'          => Auth::id(),
-                'impuesto'         => 0,
+            $compraData = Arr::only($validated, [
+                'proveedore_id',
+                'comprobante_id',
+                'numero_comprobante',
+                'metodo_pago',
+                'fecha_hora',
+                'subtotal',
+                'total',
+            ]);
+
+            $compra = Compra::create(array_merge($compraData, [
+                'user_id' => Auth::id(),
+                'impuesto' => 0,
                 'comprobante_path' => $comprobantePath,
             ]));
 
-            $productoIds        = $request->get('arrayidproducto', []);
-            $cantidades         = $request->get('arraycantidad', []);
-            $preciosCompra      = $request->get('arraypreciocompra', []);
-            $fechasVencimiento  = $request->get('arrayfechavencimiento', []);
-            $totalProductos     = count($productoIds);
-
-            for ($i = 0; $i < $totalProductos; $i++) {
+            foreach ($productoIds as $index => $productoId) {
                 $compra->productos()->syncWithoutDetaching([
-                    $productoIds[$i] => [
-                        'id'               => Str::uuid()->toString(),
-                        'cantidad'         => $cantidades[$i],
-                        'precio_compra'    => $preciosCompra[$i],
-                        'fecha_vencimiento'=> $fechasVencimiento[$i],
+                    $productoId => [
+                        'id' => Str::uuid()->toString(),
+                        'cantidad' => (int) $cantidades[$index],
+                        'precio_compra' => $preciosCompra[$index],
+                        'fecha_vencimiento' => $fechasVencimiento[$index] ?? null,
                     ],
                 ]);
 
                 CreateCompraDetalleEvent::dispatch(
                     $compra,
-                    $productoIds[$i],
-                    $cantidades[$i],
-                    $preciosCompra[$i],
-                    $fechasVencimiento[$i]
+                    $productoId,
+                    (int) $cantidades[$index],
+                    (float) $preciosCompra[$index],
+                    $fechasVencimiento[$index] ?? null
                 );
             }
 
             DB::commit();
-            ActivityLogService::log('Creación de compra', 'Compras', $request->validated());
+
+            ActivityLogService::log('Creación de compra', 'Compras', [
+                'compra_id' => $compra->id,
+                'proveedore_id' => $compra->proveedore_id,
+                'total' => $compra->total,
+                'productos' => count($productoIds),
+            ]);
 
             return redirect()->route('compras.index')->with('success', 'Compra registrada con éxito');
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al crear la compra', ['error' => $e->getMessage()]);
-            return redirect()->route('compras.index')->with('error', 'Ups, algo falló');
+
+            return redirect()->route('compras.index')->with('error', $e->getMessage());
         }
     }
 
     public function show(Compra $compra): View
     {
         $empresa = $this->empresaService->obtenerEmpresa();
+
         return view('compra.show', compact('compra', 'empresa'));
     }
 }

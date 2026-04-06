@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Observers\VentaObsever;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 #[ObservedBy(VentaObsever::class)]
 class Venta extends Model
@@ -28,13 +30,13 @@ class Venta extends Model
         'monto_recibido',
         'vuelto_entregado',
         'pagado',
-        'saldo_pendiente', // New column
-        'revertida'
+        'saldo_pendiente',
+        'revertida',
     ];
 
     protected $casts = [
-        'pagado'          => 'boolean',
-        'revertida'       => 'boolean',
+        'pagado' => 'boolean',
+        'revertida' => 'boolean',
         'saldo_pendiente' => 'decimal:2',
     ];
 
@@ -65,58 +67,50 @@ class Venta extends Model
             ->withPivot('cantidad', 'precio_venta');
     }
 
-    /**
-     * Scope to filter paid sales
-     */
-    public function scopePagadas($query)
+    public function scopePagadas(Builder $query): Builder
     {
-        return $query->whereRaw('pagado = true');
+        return $query->where('pagado', 1);
     }
 
-    /**
-     * Scope to filter unpaid (pending) sales
-     */
-    public function scopePendientes($query)
+    public function scopePendientes(Builder $query): Builder
     {
-        return $query->whereRaw('pagado = false');
+        return $query->where('pagado', 0);
     }
 
-     /**
-     * Obtener solo la fecha
-     * @return string
-     */
+    public function scopeNoRevertidas(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder) {
+            $builder->where('revertida', false)
+                ->orWhereNull('revertida');
+        });
+    }
+
     public function getFechaAttribute(): string
     {
         return Carbon::parse($this->fecha_hora)->format('d-m-Y');
     }
 
-    /**
-     * Obtener solo la hora
-     * @return string
-     */
     public function getHoraAttribute(): string
     {
         return Carbon::parse($this->fecha_hora)->format('H:i');
     }
 
-
-    /**
-     * Generar el número de venta
-     */
     public function generarNumeroVenta(string $cajaId, string $tipoComprobante): string
     {
-        // Determinar el prefijo según el tipo de comprobante
-        $prefijo = strtoupper(substr($tipoComprobante, 0, 1)); // "B" para Boleta, "F" para Factura
+        $prefijo = strtoupper(substr($tipoComprobante, 0, 1));
 
-        // Contar el total de ventas globalmente (no solo por caja) para evitar duplicados
-        $totalVentas = Venta::count();
-        
-        // Incrementar el número
-        $nuevoNumero = $totalVentas + 1;
+        $ultimoNumero = DB::table('ventas')
+            ->where('numero_comprobante', 'like', $prefijo . '-%')
+            ->lockForUpdate()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->value('numero_comprobante');
 
-        // Formatear el número de venta (Prefijo + Número secuencial de 7 dígitos)
-        $numeroVenta = sprintf("%s-%07d", $prefijo, $nuevoNumero);
+        $ultimoConsecutivo = 0;
+        if (is_string($ultimoNumero) && preg_match('/^[A-Z]-(\d+)$/', $ultimoNumero, $matches) === 1) {
+            $ultimoConsecutivo = (int) $matches[1];
+        }
 
-        return $numeroVenta;
+        return sprintf('%s-%07d', $prefijo, $ultimoConsecutivo + 1);
     }
 }

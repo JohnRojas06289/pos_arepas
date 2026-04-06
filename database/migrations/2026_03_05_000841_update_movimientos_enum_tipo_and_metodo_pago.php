@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // Update tipo: add INGRESO
         DB::statement('ALTER TABLE movimientos DROP CONSTRAINT IF EXISTS movimientos_tipo_check');
         DB::statement("ALTER TABLE movimientos ADD CONSTRAINT movimientos_tipo_check CHECK (tipo IN ('VENTA', 'RETIRO', 'INGRESO'))");
@@ -26,6 +30,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE movimientos DROP CONSTRAINT IF EXISTS movimientos_tipo_check');
         DB::statement("ALTER TABLE movimientos ADD CONSTRAINT movimientos_tipo_check CHECK (tipo IN ('VENTA', 'RETIRO'))");
 

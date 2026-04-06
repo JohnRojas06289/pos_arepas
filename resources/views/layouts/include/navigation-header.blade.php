@@ -1,61 +1,43 @@
-<?php
-use App\Models\Empresa;
-use App\Models\Caja;
-
-$empresa = Empresa::first();
-if (!$empresa) {
-    $empresa = (object)['nombre' => 'Arepas Boyacenses'];
-}
-
-// Verificar si hay caja abierta para el usuario actual
-$cajaAbierta = null;
-try {
-    $cajaAbierta = Caja::where('user_id', auth()->id())->where('estado', true)->first();
-} catch (\Exception $e) {
-    // Si falla silenciosamente, no mostrar el badge
-}
-?>
-
 <nav class="sb-topnav navbar navbar-expand navbar-dark">
 
-    {{-- Brand / Logo --}}
     <a class="navbar-brand ps-3" href="{{ route('panel') }}">
         <span class="brand-icon">&#127807;</span>
-        <span class="d-none d-sm-inline">{{ $empresa->nombre ?? 'Arepas Boyacenses' }}</span>
+        <span class="d-none d-sm-inline">{{ $layoutCompanyName ?? 'Arepas Boyacenses' }}</span>
         <span class="d-inline d-sm-none">AB</span>
     </a>
 
-    {{-- Sidebar Toggle --}}
     <button class="btn btn-link btn-sm order-1 order-lg-0 me-2 me-lg-0 ms-auto" id="sidebarToggle" aria-label="Menú">
         <i class="fas fa-bars"></i>
     </button>
 
-    {{-- Navbar items --}}
     <ul class="navbar-nav ms-auto ms-md-0 me-2 me-lg-3 align-items-center gap-2">
-
-        {{-- Badge de estado de caja --}}
-        @if($cajaAbierta)
+        @if(($layoutCajaStatus ?? 'unknown') === 'open')
         <li class="nav-item d-none d-md-flex align-items-center">
             <div class="caja-badge open">
                 <span class="dot"></span>
                 Caja abierta
             </div>
         </li>
-        @else
+        @elseif(($layoutCajaStatus ?? 'unknown') === 'closed')
         <li class="nav-item d-none d-md-flex align-items-center">
             <div class="caja-badge close">
                 <span class="dot"></span>
                 Sin caja
             </div>
         </li>
+        @else
+        <li class="nav-item d-none d-md-flex align-items-center">
+            <div class="caja-badge neutral">
+                <span class="dot"></span>
+                Estado de caja no disponible
+            </div>
+        </li>
         @endif
 
-        {{-- Nombre del usuario --}}
         <li class="nav-item d-none d-lg-flex align-items-center">
             <span class="navbar-user-name">{{ auth()->user()->name }}</span>
         </li>
 
-        {{-- Dropdown de usuario --}}
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
                data-bs-toggle="dropdown" aria-expanded="false">

@@ -1,10 +1,11 @@
 ﻿@extends('layouts.app')
 
 @section('title', 'Punto de Venta')
+@section('body_class', 'pos-screen')
 
 @push('css')
 <style>
-    body { overflow: hidden; }
+    body.pos-screen { overflow: hidden; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
 
     /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
@@ -105,6 +106,13 @@
         border-radius: 12px;
         background: var(--bg-card);
         box-shadow: var(--card-shadow);
+    }
+
+    button.product-card {
+        width: 100%;
+        padding: 0;
+        text-align: inherit;
+        appearance: none;
     }
 
     .product-card:hover {
@@ -217,6 +225,12 @@
         background-color: var(--color-accent-subtle);
     }
 
+    .smart-cash-btn.is-active {
+        border-color: transparent;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.12), 0 0 0 4px rgba(200,85,61,0.22);
+        transform: translateY(-1px);
+    }
+
     /* Total más prominente */
     .total-display {
         font-family: 'JetBrains Mono', monospace;
@@ -320,16 +334,6 @@
         opacity: 1;
     }
     
-    /* Animación de pulso para el botón de cobrar */
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-    }
-    
-    #btnPay:not(:disabled) {
-        animation: pulse 2s infinite;
-    }
-    
     /* Mobile: cart como panel deslizable desde abajo */
     .cart-toggle-mobile {
         display: none;
@@ -350,6 +354,36 @@
         justify-content: center;
         flex-direction: column;
         gap: 2px;
+    }
+
+    .cart-close-mobile {
+        display: none;
+        border: none;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .last-sale-card {
+        border: 1px solid rgba(76,175,125,0.25);
+        background: rgba(76,175,125,0.08);
+        border-radius: 12px;
+        padding: 0.85rem 0.9rem;
+    }
+
+    .last-sale-card .meta {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .cart-empty-copy {
+        max-width: 220px;
+        margin: 0 auto;
+        line-height: 1.45;
     }
     .cart-toggle-mobile .badge {
         position: absolute;
@@ -378,6 +412,7 @@
     /* Responsive mejorado */
     @media (max-width: 767px) {
         .cart-toggle-mobile { display: flex; }
+        .cart-close-mobile { display: inline-flex; }
 
         /* Cart panel: full-screen slide-up en móvil */
         .cart-section {
@@ -465,6 +500,16 @@
         opacity: 0.25;
         cursor: default;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+        }
+    }
 </style>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 @endpush
@@ -511,7 +556,10 @@
                      data-category="{{$item->categoria_id}}"
                      data-nombre="{{ strtoupper(substr(trim($item->nombre), 0, 1)) }}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
-                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
+                    <button type="button"
+                        class="card h-100 product-card shadow-sm border-0"
+                        onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')"
+                        aria-label="Agregar {{ $item->nombre }} al carrito">
                         <div class="product-img-container">
                             @if($item->img_path)
                                 <img src="{{ $item->image_url }}" class="product-img" alt="{{$item->nombre}}" onerror="this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'">
@@ -529,7 +577,7 @@
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
                         </div>
-                    </div>
+                    </button>
                 </div>
                 @endforeach
             </div>
@@ -549,8 +597,13 @@
                 <h5 class="m-0 fw-700" style="font-size:1rem;font-weight:700;">
                     <i class="fa-solid fa-cart-shopping me-2" style="color:var(--color-accent);"></i>Carrito
                 </h5>
-                <span class="badge" id="cartCount"
-                      style="background:var(--color-accent);color:var(--color-secondary);font-family:'JetBrains Mono',monospace;font-weight:700;">0</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge" id="cartCount"
+                          style="background:var(--color-accent);color:var(--color-secondary);font-family:'JetBrains Mono',monospace;font-weight:700;">0</span>
+                    <button type="button" class="cart-close-mobile" onclick="toggleMobileCart(false)" aria-label="Cerrar carrito">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="d-none">
@@ -567,6 +620,7 @@
                 <div class="text-center text-muted mt-5" id="emptyCartMessage">
                     <i class="fa-solid fa-basket-shopping fa-3x mb-3 opacity-50"></i>
                     <p>Carrito vacío</p>
+                    <p class="cart-empty-copy small">Busca un producto o usa las categorías para empezar la venta.</p>
                 </div>
                 <div id="cartList"></div>
             </div>
@@ -597,21 +651,24 @@
                     </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
+                                data-payment-option="NEQUI"
                                 style="background:var(--color-secondary);color:#fff;border-color:var(--color-secondary);font-size:0.72rem;"
                                 onclick="pagarCon('NEQUI')">
                                 <i class="fas fa-mobile-alt me-1"></i>NEQUI
                             </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
+                                data-payment-option="DAVIPLATA"
                                 style="background:var(--color-primary);color:#fff;border-color:var(--color-primary);font-size:0.72rem;"
                                 onclick="pagarCon('DAVIPLATA')">
                                 <i class="fas fa-university me-1"></i>DAVI
                             </button>
                         </div>
                         <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
+                                data-payment-option="FIADO"
                                 style="background:var(--color-warning);color:#fff;border-color:var(--color-warning);font-size:0.72rem;"
                                 onclick="iniciarFiado()">
                                 <i class="fas fa-handshake me-1"></i>FIADO
@@ -647,6 +704,7 @@
                     <button type="submit" class="btn btn-success btn-lg fw-bold py-3" id="btnPay" disabled>
                         <i class="fa-solid fa-cash-register me-2"></i> COBRAR <i class="fa-solid fa-check ms-2"></i>
                     </button>
+                    <div id="lastSaleCard" class="last-sale-card d-none" aria-live="polite"></div>
                     <button type="button" class="btn btn-light btn-sm text-danger" onclick="cancelarVenta()">
                         <i class="fa-solid fa-times me-1"></i> Cancelar Venta
                     </button>
@@ -677,6 +735,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <p id="clientModalHelp" class="small text-muted mb-3">Selecciona un cliente para continuar.</p>
                     <div class="mb-3">
                         <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente..." onkeyup="filterClients()">
                     </div>
@@ -685,11 +744,16 @@
                             @if(strtolower($client->persona->razon_social) == 'indefinido' || $client->persona->numero_documento == '1111111111')
                                 @continue
                             @endif
-                            <button type="button" class="list-group-item list-group-item-action client-item" 
-                                    onclick="selectClient('{{$client->id}}', '{{addslashes($client->persona->razon_social)}}')">
+                            <button type="button" class="list-group-item list-group-item-action client-item"
+                                    data-tipo="{{$client->tipo_cliente}}"
+                                    onclick="selectClient('{{$client->id}}', '{{addslashes($client->persona->razon_social)}}', '{{$client->tipo_cliente}}')">
                                 {{$client->persona->razon_social}} <small class="text-muted">({{$client->persona->numero_documento}})</small>
                             </button>
                         @endforeach
+                    </div>
+                    <div id="clientEmptyState" class="text-center text-muted py-4 d-none">
+                        <i class="fas fa-user-slash d-block mb-2 opacity-50"></i>
+                        No hay clientes que coincidan con la búsqueda actual.
                     </div>
                 </div>
             </div>
@@ -703,6 +767,7 @@
     var cart = [];
     var total = 0;
     var soundEnabled = true; // Cambiar a false para desactivar sonidos
+    var lastSale = null;
 
     // Sonidos simples usando Web Audio API
     function playSound(frequency, duration) {
@@ -752,6 +817,17 @@
         // Auto-focus en búsqueda
         const searchInput = document.getElementById('searchInput');
         searchInput.focus();
+        updatePaymentButtons('EFECTIVO');
+        updateClientEmptyState();
+
+        document.getElementById('clientModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('clientSearchInput').value = '';
+            if (!document.getElementById('selectClienteId').value) {
+                this.dataset.context = '';
+            }
+            document.getElementById('clientModalHelp').textContent = 'Selecciona un cliente para continuar.';
+            toggleClientOptions(false);
+        });
 
         // Búsqueda mejorada
         searchInput.addEventListener('keyup', function(e) {
@@ -864,6 +940,53 @@
         });
     });
 
+    function updatePaymentButtons(activeType) {
+        document.querySelectorAll('.payment-option').forEach(function(button) {
+            button.classList.toggle('is-active', button.getAttribute('data-payment-option') === activeType);
+        });
+    }
+
+    function updateClientEmptyState() {
+        var visibleClients = Array.from(document.querySelectorAll('.client-item')).filter(function(item) {
+            return item.style.display !== 'none';
+        });
+
+        document.getElementById('clientEmptyState').classList.toggle('d-none', visibleClients.length > 0);
+    }
+
+    function renderLastSale() {
+        var card = document.getElementById('lastSaleCard');
+
+        if (!lastSale) {
+            card.classList.add('d-none');
+            card.innerHTML = '';
+            return;
+        }
+
+        var actions = lastSale.show_url
+            ? '<div class="d-flex gap-2 mt-3">' +
+                '<a href="' + lastSale.show_url + '" class="btn btn-sm btn-success">Ver detalle</a>' +
+                '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearLastSale()">Cerrar</button>' +
+              '</div>'
+            : '<div class="mt-3"><button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearLastSale()">Cerrar</button></div>';
+
+        card.classList.remove('d-none');
+        card.innerHTML =
+            '<div class="d-flex align-items-start justify-content-between gap-2">' +
+                '<div>' +
+                    '<div class="fw-bold text-success"><i class="fa-solid fa-circle-check me-1"></i> Última venta registrada</div>' +
+                    '<div class="meta mt-1">Comprobante: ' + escapeHtml(lastSale.numero_comprobante || 'Sin número') + '</div>' +
+                    '<div class="meta">Total: $' + formatNumber(lastSale.total || 0) + '</div>' +
+                '</div>' +
+            '</div>' +
+            actions;
+    }
+
+    function clearLastSale() {
+        lastSale = null;
+        renderLastSale();
+    }
+
     function filterCategory(catId, btn) {
         var buttons = document.querySelectorAll('.category-btn');
         buttons.forEach(function(b) { b.classList.remove('active'); });
@@ -884,6 +1007,22 @@
         
         // Re-enfocar búsqueda
         setTimeout(() => document.getElementById('searchInput').focus(), 100);
+    }
+
+    function filterClients() {
+        var search = (document.getElementById('clientSearchInput').value || '').toLowerCase().trim();
+
+        document.querySelectorAll('.client-item').forEach(function(button) {
+            var text = button.textContent.toLowerCase();
+            var matchesText = text.indexOf(search) > -1;
+            var isCreditFilter = document.getElementById('clientModal').dataset.context === 'fiado';
+            var tipo = button.getAttribute('data-tipo');
+            var matchesCredit = !isCreditFilter || tipo === 'fiado';
+
+            button.style.display = matchesText && matchesCredit ? '' : 'none';
+        });
+
+        updateClientEmptyState();
     }
 
     function addToCart(id, nombre, precio, stock, sigla) {
@@ -1058,6 +1197,7 @@
         if (mobileCount) mobileCount.innerText = totalItems;
 
         calculateChange();
+        renderLastSale();
     }
 
     function setExactCash() {
@@ -1091,6 +1231,15 @@
     }
 
     function calculateChange() {
+        var metodoPago = document.getElementById('selectMetodoPago').value;
+        if (metodoPago === 'FIADO') {
+            var clienteSeleccionado = document.getElementById('selectClienteId').value;
+            document.getElementById('vuelto').value = 0;
+            document.getElementById('vuelto_display').value = '0';
+            document.getElementById('btnPay').disabled = !(total > 0 && clienteSeleccionado);
+            return;
+        }
+
         var received = parseFloat(document.getElementById('dinero_recibido').value) || 0;
         
         if (received >= total && total > 0) {
@@ -1106,10 +1255,15 @@
         }
     }
 
-    function toggleMobileCart() {
+    function toggleMobileCart(forceOpen) {
         var cartSection = document.querySelector('.cart-section');
         var overlay = document.getElementById('mobileCartOverlay');
         var isOpen = cartSection.classList.contains('mobile-open');
+
+        if (typeof forceOpen === 'boolean') {
+            isOpen = !forceOpen;
+        }
+
         if (isOpen) {
             cartSection.classList.remove('mobile-open');
             overlay.classList.remove('active');
@@ -1135,6 +1289,7 @@
         for (var i = 0; i < select.options.length; i++) {
             if (select.options[i].value === 'EFECTIVO') { select.selectedIndex = i; break; }
         }
+        updatePaymentButtons('EFECTIVO');
         var badge = document.getElementById('paymentBadge');
         badge.className = 'badge bg-success';
         badge.style.fontSize = '0.8rem';
@@ -1149,6 +1304,7 @@
         for (var i = 0; i < select.options.length; i++) {
             if (select.options[i].value === type) { select.selectedIndex = i; break; }
         }
+        updatePaymentButtons(type);
         var badge = document.getElementById('paymentBadge');
         badge.style.fontSize = '0.8rem';
         if (type === 'NEQUI') {
@@ -1166,13 +1322,14 @@
             badge.style.backgroundColor = '';
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-handshake me-1"></i> FIADO';
-            // Ocultar campos de efectivo (no hay vuelto en fiado)
             document.getElementById('efectivoCampos').style.display = 'none';
-            document.getElementById('dinero_recibido').value = total;
+            document.getElementById('dinero_recibido').value = 0;
+            document.getElementById('dinero_recibido_display').value = '0';
             document.getElementById('vuelto').value = 0;
-            document.getElementById('btnPay').disabled = false;
+            document.getElementById('vuelto_display').value = '0';
+            calculateChange();
             playSound(600, 0.1);
-            return; // Salir antes de la lógica de abajo
+            return;
         }
         document.getElementById('efectivoCampos').style.display = '';
         document.getElementById('dinero_recibido').value = total;
@@ -1185,37 +1342,55 @@
 
     function iniciarFiado() {
         if (total === 0) return;
-        // Abrir modal de selección de cliente
+        document.getElementById('clientModal').dataset.context = 'fiado';
+        toggleClientOptions(true);
+        document.getElementById('clientModalHelp').textContent = 'Selecciona un cliente de crédito para registrar la venta fiada.';
+        document.getElementById('clientSearchInput').value = '';
+        filterClients();
         var modal = new bootstrap.Modal(document.getElementById('clientModal'));
         modal.show();
-        // Marcar que el modal se abrió por motivo FIADO
-        document.getElementById('clientModal').dataset.context = 'fiado';
     }
 
     function cancelarFiado() {
-        // Limpiar cliente seleccionado y volver a EFECTIVO
         document.getElementById('selectClienteId').value = '';
         document.getElementById('fiadoClienteBadge').classList.add('d-none');
         document.getElementById('fiadoClienteNombre').textContent = 'Sin cliente';
+        document.getElementById('clientModal').dataset.context = '';
+        document.getElementById('clientModalHelp').textContent = 'Selecciona un cliente para continuar.';
         pagarEfectivo();
-        document.getElementById('btnPay').disabled = true;
+        calculateChange();
     }
 
-    function selectClient(id, nombre) {
+    function selectClient(id, nombre, tipoCliente) {
         var context = document.getElementById('clientModal').dataset.context;
-        // Actualizar el campo oculto cliente_id
+
+        if (context === 'fiado' && tipoCliente !== 'fiado') {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cliente no válido',
+                text: 'Para ventas fiadas debes seleccionar un cliente de crédito.'
+            });
+            return;
+        }
+
         document.getElementById('selectClienteId').innerHTML = '<option value="' + id + '" selected>' + nombre + '</option>';
 
-        // Cerrar modal
         bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
 
         if (context === 'fiado') {
-            // Completar flujo FIADO
             pagarCon('FIADO');
             document.getElementById('fiadoClienteBadge').classList.remove('d-none');
             document.getElementById('fiadoClienteNombre').textContent = nombre;
             document.getElementById('clientModal').dataset.context = '';
         }
+    }
+
+    function toggleClientOptions(onlyCredit) {
+        document.querySelectorAll('.client-item').forEach(function(button) {
+            var tipo = button.getAttribute('data-tipo');
+            button.style.display = (!onlyCredit || tipo === 'fiado') ? '' : 'none';
+        });
+        updateClientEmptyState();
     }
 
     // Prevenir envío tradicional y usar AJAX (Fetch API)
@@ -1258,6 +1433,13 @@
             // Sonido de éxito al procesar venta
             playSound(1200, 0.3);
 
+            lastSale = {
+                venta_id: data.venta_id,
+                numero_comprobante: data.numero_comprobante,
+                total: data.total,
+                show_url: data.show_url
+            };
+
             // Alerta de éxito pequeña
             Swal.fire({
                 icon: 'success',
@@ -1297,6 +1479,8 @@
             // Si estaba en fiado, regresar a efectivo normal
             cancelarFiado();
             renderCart(); // Esto repinta el carrito vacío
+            document.getElementById('searchInput').focus();
+            toggleMobileCart(false);
 
             // Restaurar botón
             btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora

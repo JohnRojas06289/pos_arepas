@@ -40,11 +40,15 @@ class CajaObserver
         $movimientos = Movimiento::where('caja_id', $caja->id)
             ->selectRaw("
             SUM(CASE WHEN tipo = 'VENTA' THEN monto ELSE 0 END) AS total_venta,
-            SUM(CASE WHEN tipo = 'RETIRO' THEN monto ELSE 0 END) AS total_retiro
+            SUM(CASE WHEN tipo = 'RETIRO' THEN monto ELSE 0 END) AS total_retiro,
+            SUM(CASE WHEN tipo = 'INGRESO' THEN monto ELSE 0 END) AS total_ingreso
             ")->first();
 
         $caja->fecha_hora_cierre = Carbon::now()->toDateTimeString();
-        $caja->saldo_final = $caja->saldo_inicial + ($movimientos->total_venta ?? 0) - ($movimientos->total_retiro ?? 0);
+        $caja->saldo_final = $caja->saldo_inicial
+            + ($movimientos->total_venta ?? 0)
+            + ($movimientos->total_ingreso ?? 0)
+            - ($movimientos->total_retiro ?? 0);
     }
 
     /**

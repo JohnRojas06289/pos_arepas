@@ -19,30 +19,20 @@ class UpdateInventarioCompraListener
      */
     public function handle(CreateCompraDetalleEvent $event): void
     {
-        try {
-            \Log::info('UpdateInventarioCompraListener: Updating stock', [
+        $registro = Inventario::where('producto_id', $event->producto_id)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$registro) {
+            $registro = Inventario::create([
                 'producto_id' => $event->producto_id,
-                'cantidad_comprada' => $event->cantidad
+                'ubicacione_id' => null,
+                'cantidad' => 0,
+                'fecha_vencimiento' => $event->fecha_vencimiento,
             ]);
-
-            $registro = Inventario::where('producto_id', $event->producto_id)->first();
-
-            if (!$registro) {
-                \Log::error('UpdateInventarioCompraListener: Inventario not found', ['producto_id' => $event->producto_id]);
-                return;
-            }
-
-            $cantidadAnterior = $registro->cantidad;
-            $registro->increment('cantidad', $event->cantidad);
-            $registro->update(['fecha_vencimiento' => $event->fecha_vencimiento]);
-
-            \Log::info('UpdateInventarioCompraListener: Stock updated', [
-                'producto_id' => $event->producto_id,
-                'cantidad_anterior' => $cantidadAnterior,
-                'cantidad_nueva' => $registro->cantidad
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('UpdateInventarioCompraListener: Error', ['error' => $e->getMessage()]);
         }
+
+        $registro->increment('cantidad', (int) $event->cantidad);
+        $registro->update(['fecha_vencimiento' => $event->fecha_vencimiento]);
     }
 }

@@ -159,26 +159,29 @@ class clienteController extends Controller
         try {
             DB::beginTransaction();
 
-            $montoAbono  = (float) $request->input('monto');
-            $metodoPago  = $request->input('metodo_pago');
-
-            // 1. Registrar Movimiento en Caja si hay caja abierta (opcional)
             $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
-            if ($caja) {
-                Movimiento::create([
-                    'tipo'        => TipoMovimientoEnum::Ingreso,
-                    'descripcion' => 'Abono deuda cliente: ' . $cliente->persona->razon_social,
-                    'monto'       => $montoAbono,
-                    'metodo_pago' => $metodoPago,
-                    'caja_id'     => $caja->id,
-                ]);
+            if (!$caja) {
+                throw new \RuntimeException('Debe aperturar una caja antes de registrar un abono.');
             }
 
-            // 2. Distribuir el abono en las ventas pendientes (FIFO)
             $ventasPendientes = $cliente->ventas()
-                ->whereRaw('pagado = false')
-                ->orderBy('created_at', 'asc')
+                ->noRevertidas()
+                ->where('pagado', 0)
+                ->orderBy('fecha_hora', 'asc')
+                ->lockForUpdate()
                 ->get();
+
+            if ($ventasPendientes->isEmpty()) {
+                throw new \RuntimeException('El cliente no tiene deudas pendientes para abonar.');
+            }
+
+            $montoAbono = round((float) $request->input('monto'), 2);
+            $metodoPago = $request->input('metodo_pago');
+            $deudaTotal = round((float) $ventasPendientes->sum('saldo_pendiente'), 2);
+
+            if ($montoAbono > $deudaTotal) {
+                throw new \RuntimeException('El abono no puede ser mayor a la deuda pendiente del cliente.');
+            }
 
             $montoRestante = $montoAbono;
 
@@ -186,14 +189,12 @@ class clienteController extends Controller
                 if ($montoRestante <= 0) break;
 
                 if ($venta->saldo_pendiente <= $montoRestante) {
-                    // Paga toda esta venta
                     $montoRestante -= $venta->saldo_pendiente;
                     DB::table('ventas')->where('id', $venta->id)->update([
                         'saldo_pendiente' => 0,
-                        'pagado'          => true,
+                        'pagado' => 1,
                     ]);
                 } else {
-                    // Pago parcial
                     $nuevoSaldo = $venta->saldo_pendiente - $montoRestante;
                     $montoRestante = 0;
                     DB::table('ventas')->where('id', $venta->id)->update([
@@ -202,8 +203,20 @@ class clienteController extends Controller
                 }
             }
 
+            Movimiento::create([
+                'tipo' => TipoMovimientoEnum::Ingreso,
+                'descripcion' => 'Abono deuda cliente: ' . $cliente->persona->razon_social,
+                'monto' => $montoAbono,
+                'metodo_pago' => $metodoPago,
+                'caja_id' => $caja->id,
+            ]);
+
             DB::commit();
-            ActivityLogService::log('Pago de deuda', 'Clientes', ['cliente_id' => $cliente->id, 'monto' => $montoAbono]);
+            ActivityLogService::log('Pago de deuda', 'Clientes', [
+                'cliente_id' => $cliente->id,
+                'monto' => $montoAbono,
+                'deuda_restante' => $deudaTotal - $montoAbono,
+            ]);
 
             return redirect()->back()->with('success', 'Abono de $' . number_format($montoAbono, 0, ',', '.') . ' registrado correctamente.');
 

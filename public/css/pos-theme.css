@@ -295,9 +295,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 .caja-badge.open  { background: rgba(76,175,125,0.2); color: #4CAF7D; border: 1px solid rgba(76,175,125,0.35); }
 .caja-badge.close { background: rgba(231,76,94,0.2);  color: #E74C5E; border: 1px solid rgba(231,76,94,0.35); }
+.caja-badge.neutral { background: rgba(91,155,213,0.18); color: #5B9BD5; border: 1px solid rgba(91,155,213,0.3); }
 .caja-badge .dot  { width: 7px; height: 7px; border-radius: 50%; }
 .caja-badge.open .dot  { background: #4CAF7D; box-shadow: 0 0 5px #4CAF7D; animation: pulse-dot 2s infinite; }
 .caja-badge.close .dot { background: #E74C5E; }
+.caja-badge.neutral .dot { background: #5B9BD5; }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -987,6 +989,11 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius) !important;
   padding: 0.875rem 1.1rem !important;
   font-size: 0.875rem;
+}
+.flash-stack {
+  position: sticky;
+  top: 60px;
+  z-index: 1025;
 }
 .alert-success {
   background: var(--color-success-subtle) !important;
