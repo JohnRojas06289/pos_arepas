@@ -560,7 +560,11 @@
                     <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio ?? 0}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
                             @if($item->img_path)
-                                <img src="{{ $item->image_url }}" class="product-img" alt="{{$item->nombre}}" onerror="this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'">
+                                <img src="{{ $item->image_url }}"
+                                     data-fallback="{{ \Illuminate\Support\Facades\Storage::url($item->img_path) }}"
+                                     class="product-img"
+                                     alt="{{$item->nombre}}"
+                                     onerror="if(this.dataset.fallback && this.src !== this.dataset.fallback){ this.src = this.dataset.fallback; this.dataset.fallback=''; } else { this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'; }">
                             @else
                                 <div class="text-muted text-center p-3">
                                     <i class="fa-solid fa-image fa-3x mb-2 opacity-25"></i>
