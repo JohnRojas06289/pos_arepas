@@ -22,7 +22,7 @@
 
                 @can('ver-panel')
                 <x-nav.nav-link
-                    content="Panel"
+                    content="Inicio"
                     icon="fas fa-chart-line"
                     :href="route('panel')"
                     :active="request()->routeIs('panel')" />

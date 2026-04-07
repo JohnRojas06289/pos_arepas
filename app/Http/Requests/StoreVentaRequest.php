@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Enums\MetodoPagoEnum;
-use App\Models\Cliente;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
 
@@ -26,9 +26,13 @@ class StoreVentaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cliente_id' => 'nullable|required_if:metodo_pago,FIADO|exists:clientes,id',
+            'cliente_id' => 'nullable|exists:clientes,id',
             'comprobante_id' => 'required|exists:comprobantes,id',
-            'metodo_pago' => ['required', new Enum(MetodoPagoEnum::class)],
+            'metodo_pago' => [
+                'required',
+                new Enum(MetodoPagoEnum::class),
+                Rule::notIn([MetodoPagoEnum::Fiado->value]),
+            ],
             'subtotal' => 'required|numeric|min:0.01',
             'total' => 'required|numeric|min:0.01',
             'monto_recibido' => 'required|numeric|min:0',
@@ -50,7 +54,6 @@ class StoreVentaRequest extends FormRequest
                 $cantidades = $this->input('arraycantidad', []);
                 $precios = $this->input('arrayprecioventa', []);
                 $metodoPago = $this->input('metodo_pago');
-                $clienteId = $this->input('cliente_id');
                 $montoRecibido = (float) $this->input('monto_recibido', 0);
                 $total = round((float) $this->input('total', 0), 2);
                 $subtotal = round((float) $this->input('subtotal', 0), 2);
@@ -74,15 +77,10 @@ class StoreVentaRequest extends FormRequest
                 }
 
                 if ($metodoPago === MetodoPagoEnum::Fiado->value) {
-                    if ($montoRecibido >= $total) {
-                        $validator->errors()->add('monto_recibido', 'Una venta fiada debe dejar saldo pendiente. Usa otro método si ya fue pagada.');
-                    }
+                    $validator->errors()->add('metodo_pago', 'La opción de fiado ya no está disponible en el punto de venta.');
+                }
 
-                    $cliente = $clienteId ? Cliente::find($clienteId) : null;
-                    if (!$cliente || !$cliente->isFiado()) {
-                        $validator->errors()->add('cliente_id', 'Las ventas fiadas solo se permiten para clientes de crédito.');
-                    }
-                } elseif ($montoRecibido < $total) {
+                if ($montoRecibido < $total) {
                     $validator->errors()->add('monto_recibido', 'El monto recibido no puede ser menor al total de la venta.');
                 }
             },

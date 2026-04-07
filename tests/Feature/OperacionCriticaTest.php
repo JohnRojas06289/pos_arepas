@@ -38,7 +38,7 @@ class OperacionCriticaTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    public function test_fiado_sale_keeps_pending_balance_and_creates_no_cash_movement(): void
+    public function test_fiado_sale_is_rejected_from_pos(): void
     {
         $this->openCaja();
         $producto = $this->createProductoConInventario(5, 3000);
@@ -58,18 +58,13 @@ class OperacionCriticaTest extends TestCase
             'arrayprecioventa' => [3000],
         ]);
 
-        $response->assertRedirect(route('ventas.create'));
+        $response->assertSessionHasErrors('metodo_pago');
 
-        $this->assertDatabaseHas('ventas', [
-            'cliente_id' => $clienteFiado->id,
-            'metodo_pago' => 'FIADO',
-            'pagado' => 0,
-            'saldo_pendiente' => 6000,
-        ]);
+        $this->assertDatabaseCount('ventas', 0);
 
         $this->assertDatabaseHas('inventario', [
             'producto_id' => $producto->id,
-            'cantidad' => 3,
+            'cantidad' => 5,
         ]);
 
         $this->assertDatabaseCount('movimientos', 0);

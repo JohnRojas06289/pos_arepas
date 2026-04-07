@@ -95,7 +95,10 @@ class ventaController extends Controller
         });
 
         $comprobantes = $comprobanteService->obtenerComprobantes();
-        $optionsMetodoPago = MetodoPagoEnum::cases();
+        $optionsMetodoPago = array_values(array_filter(
+            MetodoPagoEnum::cases(),
+            fn (MetodoPagoEnum $metodo) => $metodo !== MetodoPagoEnum::Fiado
+        ));
 
         return view('venta.create', compact(
             'productos',

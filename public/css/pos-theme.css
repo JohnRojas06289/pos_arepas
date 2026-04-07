@@ -230,6 +230,10 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: none !important;
   height: 60px;
   min-height: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   transition: background-color var(--transition) !important;
 }
 
@@ -553,7 +557,11 @@ h1, h2, h3, h4, h5, h6 {
    =================================================== */
 #layoutSidenav_content {
   background-color: var(--bg-primary) !important;
+  padding-top: 60px;
   transition: background-color var(--transition);
+}
+.sb-nav-fixed #layoutSidenav #layoutSidenav_nav .sb-sidenav {
+  padding-top: 60px;
 }
 #layoutSidenav_content main {
   padding: 1.5rem !important;
@@ -992,7 +1000,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .flash-stack {
   position: sticky;
-  top: 60px;
+  top: 0;
   z-index: 1025;
 }
 .alert-success {

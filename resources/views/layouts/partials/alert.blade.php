@@ -2,6 +2,7 @@
     $flashMessages = collect([
         ['type' => 'success', 'icon' => 'fa-circle-check', 'message' => session('success')],
         ['type' => 'danger', 'icon' => 'fa-circle-xmark', 'message' => session('error')],
+        ['type' => 'warning', 'icon' => 'fa-triangle-exclamation', 'message' => session('warning')],
         ['type' => 'info', 'icon' => 'fa-circle-info', 'message' => session('login')],
     ])->filter(fn ($item) => filled($item['message']));
 @endphp

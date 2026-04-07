@@ -76,6 +76,11 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
 
     // ── Administración ────────────────────────────────────────────────────
     Route::get('/estadisticas', [homeController::class, 'estadisticas'])->name('admin.estadisticas');
+    Route::get('/reservas', function () {
+        return redirect()
+            ->route('panel')
+            ->with('warning', 'El módulo de reservas no está disponible en esta versión.');
+    })->name('admin.reservas');
     Route::resource('users', userController::class)->except('show');
     Route::resource('roles', roleController::class)->except('show');
     Route::resource('profile', profileController::class)->only('index', 'update');

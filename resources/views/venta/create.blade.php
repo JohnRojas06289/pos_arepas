@@ -8,9 +8,7 @@
     body.pos-screen { overflow: hidden; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
 
-    /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
-    /* padding-top:60px clears the fixed topnav; pos-container fills Y=60px→100vh */
-    #layoutSidenav_content main { padding: 60px 0 0 0 !important; margin: 0 !important; }
+    #layoutSidenav_content main { padding: 0 !important; margin: 0 !important; }
 
     /* Sidebar de categorías */
     .category-sidebar {
@@ -146,17 +144,31 @@
         transform: scale(1.1);
     }
     
-    .product-price {
-        font-family: 'JetBrains Mono', monospace;
-        font-weight: 700;
-        color: var(--color-primary);
-        font-size: 1.1rem;
-    }
-
     .product-name {
         font-size: 0.92rem;
         font-weight: 600;
         color: var(--text-primary);
+    }
+
+    .cart-price-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem;
+        margin-top: 0.55rem;
+    }
+
+    .cart-price-grid label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 0.2rem;
+    }
+
+    .cart-price-input {
+        width: 100%;
+        min-width: 0;
     }
 
     /* Items del carrito */
@@ -440,7 +452,7 @@
 
     @media (max-width: 576px) {
         .product-name { font-size: 0.8rem; }
-        .product-price { font-size: 0.95rem; }
+        .cart-price-grid { grid-template-columns: 1fr; }
     }
 
 
@@ -572,7 +584,6 @@
                         </div>
                         <div class="card-body p-2 text-center">
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
-                            <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio, 0, ',', '.') }}</div>
                             <small class="text-{{ $item->cantidad > 5 ? 'success' : 'danger' }} d-block stock-display" style="font-size: 0.7rem;">
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
@@ -637,20 +648,13 @@
 
                 <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label small text-muted mb-0">Método de Pago:</label>
+                        <label class="form-label small text-muted mb-0">Método de pago:</label>
                         <span id="paymentBadge" class="badge bg-success" style="font-size:0.8rem;">
                             <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
                         </span>
                     </div>
-                    <div id="fiadoClienteBadge" class="d-none mb-1">
-                        <span class="badge bg-warning text-dark w-100 text-start" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-user me-1"></i>
-                            <span id="fiadoClienteNombre">Sin cliente</span>
-                            <button type="button" class="btn-close btn-close-sm ms-auto float-end" style="font-size:0.6rem;" onclick="cancelarFiado()"></button>
-                        </span>
-                    </div>
                     <div class="row g-1 mb-2">
-                        <div class="col-4">
+                        <div class="col-6">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
                                 data-payment-option="NEQUI"
                                 style="background:var(--color-secondary);color:#fff;border-color:var(--color-secondary);font-size:0.72rem;"
@@ -658,20 +662,12 @@
                                 <i class="fas fa-mobile-alt me-1"></i>NEQUI
                             </button>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
                                 data-payment-option="DAVIPLATA"
                                 style="background:var(--color-primary);color:#fff;border-color:var(--color-primary);font-size:0.72rem;"
                                 onclick="pagarCon('DAVIPLATA')">
                                 <i class="fas fa-university me-1"></i>DAVI
-                            </button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold payment-option"
-                                data-payment-option="FIADO"
-                                style="background:var(--color-warning);color:#fff;border-color:var(--color-warning);font-size:0.72rem;"
-                                onclick="iniciarFiado()">
-                                <i class="fas fa-handshake me-1"></i>FIADO
                             </button>
                         </div>
                     </div>
@@ -706,7 +702,7 @@
                     </button>
                     <div id="lastSaleCard" class="last-sale-card d-none" aria-live="polite"></div>
                     <button type="button" class="btn btn-light btn-sm text-danger" onclick="cancelarVenta()">
-                        <i class="fa-solid fa-times me-1"></i> Cancelar Venta
+                        <i class="fa-solid fa-times me-1"></i> Cancelar venta
                     </button>
                 </div>
                 
@@ -730,7 +726,7 @@
             <div class="modal-content">
                 <div class="modal-header" style="background:var(--color-secondary);">
                     <h5 class="modal-title" style="color:#fff;font-size:1rem;font-weight:700;">
-                        <i class="fas fa-user me-2"></i>Seleccionar Cliente
+                        <i class="fas fa-user me-2"></i>Seleccionar cliente
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1015,14 +1011,16 @@
         document.querySelectorAll('.client-item').forEach(function(button) {
             var text = button.textContent.toLowerCase();
             var matchesText = text.indexOf(search) > -1;
-            var isCreditFilter = document.getElementById('clientModal').dataset.context === 'fiado';
-            var tipo = button.getAttribute('data-tipo');
-            var matchesCredit = !isCreditFilter || tipo === 'fiado';
-
-            button.style.display = matchesText && matchesCredit ? '' : 'none';
+            button.style.display = matchesText ? '' : 'none';
         });
 
         updateClientEmptyState();
+    }
+
+    function recalculateItem(item) {
+        item.precio = parseFloat(item.precio) || 0;
+        item.cantidad = parseInt(item.cantidad, 10) || 0;
+        item.subtotal = item.cantidad * item.precio;
     }
 
     function addToCart(id, nombre, precio, stock, sigla) {
@@ -1049,7 +1047,7 @@
 
         if (existingItem) {
             existingItem.cantidad++;
-            existingItem.subtotal = existingItem.cantidad * existingItem.precio;
+            recalculateItem(existingItem);
         } else {
             cart.push({ 
                 id: id, 
@@ -1061,6 +1059,7 @@
                 subtotal: parseFloat(precio),
                 isNew: true
             });
+            recalculateItem(cart[cart.length - 1]);
         }
         renderCart();
         
@@ -1111,10 +1110,38 @@
         var item = cart.find(function(i) { return i.id === id; });
         if (item) {
             item.cantidad = newQty;
-            item.subtotal = item.cantidad * item.precio;
+            recalculateItem(item);
             playSound(600, 0.1);
             renderCart();
         }
+    }
+
+    function updatePriceManual(id, newPrice) {
+        var parsedPrice = parseFloat(newPrice);
+        var item = cart.find(function(i) { return i.id === id; });
+
+        if (!item) {
+            return;
+        }
+
+        if (isNaN(parsedPrice) || parsedPrice < 0) {
+            playSound(200, 0.2);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Precio inválido',
+                text: 'Ingresa un valor igual o mayor a 0.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+            renderCart();
+            return;
+        }
+
+        item.precio = parsedPrice;
+        recalculateItem(item);
+        renderCart();
     }
 
     function removeFromCart(id) {
@@ -1155,6 +1182,7 @@
             document.getElementById('emptyCartMessage').style.display = 'none';
             
             cart.forEach(function(item) {
+                recalculateItem(item);
                 total += item.subtotal;
                 var itemClass = item.isNew ? 'cart-item cart-item-new' : 'cart-item';
                 item.isNew = false; // Resetear flag
@@ -1171,13 +1199,22 @@
                                 'onclick="this.select()">' +
                             '<small class="text-muted">' + item.sigla + '</small>' +
                         '</div>' +
-                        '<small class="text-muted">' + formatNumber(item.precio) + ' c/u</small>' +
+                        '<div class="cart-price-grid">' +
+                            '<div>' +
+                                '<label>Precio unitario</label>' +
+                                '<input type="number" class="form-control form-control-sm cart-price-input" min="0" step="0.01" ' +
+                                    'value="' + item.precio + '" onchange="updatePriceManual(\'' + item.id + '\', this.value)" onclick="this.select()">' +
+                            '</div>' +
+                            '<div>' +
+                                '<label>Subtotal</label>' +
+                                '<div class="form-control form-control-sm bg-light text-primary fw-bold">' + formatNumber(item.subtotal) + '</div>' +
+                            '</div>' +
+                        '</div>' +
                         '<input type="hidden" name="arrayidproducto[]" value="' + item.id + '">' +
                         '<input type="hidden" name="arraycantidad[]" value="' + item.cantidad + '">' +
                         '<input type="hidden" name="arrayprecioventa[]" value="' + item.precio + '">' +
                     '</div>' +
                     '<div class="text-end ms-2">' +
-                        '<div class="fw-bold mb-2 text-primary">' + formatNumber(item.subtotal) + '</div>' +
                         '<button type="button" class="btn btn-sm btn-outline-danger px-2" onclick="removeFromCart(\'' + item.id + '\')" title="Eliminar">' +
                             '<i class="fa-solid fa-trash"></i>' +
                         '</button>' +
@@ -1231,15 +1268,6 @@
     }
 
     function calculateChange() {
-        var metodoPago = document.getElementById('selectMetodoPago').value;
-        if (metodoPago === 'FIADO') {
-            var clienteSeleccionado = document.getElementById('selectClienteId').value;
-            document.getElementById('vuelto').value = 0;
-            document.getElementById('vuelto_display').value = '0';
-            document.getElementById('btnPay').disabled = !(total > 0 && clienteSeleccionado);
-            return;
-        }
-
         var received = parseFloat(document.getElementById('dinero_recibido').value) || 0;
         
         if (received >= total && total > 0) {
@@ -1275,6 +1303,7 @@
 
     function cancelarVenta() {
         cart = [];
+        document.getElementById('selectClienteId').value = '';
         document.getElementById('dinero_recibido').value = '';
         document.getElementById('dinero_recibido_display').value = '';
         document.getElementById('vuelto').value = '';
@@ -1317,19 +1346,6 @@
             badge.style.backgroundColor = '';
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
-        } else if (type === 'FIADO') {
-            badge.className = 'badge bg-warning text-dark';
-            badge.style.backgroundColor = '';
-            badge.style.color = '';
-            badge.innerHTML = '<i class="fa-solid fa-handshake me-1"></i> FIADO';
-            document.getElementById('efectivoCampos').style.display = 'none';
-            document.getElementById('dinero_recibido').value = 0;
-            document.getElementById('dinero_recibido_display').value = '0';
-            document.getElementById('vuelto').value = 0;
-            document.getElementById('vuelto_display').value = '0';
-            calculateChange();
-            playSound(600, 0.1);
-            return;
         }
         document.getElementById('efectivoCampos').style.display = '';
         document.getElementById('dinero_recibido').value = total;
@@ -1340,55 +1356,14 @@
         playSound(600, 0.1);
     }
 
-    function iniciarFiado() {
-        if (total === 0) return;
-        document.getElementById('clientModal').dataset.context = 'fiado';
-        toggleClientOptions(true);
-        document.getElementById('clientModalHelp').textContent = 'Selecciona un cliente de crédito para registrar la venta fiada.';
-        document.getElementById('clientSearchInput').value = '';
-        filterClients();
-        var modal = new bootstrap.Modal(document.getElementById('clientModal'));
-        modal.show();
-    }
-
-    function cancelarFiado() {
-        document.getElementById('selectClienteId').value = '';
-        document.getElementById('fiadoClienteBadge').classList.add('d-none');
-        document.getElementById('fiadoClienteNombre').textContent = 'Sin cliente';
-        document.getElementById('clientModal').dataset.context = '';
-        document.getElementById('clientModalHelp').textContent = 'Selecciona un cliente para continuar.';
-        pagarEfectivo();
-        calculateChange();
-    }
-
     function selectClient(id, nombre, tipoCliente) {
-        var context = document.getElementById('clientModal').dataset.context;
-
-        if (context === 'fiado' && tipoCliente !== 'fiado') {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Cliente no válido',
-                text: 'Para ventas fiadas debes seleccionar un cliente de crédito.'
-            });
-            return;
-        }
-
         document.getElementById('selectClienteId').innerHTML = '<option value="' + id + '" selected>' + nombre + '</option>';
-
         bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
-
-        if (context === 'fiado') {
-            pagarCon('FIADO');
-            document.getElementById('fiadoClienteBadge').classList.remove('d-none');
-            document.getElementById('fiadoClienteNombre').textContent = nombre;
-            document.getElementById('clientModal').dataset.context = '';
-        }
     }
 
     function toggleClientOptions(onlyCredit) {
         document.querySelectorAll('.client-item').forEach(function(button) {
-            var tipo = button.getAttribute('data-tipo');
-            button.style.display = (!onlyCredit || tipo === 'fiado') ? '' : 'none';
+            button.style.display = '';
         });
         updateClientEmptyState();
     }
@@ -1476,8 +1451,8 @@
             document.getElementById('inputSubtotal').value = '0';
             document.getElementById('inputTotal').value = '0';
             
-            // Si estaba en fiado, regresar a efectivo normal
-            cancelarFiado();
+            document.getElementById('selectClienteId').value = '';
+            pagarEfectivo();
             renderCart(); // Esto repinta el carrito vacío
             document.getElementById('searchInput').focus();
             toggleMobileCart(false);
@@ -1505,8 +1480,8 @@
             });
 
             // Restaurar botón
-            btnPay.disabled = false;
             btnPay.innerHTML = originalBtnHtml;
+            calculateChange();
         });
     });
 
