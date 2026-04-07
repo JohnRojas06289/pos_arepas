@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Producto extends Model
 {
@@ -105,30 +107,44 @@ class Producto extends Model
             return '';
         }
 
-        // If path is already a URL, return it
-        if (str_starts_with($this->img_path, 'http')) {
-            return $this->img_path;
+        $path = trim((string) $this->img_path);
+
+        // If path is already a URL, force https when possible
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            return Str::startsWith($path, 'http://')
+                ? preg_replace('/^http:\/\//i', 'https://', $path)
+                : $path;
         }
 
-        // Check if using Cloudinary (Force check due to Vercel/Latency issues)
+        // Legacy local paths
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+        if (Str::startsWith($path, '/storage/')) {
+            return asset(ltrim($path, '/'));
+        }
+        if (Str::startsWith($path, 'public/')) {
+            return Storage::url(Str::after($path, 'public/'));
+        }
+
         $cloudName = config('filesystems.disks.cloudinary.cloud_name');
-        
-        // Fallback: If config is missing but env is present (should be handled by config, but safe check)
+
         if (!$cloudName) {
              $cloudName = parse_url(env('CLOUDINARY_URL'), PHP_URL_HOST);
         }
-        
-        // If we have a cloud name, we assume the image is hosted there if it's not a full URL already
+
+        // Normalize malformed cloud names if they include extra URL fragments
+        if ($cloudName && preg_match('/res\.cloudinary\.com\/([^\/]+)/', $cloudName, $matches)) {
+            $cloudName = $matches[1];
+        }
         if ($cloudName) {
-            return "https://res.cloudinary.com/{$cloudName}/image/upload/{$this->img_path}";
+            $cloudName = trim((string) $cloudName, " \t\n\r\0\x0B/@");
         }
 
-        // Fallback to Storage::url for local files
-        if (config('filesystems.default') === 'local' || config('filesystems.default') === 'public') {
-             return \Illuminate\Support\Facades\Storage::url($this->img_path);
+        if ($cloudName) {
+            return "https://res.cloudinary.com/{$cloudName}/image/upload/{$path}";
         }
 
-        // Fallback to Storage::url
-        return \Illuminate\Support\Facades\Storage::url($this->img_path);
+        return Storage::url($path);
     }
 }
