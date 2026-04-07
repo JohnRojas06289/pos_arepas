@@ -557,7 +557,7 @@
                      data-category="{{$item->categoria_id}}"
                      data-nombre="{{ strtoupper(substr(trim($item->nombre), 0, 1)) }}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
-                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
+                    <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio ?? 0}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
                             @if($item->img_path)
                                 <img src="{{ $item->image_url }}" class="product-img" alt="{{$item->nombre}}" onerror="this.parentElement.innerHTML='<div class=\'text-muted text-center p-3\'><i class=\'fa-solid fa-image fa-3x mb-2 opacity-25\'></i><br><small>Sin imagen</small></div>'">
@@ -569,6 +569,7 @@
                             @endif
                         </div>
                         <div class="card-body p-2 text-center">
+                            <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio ?? 0, 0, ',', '.') }}</div>
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
                             <small class="text-{{ $item->cantidad > 5 ? 'success' : ($item->cantidad > 0 ? 'warning' : 'danger') }} d-block stock-display" style="font-size: 0.7rem;">
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
