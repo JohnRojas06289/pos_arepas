@@ -559,9 +559,9 @@
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
                     @php
                         $imgPath = (string) ($item->img_path ?? '');
-                        $localImageUrl = str_starts_with($imgPath, 'public/')
+                        $localImageUrl = \Illuminate\Support\Str::startsWith($imgPath, 'public/')
                             ? \Illuminate\Support\Facades\Storage::url(\Illuminate\Support\Str::after($imgPath, 'public/'))
-                            : (str_starts_with($imgPath, 'storage/')
+                            : (\Illuminate\Support\Str::startsWith($imgPath, 'storage/')
                                 ? asset($imgPath)
                                 : \Illuminate\Support\Facades\Storage::url($imgPath));
                     @endphp
