@@ -42,7 +42,7 @@
             <hr>
             @if ($caja->estado == 1)
             @can('crear-venta')
-            <a href="{{route('ventas.create')}}">
+            <a href="{{route('pos.index')}}">
                 <button type="button" class="btn btn-primary">Nueva venta</button>
             </a>
             @endcan

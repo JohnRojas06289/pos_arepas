@@ -24,7 +24,7 @@
             </div>
         </div>
         @can('crear-venta')
-        <a href="{{ route('ventas.create') }}" class="btn btn-primary">
+        <a href="{{ route('pos.index') }}" class="btn btn-primary">
             <i class="fas fa-cash-register"></i>
             <span>Nueva Venta</span>
         </a>

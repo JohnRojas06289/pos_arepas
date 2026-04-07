@@ -27,7 +27,7 @@
                 @can('crear-venta')
                 <x-nav.nav-link content='Punto de Venta'
                     icon='fas fa-cash-register'
-                    :href="route('ventas.create')" />
+                    :href="route('pos.index')" />
                 @endcan
 
                 @can('ver-venta')

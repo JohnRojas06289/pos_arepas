@@ -5,13 +5,13 @@
 @push('css')
 <style>
     body { overflow: hidden; }
-    #layoutSidenav_content { padding-top: 0 !important; }
+    #layoutSidenav_content { padding-top: 60px !important; }
     .pos-container { height: calc(100vh - 60px); overflow: hidden; }
     #agente-ia-btn, #agente-ia-panel { display: none !important; }
 
     /* Fix for extra spacing — override pos-theme.css higher-specificity rule */
     /* padding-top:60px clears the fixed topnav; pos-container fills Y=60px→100vh */
-    #layoutSidenav_content main { padding: 60px 0 0 0 !important; margin: 0 !important; }
+    #layoutSidenav_content main { padding: 0 !important; margin: 0 !important; }
 
     /* Sidebar de categorías */
     .category-sidebar {
@@ -177,6 +177,50 @@
     .cart-item:hover {
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         transform: translateX(4px);
+    }
+
+    .cart-item-details {
+        min-width: 0;
+    }
+
+    .cart-item-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .cart-item-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .cart-item-field label {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .cart-item-field .form-control {
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+
+    .cart-price-input {
+        width: 110px;
+    }
+
+    .cart-qty-input {
+        width: 72px;
+    }
+
+    .cart-item-subtotal {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800;
+        color: var(--color-primary);
     }
     
     .cart-item-new {
@@ -526,7 +570,6 @@
                         </div>
                         <div class="card-body p-2 text-center">
                             <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
-                            <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio, 0, ',', '.') }}</div>
                             <small class="text-{{ $item->cantidad > 5 ? 'success' : ($item->cantidad > 0 ? 'warning' : 'danger') }} d-block stock-display" style="font-size: 0.7rem;">
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
@@ -556,7 +599,6 @@
             </div>
             
             <div class="d-none">
-                <select name="cliente_id" id="selectClienteId"><option value="" selected></option></select>
                 <select name="comprobante_id"><option value="{{$comprobantes->first()->id ?? ''}}" selected></option></select>
                 <select name="metodo_pago" id="selectMetodoPago">
                     @foreach($optionsMetodoPago as $op)
@@ -590,13 +632,6 @@
                             <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
                         </span>
                     </div>
-                    <div id="fiadoClienteBadge" class="d-none mb-1">
-                        <span class="badge bg-warning text-dark w-100 text-start" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-user me-1"></i>
-                            <span id="fiadoClienteNombre">Sin cliente</span>
-                            <button type="button" class="btn-close btn-close-sm ms-auto float-end" style="font-size:0.6rem;" onclick="cancelarFiado()"></button>
-                        </span>
-                    </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
@@ -609,7 +644,7 @@
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
                                 style="background:var(--color-primary);color:#fff;border-color:var(--color-primary);font-size:0.72rem;"
                                 onclick="pagarCon('DAVIPLATA')">
-                                <i class="fas fa-university me-1"></i>DAVI
+                                <i class="fas fa-university me-1"></i>DAVIPLATA
                             </button>
                         </div>
                         <div class="col-4">
@@ -668,36 +703,6 @@
 
     <!-- Overlay para cerrar el carrito móvil tocando fuera -->
     <div class="mobile-cart-overlay" id="mobileCartOverlay" onclick="toggleMobileCart()"></div>
-    
-    <!-- Modal Clientes -->
-    <div class="modal fade" id="clientModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--color-secondary);">
-                    <h5 class="modal-title" style="color:#fff;font-size:1rem;font-weight:700;">
-                        <i class="fas fa-user me-2"></i>Seleccionar Cliente
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="clientSearchInput" placeholder="Buscar cliente..." onkeyup="filterClients()">
-                    </div>
-                    <div class="list-group" id="clientListGroup" style="max-height: 400px; overflow-y: auto;">
-                        @foreach($clientes as $client)
-                            @if(strtolower($client->persona->razon_social) == 'indefinido' || $client->persona->numero_documento == '1111111111')
-                                @continue
-                            @endif
-                            <button type="button" class="list-group-item list-group-item-action client-item" 
-                                    onclick="selectClient('{{$client->id}}', '{{addslashes($client->persona->razon_social)}}')">
-                                {{$client->persona->razon_social}} <small class="text-muted">({{$client->persona->numero_documento}})</small>
-                            </button>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </form>
 @endsection
 
@@ -754,6 +759,20 @@
 
     function formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function normalizeMoney(value) {
+        var parsed = parseFloat(value);
+        if (isNaN(parsed) || parsed < 0) {
+            return 0;
+        }
+
+        return Math.round(parsed * 100) / 100;
+    }
+
+    function recalculateItem(item) {
+        item.precio = normalizeMoney(item.precio);
+        item.subtotal = normalizeMoney(item.cantidad * item.precio);
     }
 
     function showKeyboardHint(text) {
@@ -913,22 +932,23 @@
     function addToCart(id, nombre, precio, stock, sigla) {
         id = id.toString();
         var existingItem = cart.find(function(item) { return item.id === id; });
+        var precioBase = normalizeMoney(precio);
 
         // Sonido de éxito
         playSound(800, 0.1);
 
         if (existingItem) {
             existingItem.cantidad++;
-            existingItem.subtotal = existingItem.cantidad * existingItem.precio;
+            recalculateItem(existingItem);
         } else {
             cart.push({ 
                 id: id, 
                 nombre: nombre, 
-                precio: parseFloat(precio), 
+                precio: precioBase, 
                 cantidad: 1, 
                 sigla: sigla, 
                 stock: parseInt(stock),
-                subtotal: parseFloat(precio),
+                subtotal: precioBase,
                 isNew: true
             });
         }
@@ -967,10 +987,36 @@
         var item = cart.find(function(i) { return i.id === id; });
         if (item) {
             item.cantidad = newQty;
-            item.subtotal = item.cantidad * item.precio;
+            recalculateItem(item);
             playSound(600, 0.1);
             renderCart();
         }
+    }
+
+    function updatePriceManual(id, newPrice) {
+        var item = cart.find(function(i) { return i.id === id; });
+        if (!item) return;
+
+        var precio = normalizeMoney(newPrice);
+
+        if (precio <= 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Precio inválido',
+                text: 'El precio por producto debe ser mayor a cero.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+            renderCart();
+            return;
+        }
+
+        item.precio = precio;
+        recalculateItem(item);
+        playSound(550, 0.08);
+        renderCart();
     }
 
     function removeFromCart(id) {
@@ -1016,24 +1062,35 @@
                 item.isNew = false; // Resetear flag
                 
                 var row = '<div class="' + itemClass + '">' +
-                    '<div class="flex-grow-1">' +
-                        '<div class="fw-bold text-truncate" style="max-width: 140px;">' + item.nombre + '</div>' +
-                        '<div class="d-flex align-items-center gap-2 mt-1">' +
-                            '<small class="text-muted">Cantidad:</small>' +
-                            '<input type="number" class="form-control form-control-sm" style="width: 60px;" ' +
-                                'value="' + item.cantidad + '" ' +
-                                'min="1" ' +
-                                'onchange="updateQuantityManual(\'' + item.id + '\', this.value, ' + item.stock + ')" ' +
-                                'onclick="this.select()">' +
-                            '<small class="text-muted">' + item.sigla + '</small>' +
+                    '<div class="flex-grow-1 cart-item-details">' +
+                        '<div class="fw-bold text-truncate" style="max-width: 170px;">' + item.nombre + '</div>' +
+                        '<div class="cart-item-controls">' +
+                            '<div class="cart-item-field">' +
+                                '<label>Cantidad</label>' +
+                                '<div class="d-flex align-items-center gap-2">' +
+                                    '<input type="number" class="form-control form-control-sm cart-qty-input" ' +
+                                        'value="' + item.cantidad + '" ' +
+                                        'min="1" ' +
+                                        'onchange="updateQuantityManual(\'' + item.id + '\', this.value, ' + item.stock + ')" ' +
+                                        'onclick="this.select()">' +
+                                    '<small class="text-muted">' + item.sigla + '</small>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="cart-item-field">' +
+                                '<label>Precio</label>' +
+                                '<input type="number" class="form-control form-control-sm cart-price-input" ' +
+                                    'value="' + item.precio + '" ' +
+                                    'min="0.01" step="0.01" ' +
+                                    'onchange="updatePriceManual(\'' + item.id + '\', this.value)" ' +
+                                    'onclick="this.select()">' +
+                            '</div>' +
                         '</div>' +
-                        '<small class="text-muted">' + formatNumber(item.precio) + ' c/u</small>' +
                         '<input type="hidden" name="arrayidproducto[]" value="' + item.id + '">' +
                         '<input type="hidden" name="arraycantidad[]" value="' + item.cantidad + '">' +
                         '<input type="hidden" name="arrayprecioventa[]" value="' + item.precio + '">' +
                     '</div>' +
                     '<div class="text-end ms-2">' +
-                        '<div class="fw-bold mb-2 text-primary">' + formatNumber(item.subtotal) + '</div>' +
+                        '<div class="cart-item-subtotal mb-2">' + formatNumber(item.subtotal) + '</div>' +
                         '<button type="button" class="btn btn-sm btn-outline-danger px-2" onclick="removeFromCart(\'' + item.id + '\')" title="Eliminar">' +
                             '<i class="fa-solid fa-trash"></i>' +
                         '</button>' +
@@ -1086,6 +1143,24 @@
     }
 
     function calculateChange() {
+        var metodoPago = document.getElementById('selectMetodoPago').value;
+        if (metodoPago !== 'EFECTIVO') {
+            if (total > 0) {
+                document.getElementById('dinero_recibido').value = total;
+                document.getElementById('dinero_recibido_display').value = formatNumber(total);
+                document.getElementById('vuelto').value = 0;
+                document.getElementById('vuelto_display').value = '0';
+                document.getElementById('btnPay').disabled = false;
+            } else {
+                document.getElementById('dinero_recibido').value = '';
+                document.getElementById('dinero_recibido_display').value = '';
+                document.getElementById('vuelto').value = '';
+                document.getElementById('vuelto_display').value = '';
+                document.getElementById('btnPay').disabled = true;
+            }
+            return;
+        }
+
         var received = parseFloat(document.getElementById('dinero_recibido').value) || 0;
         
         if (received >= total && total > 0) {
@@ -1156,18 +1231,6 @@
             badge.style.backgroundColor = '';
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
-        } else if (type === 'FIADO') {
-            badge.className = 'badge bg-warning text-dark';
-            badge.style.backgroundColor = '';
-            badge.style.color = '';
-            badge.innerHTML = '<i class="fa-solid fa-handshake me-1"></i> FIADO';
-            // Ocultar campos de efectivo (no hay vuelto en fiado)
-            document.getElementById('efectivoCampos').style.display = 'none';
-            document.getElementById('dinero_recibido').value = total;
-            document.getElementById('vuelto').value = 0;
-            document.getElementById('btnPay').disabled = false;
-            playSound(600, 0.1);
-            return; // Salir antes de la lógica de abajo
         }
         document.getElementById('efectivoCampos').style.display = '';
         document.getElementById('dinero_recibido').value = total;
@@ -1176,41 +1239,6 @@
         document.getElementById('vuelto_display').value = '0';
         document.getElementById('btnPay').disabled = false;
         playSound(600, 0.1);
-    }
-
-    function iniciarFiado() {
-        if (total === 0) return;
-        // Abrir modal de selección de cliente
-        var modal = new bootstrap.Modal(document.getElementById('clientModal'));
-        modal.show();
-        // Marcar que el modal se abrió por motivo FIADO
-        document.getElementById('clientModal').dataset.context = 'fiado';
-    }
-
-    function cancelarFiado() {
-        // Limpiar cliente seleccionado y volver a EFECTIVO
-        document.getElementById('selectClienteId').value = '';
-        document.getElementById('fiadoClienteBadge').classList.add('d-none');
-        document.getElementById('fiadoClienteNombre').textContent = 'Sin cliente';
-        pagarEfectivo();
-        document.getElementById('btnPay').disabled = true;
-    }
-
-    function selectClient(id, nombre) {
-        var context = document.getElementById('clientModal').dataset.context;
-        // Actualizar el campo oculto cliente_id
-        document.getElementById('selectClienteId').innerHTML = '<option value="' + id + '" selected>' + nombre + '</option>';
-
-        // Cerrar modal
-        bootstrap.Modal.getInstance(document.getElementById('clientModal')).hide();
-
-        if (context === 'fiado') {
-            // Completar flujo FIADO
-            pagarCon('FIADO');
-            document.getElementById('fiadoClienteBadge').classList.remove('d-none');
-            document.getElementById('fiadoClienteNombre').textContent = nombre;
-            document.getElementById('clientModal').dataset.context = '';
-        }
     }
 
     // Prevenir envío tradicional y usar AJAX (Fetch API)
@@ -1293,13 +1321,17 @@
             document.getElementById('inputSubtotal').value = '0';
             document.getElementById('inputTotal').value = '0';
             
-            // Si estaba en fiado, regresar a efectivo normal
-            cancelarFiado();
+            pagarEfectivo();
+            document.getElementById('dinero_recibido').value = '';
+            document.getElementById('dinero_recibido_display').value = '';
+            document.getElementById('vuelto').value = '';
+            document.getElementById('vuelto_display').value = '';
             renderCart(); // Esto repinta el carrito vacío
 
             // Restaurar botón
             btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora
             btnPay.innerHTML = originalBtnHtml;
+            document.getElementById('searchInput').focus();
         })
         .catch(error => {
             console.error('Error procesando venta:', error);

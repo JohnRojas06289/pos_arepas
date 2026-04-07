@@ -71,6 +71,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('empleados', EmpleadoController::class)->except('show');
 
     // ── Ventas y Compras ──────────────────────────────────────────────────
+    Route::get('/pos', [ventaController::class, 'create'])->name('pos.index');
     Route::resource('ventas', ventaController::class)->except('edit', 'update', 'destroy');
     Route::post('compras/scan-factura', [compraController::class, 'scanFactura'])->name('compras.scan-factura');
     Route::resource('compras', compraController::class)->except('edit', 'update', 'destroy');
