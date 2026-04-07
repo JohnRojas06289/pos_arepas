@@ -29,6 +29,10 @@ class Proveedore extends Model
      */
     public function getNombreDocumentoAttribute(): string
     {
-        return $this->persona->razon_social . ' - ' . $this->persona->documento->nombre . ': ' . $this->persona->numero_documento;
+        $razonSocial = $this->persona?->razon_social ?? 'Proveedor sin nombre';
+        $documento   = $this->persona?->documento?->nombre ?? 'Documento';
+        $numero      = $this->persona?->numero_documento ?? 'Sin número';
+
+        return "{$razonSocial} - {$documento}: {$numero}";
     }
 }
