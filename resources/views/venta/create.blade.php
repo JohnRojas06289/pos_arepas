@@ -657,7 +657,7 @@
                     </div>
                 </div>
 
-                <div class="mb-2">
+                <div class="mb-2" id="smartCashWrapper">
                     <label class="form-label small text-muted mb-1">Pago Rápido (Efectivo):</label>
                     <div class="row g-1">
                         <div class="col"><button type="button" class="btn btn-outline-secondary w-100 smart-cash-btn" onclick="pagarEfectivo();setExactCash()">Exacto</button></div>
@@ -770,9 +770,36 @@
         return Math.round(parsed * 100) / 100;
     }
 
+    function parseMoneyInput(value) {
+        var digits = String(value || '').replace(/\D/g, '');
+        if (!digits) {
+            return 0;
+        }
+
+        return parseInt(digits, 10);
+    }
+
     function recalculateItem(item) {
         item.precio = normalizeMoney(item.precio);
         item.subtotal = normalizeMoney(item.cantidad * item.precio);
+    }
+
+    function updateCartTotals() {
+        total = 0;
+        cart.forEach(function(item) {
+            total += item.subtotal;
+        });
+
+        document.getElementById('totalDisplay').innerText = formatNumber(total);
+        document.getElementById('inputTotal').value = total;
+        document.getElementById('inputSubtotal').value = total;
+
+        var totalItems = cart.reduce(function(acc, item) { return acc + item.cantidad; }, 0);
+        document.getElementById('cartCount').innerText = totalItems;
+        var mobileCount = document.getElementById('cartCountMobile');
+        if (mobileCount) mobileCount.innerText = totalItems;
+
+        calculateChange();
     }
 
     function showKeyboardHint(text) {
@@ -997,7 +1024,7 @@
         var item = cart.find(function(i) { return i.id === id; });
         if (!item) return;
 
-        var precio = normalizeMoney(newPrice);
+        var precio = parseMoneyInput(newPrice);
 
         if (precio <= 0) {
             Swal.fire({
@@ -1017,6 +1044,29 @@
         recalculateItem(item);
         playSound(550, 0.08);
         renderCart();
+    }
+
+    function syncPriceInput(input, id) {
+        var item = cart.find(function(i) { return i.id === id; });
+        if (!item) return;
+
+        var precio = parseMoneyInput(input.value);
+        item.precio = precio;
+        recalculateItem(item);
+
+        input.value = precio > 0 ? formatNumber(precio) : '';
+
+        var hiddenPrice = document.getElementById('cart-hidden-price-' + id);
+        if (hiddenPrice) {
+            hiddenPrice.value = item.precio;
+        }
+
+        var subtotalNode = document.getElementById('cart-subtotal-' + id);
+        if (subtotalNode) {
+            subtotalNode.innerText = formatNumber(item.subtotal);
+        }
+
+        updateCartTotals();
     }
 
     function removeFromCart(id) {
@@ -1057,11 +1107,10 @@
             document.getElementById('emptyCartMessage').style.display = 'none';
             
             cart.forEach(function(item) {
-                total += item.subtotal;
                 var itemClass = item.isNew ? 'cart-item cart-item-new' : 'cart-item';
                 item.isNew = false; // Resetear flag
                 
-                var row = '<div class="' + itemClass + '">' +
+                var row = '<div class="' + itemClass + '" id="cart-row-' + item.id + '">' +
                     '<div class="flex-grow-1 cart-item-details">' +
                         '<div class="fw-bold text-truncate" style="max-width: 170px;">' + item.nombre + '</div>' +
                         '<div class="cart-item-controls">' +
@@ -1078,19 +1127,20 @@
                             '</div>' +
                             '<div class="cart-item-field">' +
                                 '<label>Precio</label>' +
-                                '<input type="number" class="form-control form-control-sm cart-price-input" ' +
-                                    'value="' + item.precio + '" ' +
-                                    'min="0.01" step="0.01" ' +
-                                    'onchange="updatePriceManual(\'' + item.id + '\', this.value)" ' +
+                                '<input type="text" class="form-control form-control-sm cart-price-input" ' +
+                                    'value="' + formatNumber(item.precio) + '" ' +
+                                    'inputmode="numeric" autocomplete="off" ' +
+                                    'oninput="syncPriceInput(this, \'' + item.id + '\')" ' +
+                                    'onblur="updatePriceManual(\'' + item.id + '\', this.value)" ' +
                                     'onclick="this.select()">' +
                             '</div>' +
                         '</div>' +
                         '<input type="hidden" name="arrayidproducto[]" value="' + item.id + '">' +
                         '<input type="hidden" name="arraycantidad[]" value="' + item.cantidad + '">' +
-                        '<input type="hidden" name="arrayprecioventa[]" value="' + item.precio + '">' +
+                        '<input type="hidden" name="arrayprecioventa[]" id="cart-hidden-price-' + item.id + '" value="' + item.precio + '">' +
                     '</div>' +
                     '<div class="text-end ms-2">' +
-                        '<div class="cart-item-subtotal mb-2">' + formatNumber(item.subtotal) + '</div>' +
+                        '<div class="cart-item-subtotal mb-2" id="cart-subtotal-' + item.id + '">' + formatNumber(item.subtotal) + '</div>' +
                         '<button type="button" class="btn btn-sm btn-outline-danger px-2" onclick="removeFromCart(\'' + item.id + '\')" title="Eliminar">' +
                             '<i class="fa-solid fa-trash"></i>' +
                         '</button>' +
@@ -1099,17 +1149,8 @@
                 container.insertAdjacentHTML('beforeend', row);
             });
         }
-        
-        document.getElementById('totalDisplay').innerText = formatNumber(total);
-        document.getElementById('inputTotal').value = total;
-        document.getElementById('inputSubtotal').value = total;
 
-        var totalItems = cart.reduce(function(acc, item) { return acc + item.cantidad; }, 0);
-        document.getElementById('cartCount').innerText = totalItems;
-        var mobileCount = document.getElementById('cartCountMobile');
-        if (mobileCount) mobileCount.innerText = totalItems;
-
-        calculateChange();
+        updateCartTotals();
     }
 
     function setExactCash() {
@@ -1209,8 +1250,8 @@
         badge.className = 'badge bg-success';
         badge.style.fontSize = '0.8rem';
         badge.innerHTML = '<i class="fa-solid fa-money-bill me-1"></i> EFECTIVO';
-        // Mostrar campos de efectivo
         document.getElementById('efectivoCampos').style.display = '';
+        document.getElementById('smartCashWrapper').style.display = '';
     }
 
     function pagarCon(type) {
@@ -1232,7 +1273,8 @@
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
         }
-        document.getElementById('efectivoCampos').style.display = '';
+        document.getElementById('efectivoCampos').style.display = 'none';
+        document.getElementById('smartCashWrapper').style.display = 'none';
         document.getElementById('dinero_recibido').value = total;
         document.getElementById('dinero_recibido_display').value = formatNumber(total);
         document.getElementById('vuelto').value = 0;
