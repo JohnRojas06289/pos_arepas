@@ -558,12 +558,7 @@
                      data-nombre="{{ strtoupper(substr(trim($item->nombre), 0, 1)) }}"
                      data-search="{{ strtolower($item->nombre . ' ' . $item->codigo) }}">
                     @php
-                        $imgPath = (string) ($item->img_path ?? '');
-                        $localImageUrl = \Illuminate\Support\Str::startsWith($imgPath, 'public/')
-                            ? \Illuminate\Support\Facades\Storage::url(\Illuminate\Support\Str::after($imgPath, 'public/'))
-                            : (\Illuminate\Support\Str::startsWith($imgPath, 'storage/')
-                                ? asset($imgPath)
-                                : \Illuminate\Support\Facades\Storage::url($imgPath));
+                        $localImageUrl = $item->image_url;
                     @endphp
                     <div class="card h-100 product-card shadow-sm border-0" onclick="addToCart('{{$item->id}}', '{{addslashes($item->nombre)}}', {{$item->precio ?? 0}}, parseInt(this.closest('.product-item').getAttribute('data-stock')), '{{$item->sigla ?? 'UND'}}')">
                         <div class="product-img-container">
