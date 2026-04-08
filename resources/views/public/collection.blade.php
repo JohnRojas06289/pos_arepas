@@ -84,7 +84,7 @@
 
                             <!-- Product image-->
                             @if($product->image_path)
-                                <img class="card-img-top" src="{{ Storage::url($product->image_path) }}" alt="{{ $product->nombre }}" />
+                                <img class="card-img-top" src="{{ $product->image_url }}" alt="{{ $product->nombre }}" />
                             @else
                                 <div style="height: 250px; background-color: #222; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-camera fa-2x text-muted"></i>

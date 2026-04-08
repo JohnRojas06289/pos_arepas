@@ -9,7 +9,7 @@
         <div class="col-lg-6 mb-5 mb-lg-0">
             <div class="card bg-dark border-secondary overflow-hidden">
                 @if($product->image_path)
-                    <img class="img-fluid w-100" src="{{ Storage::url($product->image_path) }}" alt="{{ $product->nombre }}" style="max-height: 600px; object-fit: cover;" />
+                    <img class="img-fluid w-100" src="{{ $product->image_url }}" alt="{{ $product->nombre }}" style="max-height: 600px; object-fit: cover;" />
                 @else
                     <div style="height: 500px; background-color: #222; display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-camera fa-5x text-muted"></i>
@@ -80,7 +80,7 @@
                 <div class="col mb-5">
                     <div class="card product-card h-100 border-0">
                         @if($related->image_path)
-                            <img class="card-img-top" src="{{ Storage::url($related->image_path) }}" alt="{{ $related->nombre }}" style="height: 200px; object-fit: cover;" />
+                            <img class="card-img-top" src="{{ $related->image_url }}" alt="{{ $related->nombre }}" style="height: 200px; object-fit: cover;" />
                         @else
                             <div style="height: 200px; background-color: #222; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-camera fa-2x text-muted"></i>
