@@ -85,6 +85,10 @@
                 </x-nav.link-collapsed>
                 @endcan
 
+                <x-nav.nav-link content='Gastos'
+                    icon='fas fa-file-invoice-dollar'
+                    :href="route('gastos.index')" />
+
                 {{-- ======= CATÁLOGO ======= --}}
                 @canany(['ver-categoria', 'ver-marca', 'ver-presentacione'])
                 <x-nav.heading>Catálogo</x-nav.heading>

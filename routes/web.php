@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AgenteIAController;
 use App\Http\Controllers\CajaController;
+use App\Http\Controllers\GastoController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
 use App\Http\Controllers\compraController;
@@ -69,6 +70,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
         ->name('clientes.pagarDeuda');
     Route::resource('proveedores', proveedorController::class)->except('show');
     Route::resource('empleados', EmpleadoController::class)->except('show');
+
+    // ── Gastos ────────────────────────────────────────────────────────────
+    Route::resource('gastos', GastoController::class)->only('index', 'create', 'store', 'destroy');
 
     // ── Ventas y Compras ──────────────────────────────────────────────────
     Route::get('/pos', [ventaController::class, 'create'])->name('pos.index');
