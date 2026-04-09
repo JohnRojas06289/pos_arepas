@@ -94,47 +94,23 @@
                                 </form>
                                 @endcan
 
+                                <button type="button" class="btn btn-outline-info"
+                                    onclick="verResumen('{{ $item->id }}', '{{ $item->fecha_apertura }}')">
+                                    <i class="fas fa-chart-bar"></i> Resumen
+                                </button>
+
                                 @can('cerrar-caja')
                                 @if ($item->estado == 1)
                                 <button type="button" class="btn btn-danger"
-                                    data-bs-toggle="modal" data-bs-target="#confirmModal-{{$item->id}}">
-                                    Cerrar</button>
+                                    onclick="abrirCierre('{{ $item->id }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
+                                    Cerrar
+                                </button>
                                 @endif
                                 @endcan
 
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Modal para cerra la caja-->
-                    <div class="modal fade" id="confirmModal-{{$item->id}}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5">
-                                        Mensaje de confirmación</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal">
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    ¿Seguro que quieres cerrar la caja?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        Cancelar</button>
-
-                                    <form action="{{route('cajas.destroy',['caja' => $item->id])}}" method="post">
-                                        @method('DELETE')
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger">
-                                            Confirmar</button>
-                                    </form>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
 
                     @endforeach
                 </tbody>
@@ -144,11 +120,145 @@
     </div>
 
 </div>
+
+<!-- Modal Resumen de Caja -->
+<div class="modal fade" id="resumenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-chart-bar me-2"></i>Resumen de Caja — <span id="resumenFecha"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="resumenBody">
+                <div class="text-center py-4"><div class="spinner-border text-info"></div><p class="mt-2">Cargando...</p></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cierre de Caja (con resumen) -->
+<div class="modal fade" id="cierreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-cash-register me-2"></i>Cerrar Caja — <span id="cierreFecha"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="cierreBody">
+                <div class="text-center py-4"><div class="spinner-border text-danger"></div><p class="mt-2">Cargando resumen...</p></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="cierreForm" method="post">
+                    @method('DELETE')
+                    @csrf
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-lock me-1"></i>Confirmar Cierre</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('js')
 <script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
 <script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
+<script>
+function fmt(n) {
+    return '$' + Number(n).toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+}
+
+function buildResumenHtml(data) {
+    const productos = data.por_producto;
+    const metodos   = data.por_metodo;
+    const total     = data.total_general;
+    const numVentas = data.num_ventas;
+
+    let rows = productos.length
+        ? productos.map(p => `
+            <tr>
+                <td>${p.nombre}</td>
+                <td class="text-center">${p.cantidad}</td>
+                <td class="text-end">${fmt(p.total)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="3" class="text-center text-muted">Sin ventas registradas</td></tr>';
+
+    return `
+        <p class="text-muted mb-3"><i class="fas fa-receipt me-1"></i>${numVentas} venta(s) registradas</p>
+
+        <h6 class="fw-bold mb-2"><i class="fas fa-box me-1"></i>Ventas por Producto</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr><th>Producto</th><th class="text-center">Cantidad</th><th class="text-end">Total</th></tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+
+        <h6 class="fw-bold mb-2"><i class="fas fa-money-bill-wave me-1"></i>Totales por Método de Pago</h6>
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <div class="card border-success text-center p-2">
+                    <small class="text-muted">Efectivo</small>
+                    <strong class="text-success">${fmt(metodos.EFECTIVO)}</strong>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-primary text-center p-2">
+                    <small class="text-muted">Nequi</small>
+                    <strong class="text-primary">${fmt(metodos.NEQUI)}</strong>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-warning text-center p-2">
+                    <small class="text-muted">Daviplata</small>
+                    <strong class="text-warning">${fmt(metodos.DAVIPLATA)}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-dark d-flex justify-content-between align-items-center">
+            <strong><i class="fas fa-sigma me-1"></i>Total General</strong>
+            <strong class="fs-5">${fmt(total)}</strong>
+        </div>`;
+}
+
+async function fetchResumen(cajaId) {
+    const res = await fetch(`/cajas/${cajaId}/resumen`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error('Error al cargar el resumen');
+    return res.json();
+}
+
+function verResumen(cajaId, fecha) {
+    document.getElementById('resumenFecha').textContent = fecha;
+    document.getElementById('resumenBody').innerHTML =
+        '<div class="text-center py-4"><div class="spinner-border text-info"></div><p class="mt-2">Cargando...</p></div>';
+    new bootstrap.Modal(document.getElementById('resumenModal')).show();
+
+    fetchResumen(cajaId)
+        .then(data => { document.getElementById('resumenBody').innerHTML = buildResumenHtml(data); })
+        .catch(() => { document.getElementById('resumenBody').innerHTML = '<div class="alert alert-danger">Error al cargar el resumen.</div>'; });
+}
+
+function abrirCierre(cajaId, actionUrl, fecha) {
+    document.getElementById('cierreFecha').textContent = fecha;
+    document.getElementById('cierreForm').action = actionUrl;
+    document.getElementById('cierreBody').innerHTML =
+        '<div class="text-center py-4"><div class="spinner-border text-danger"></div><p class="mt-2">Cargando resumen...</p></div>';
+    new bootstrap.Modal(document.getElementById('cierreModal')).show();
+
+    fetchResumen(cajaId)
+        .then(data => { document.getElementById('cierreBody').innerHTML = buildResumenHtml(data); })
+        .catch(() => { document.getElementById('cierreBody').innerHTML = '<div class="alert alert-warning">No se pudo cargar el resumen, pero puedes cerrar la caja de todos modos.</div>'; });
+}
+</script>
 @endpush
 
 

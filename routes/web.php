@@ -76,6 +76,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::post('compras/scan-factura', [compraController::class, 'scanFactura'])->name('compras.scan-factura');
     Route::resource('compras', compraController::class)->except('edit', 'update', 'destroy');
     Route::resource('cajas', CajaController::class)->except('edit', 'update', 'show');
+    Route::get('cajas/{caja}/resumen', [CajaController::class, 'resumen'])->name('cajas.resumen');
     Route::resource('movimientos', MovimientoController::class)->except('show', 'edit', 'update', 'destroy');
 
     // ── Administración ────────────────────────────────────────────────────
