@@ -214,12 +214,23 @@ function fmt(n) {
     return '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-function buildResumenHtml(data) {
-    const productos = data.por_producto;
-    const metodos   = data.por_metodo;
-    const total     = data.total_general;
-    const numVentas = data.num_ventas;
+const METODO_CONFIG = {
+    EFECTIVO:  { label: 'Efectivo',  color: 'success' },
+    NEQUI:     { label: 'Nequi',     color: 'primary' },
+    DAVIPLATA: { label: 'Daviplata', color: 'warning' },
+    TARJETA:   { label: 'Tarjeta',   color: 'info'    },
+    FIADO:     { label: 'Fiado',     color: 'secondary' },
+};
 
+function buildResumenHtml(data) {
+    const productos  = data.por_producto;
+    const metodos    = data.por_metodo;   // objeto dinámico { EFECTIVO: x, NEQUI: y, ... }
+    const total      = data.total_general;
+    const numVentas  = data.num_ventas;
+    const totalFiado = data.total_fiado  ?? 0;
+    const numFiado   = data.num_fiado    ?? 0;
+
+    // Tabla de productos
     let rows = productos.length
         ? productos.map(p => `
             <tr>
@@ -229,8 +240,36 @@ function buildResumenHtml(data) {
             </tr>`).join('')
         : '<tr><td colspan="3" class="text-center text-muted">Sin ventas registradas</td></tr>';
 
+    // Cards de métodos de pago — dinámicas
+    const metodosKeys = Object.keys(metodos);
+    let metodosHtml = '';
+    if (metodosKeys.length === 0) {
+        metodosHtml = '<p class="text-muted">Sin métodos registrados.</p>';
+    } else {
+        const colSize = metodosKeys.length <= 3 ? Math.floor(12 / metodosKeys.length) : 4;
+        metodosHtml = '<div class="row g-2 mb-3">' +
+            metodosKeys.map(key => {
+                const cfg    = METODO_CONFIG[key] ?? { label: key, color: 'secondary' };
+                return `
+                <div class="col-${colSize}">
+                    <div class="card border-${cfg.color} text-center p-2">
+                        <small class="text-muted">${cfg.label}</small>
+                        <strong class="text-${cfg.color}">${fmt(metodos[key])}</strong>
+                    </div>
+                </div>`;
+            }).join('') +
+        '</div>';
+    }
+
+    // Bloque fiado (solo si hay)
+    const fiadoHtml = numFiado > 0 ? `
+        <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
+            <span><i class="fas fa-clock me-1"></i><strong>Fiado pendiente</strong> (${numFiado} venta(s))</span>
+            <strong>${fmt(totalFiado)}</strong>
+        </div>` : '';
+
     return `
-        <p class="text-muted mb-3"><i class="fas fa-receipt me-1"></i>${numVentas} venta(s) registradas</p>
+        <p class="text-muted mb-3"><i class="fas fa-receipt me-1"></i>${numVentas} venta(s) cobrada(s)</p>
 
         <h6 class="fw-bold mb-2"><i class="fas fa-box me-1"></i>Ventas por Producto</h6>
         <div class="table-responsive mb-4">
@@ -242,30 +281,13 @@ function buildResumenHtml(data) {
             </table>
         </div>
 
-        <h6 class="fw-bold mb-2"><i class="fas fa-money-bill-wave me-1"></i>Totales por Método de Pago</h6>
-        <div class="row g-2 mb-3">
-            <div class="col-4">
-                <div class="card border-success text-center p-2">
-                    <small class="text-muted">Efectivo</small>
-                    <strong class="text-success">${fmt(metodos.EFECTIVO)}</strong>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-primary text-center p-2">
-                    <small class="text-muted">Nequi</small>
-                    <strong class="text-primary">${fmt(metodos.NEQUI)}</strong>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-warning text-center p-2">
-                    <small class="text-muted">Daviplata</small>
-                    <strong class="text-warning">${fmt(metodos.DAVIPLATA)}</strong>
-                </div>
-            </div>
-        </div>
+        <h6 class="fw-bold mb-2"><i class="fas fa-money-bill-wave me-1"></i>Por Método de Pago</h6>
+        ${metodosHtml}
+
+        ${fiadoHtml}
 
         <div class="alert alert-dark d-flex justify-content-between align-items-center">
-            <strong><i class="fas fa-sigma me-1"></i>Total General</strong>
+            <strong><i class="fas fa-sigma me-1"></i>Total Cobrado</strong>
             <strong class="fs-5">${fmt(total)}</strong>
         </div>`;
 }

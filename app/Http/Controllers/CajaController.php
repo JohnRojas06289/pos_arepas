@@ -82,11 +82,15 @@ class CajaController extends Controller
      */
     public function resumen(Caja $caja): JsonResponse
     {
-        $ventas = $caja->ventas()->where('revertida', 0)->with('productos')->get();
+        $todasVentas  = $caja->ventas()->where('revertida', 0)->with('productos')->get();
 
-        // Agrupar por producto
+        // Separar ventas cobradas de fiado (no cobradas aún)
+        $ventasCobradas = $todasVentas->filter(fn($v) => (int) $v->pagado === 1);
+        $ventasFiado    = $todasVentas->filter(fn($v) => (int) $v->pagado !== 1);
+
+        // Agrupar por producto (solo ventas cobradas)
         $porProducto = [];
-        foreach ($ventas as $venta) {
+        foreach ($ventasCobradas as $venta) {
             foreach ($venta->productos as $producto) {
                 $id = $producto->id;
                 if (!isset($porProducto[$id])) {
@@ -100,23 +104,22 @@ class CajaController extends Controller
                 $porProducto[$id]['total']    += $producto->pivot->cantidad * $producto->pivot->precio_venta;
             }
         }
-
         usort($porProducto, fn($a, $b) => strcmp($a['nombre'], $b['nombre']));
 
-        // Agrupar por método de pago
-        $porMetodo = ['EFECTIVO' => 0, 'NEQUI' => 0, 'DAVIPLATA' => 0];
-        foreach ($ventas as $venta) {
-            $metodo = strtoupper($venta->metodo_pago ?? '');
-            if (array_key_exists($metodo, $porMetodo)) {
-                $porMetodo[$metodo] += $venta->total;
-            }
+        // Agrupar por método de pago dinámicamente (todos los métodos presentes)
+        $porMetodo = [];
+        foreach ($ventasCobradas as $venta) {
+            $metodo = strtoupper($venta->metodo_pago ?? 'OTRO');
+            $porMetodo[$metodo] = ($porMetodo[$metodo] ?? 0) + $venta->total;
         }
 
         return response()->json([
             'por_producto'  => array_values($porProducto),
             'por_metodo'    => $porMetodo,
-            'total_general' => $ventas->sum('total'),
-            'num_ventas'    => $ventas->count(),
+            'total_general' => $ventasCobradas->sum('total'),
+            'num_ventas'    => $ventasCobradas->count(),
+            'total_fiado'   => $ventasFiado->sum('total'),
+            'num_fiado'     => $ventasFiado->count(),
         ]);
     }
 
