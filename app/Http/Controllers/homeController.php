@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CategoriaGastoEnum;
 use App\Models\Cliente;
 use App\Models\Compra;
+use App\Models\Gasto;
 use App\Models\Producto;
 use App\Models\User;
 use App\Models\Venta;
@@ -138,6 +140,42 @@ class homeController extends Controller
                 ->get()
                 ->groupBy('cliente_id');
 
+            // ── Sección financiera ────────────────────────────────────────
+            // Ingresos: solo ventas cobradas (pagado=1, revertida=0)
+            $ingresosPeriodo = Venta::whereBetween('created_at', [$periodoInicio, $periodoFin])
+                ->where('pagado', 1)
+                ->where('revertida', 0)
+                ->sum('total');
+
+            // Costo de mercancía: compras del período
+            $costoCompras = Compra::whereBetween('fecha_hora', [$periodoInicio, $periodoFin])
+                ->where('user_id', Auth::id())
+                ->sum('total');
+
+            // Gastos del negocio: tabla gastos del período
+            $gastosNegocio = Gasto::whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('user_id', Auth::id())
+                ->sum('monto');
+
+            // Breakdown gastos por categoría
+            $gastosPorCategoria = Gasto::whereBetween('fecha', [$fechaInicio, $fechaFin])
+                ->where('user_id', Auth::id())
+                ->select('categoria', DB::raw('SUM(monto) as total'))
+                ->groupBy('categoria')
+                ->orderByDesc('total')
+                ->get()
+                ->map(fn($g) => [
+                    'label' => CategoriaGastoEnum::from($g->categoria)->label(),
+                    'color' => CategoriaGastoEnum::from($g->categoria)->color(),
+                    'total' => (float) $g->total,
+                ]);
+
+            $gananciaBruta = $ingresosPeriodo - $costoCompras;
+            $gananciaNeta  = $ingresosPeriodo - $costoCompras - $gastosNegocio;
+            $margenNeto    = $ingresosPeriodo > 0
+                ? round(($gananciaNeta / $ingresosPeriodo) * 100, 1)
+                : 0;
+
             return view('admin.estadisticas.index', compact(
                 'ventasPeriodo',
                 'ventasEfectivo',
@@ -155,7 +193,14 @@ class homeController extends Controller
                 'productosStockBajo',
                 'ventasPorCliente',
                 'fechaInicio',
-                'fechaFin'
+                'fechaFin',
+                'ingresosPeriodo',
+                'costoCompras',
+                'gastosNegocio',
+                'gastosPorCategoria',
+                'gananciaBruta',
+                'gananciaNeta',
+                'margenNeto'
             ));
         } catch (\Throwable $e) {
             Log::error('Error en Estadísticas', ['error' => $e->getMessage()]);

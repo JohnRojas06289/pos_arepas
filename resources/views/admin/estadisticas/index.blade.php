@@ -170,6 +170,142 @@
         </div>
     </div>
 
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    {{-- SECCIÓN FINANCIERA                                                 --}}
+    {{-- ══════════════════════════════════════════════════════════════════ --}}
+    <div class="mb-2 mt-2">
+        <h6 class="fw-bold mb-0" style="color:var(--text-secondary);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;">
+            <i class="fas fa-balance-scale me-1"></i> Resumen Financiero
+        </h6>
+    </div>
+
+    {{-- KPIs financieros --}}
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card success h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Ingresos cobrados</div>
+                        <div class="kpi-value" style="font-size:1.2rem;">${{ number_format($ingresosPeriodo, 0, ',', '.') }}</div>
+                        <div class="small" style="color:var(--text-secondary);font-size:.72rem;">Ventas pagadas</div>
+                    </div>
+                    <div class="kpi-icon success ms-2"><i class="fas fa-arrow-up"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card warning h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Costo mercancía</div>
+                        <div class="kpi-value" style="font-size:1.2rem;">${{ number_format($costoCompras, 0, ',', '.') }}</div>
+                        <div class="small" style="color:var(--text-secondary);font-size:.72rem;">Compras</div>
+                    </div>
+                    <div class="kpi-icon warning ms-2"><i class="fas fa-shopping-cart"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card danger h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Gastos negocio</div>
+                        <div class="kpi-value" style="font-size:1.2rem;">${{ number_format($gastosNegocio, 0, ',', '.') }}</div>
+                        <div class="small" style="color:var(--text-secondary);font-size:.72rem;">Arriendos, sueldos…</div>
+                    </div>
+                    <div class="kpi-icon danger ms-2"><i class="fas fa-file-invoice-dollar"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            @php $colorGanancia = $gananciaNeta >= 0 ? 'success' : 'danger'; @endphp
+            <div class="kpi-card {{ $colorGanancia }} h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Ganancia neta</div>
+                        <div class="kpi-value" style="font-size:1.2rem;">${{ number_format($gananciaNeta, 0, ',', '.') }}</div>
+                        <div class="small" style="font-size:.72rem;">
+                            Margen: <strong>{{ $margenNeto }}%</strong>
+                        </div>
+                    </div>
+                    <div class="kpi-icon {{ $colorGanancia }} ms-2">
+                        <i class="fas fa-{{ $gananciaNeta >= 0 ? 'chart-line' : 'exclamation-triangle' }}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Desglose: ganancia bruta + gastos por categoría --}}
+    <div class="row g-3 mb-4">
+
+        {{-- Waterfall simplificado --}}
+        <div class="col-md-5">
+            <div class="chart-card h-100">
+                <div class="chart-card-header">
+                    <h6><i class="fas fa-calculator me-2" style="color:var(--color-primary);"></i>Cálculo de ganancia</h6>
+                </div>
+                <div class="chart-card-body">
+                    @php
+                        $filas = [
+                            ['label' => 'Ingresos cobrados',  'valor' => $ingresosPeriodo, 'color' => 'success', 'signo' => '+'],
+                            ['label' => 'Costo mercancía',    'valor' => $costoCompras,    'color' => 'warning', 'signo' => '−'],
+                            ['label' => 'Ganancia bruta',     'valor' => $gananciaBruta,   'color' => $gananciaBruta >= 0 ? 'info' : 'danger', 'signo' => '=', 'bold' => true],
+                            ['label' => 'Gastos negocio',     'valor' => $gastosNegocio,   'color' => 'danger',  'signo' => '−'],
+                            ['label' => 'Ganancia neta',      'valor' => $gananciaNeta,    'color' => $gananciaNeta >= 0 ? 'success' : 'danger', 'signo' => '=', 'bold' => true],
+                        ];
+                    @endphp
+                    <table class="table table-sm mb-0">
+                        @foreach ($filas as $fila)
+                        <tr @if(!empty($fila['bold'])) style="border-top:2px solid var(--color-{{ $fila['color'] }});" @endif>
+                            <td style="font-size:.82rem;color:var(--text-secondary);">
+                                <span class="me-1 text-{{ $fila['color'] }}">{{ $fila['signo'] }}</span>
+                                @if(!empty($fila['bold'])) <strong>{{ $fila['label'] }}</strong>
+                                @else {{ $fila['label'] }} @endif
+                            </td>
+                            <td class="text-end fw-{{ !empty($fila['bold']) ? 'bold' : 'normal' }} text-{{ $fila['color'] }}" style="font-size:.9rem;">
+                                ${{ number_format($fila['valor'], 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- Gastos por categoría --}}
+        <div class="col-md-7">
+            <div class="chart-card h-100">
+                <div class="chart-card-header d-flex align-items-center justify-content-between">
+                    <h6><i class="fas fa-tags me-2" style="color:var(--color-danger);"></i>Gastos por categoría</h6>
+                    @if($gastosNegocio > 0)
+                    <small class="text-muted">Total: ${{ number_format($gastosNegocio, 0, ',', '.') }}</small>
+                    @endif
+                </div>
+                <div class="chart-card-body">
+                    @if($gastosPorCategoria->isEmpty())
+                    <p class="text-muted text-center py-3" style="font-size:.85rem;">Sin gastos en este período.</p>
+                    @else
+                    @foreach ($gastosPorCategoria as $cat)
+                    @php $pct = $gastosNegocio > 0 ? round(($cat['total'] / $gastosNegocio) * 100) : 0; @endphp
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between mb-1" style="font-size:.82rem;">
+                            <span>
+                                <span class="badge text-bg-{{ $cat['color'] }} me-1" style="font-size:.7rem;">{{ $cat['label'] }}</span>
+                            </span>
+                            <span class="fw-semibold">${{ number_format($cat['total'], 0, ',', '.') }} <small class="text-muted">({{ $pct }}%)</small></span>
+                        </div>
+                        <div class="progress" style="height:6px;">
+                            <div class="progress-bar bg-{{ $cat['color'] }}" style="width:{{ $pct }}%"></div>
+                        </div>
+                    </div>
+                    @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Gráficas --}}
     <div class="row g-4 mb-4">
 
