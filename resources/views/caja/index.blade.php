@@ -8,6 +8,15 @@
     #tablaCajas td, #tablaCajas th { vertical-align: middle; }
     .filtro-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
     .badge-estado { font-size: .75rem; }
+    /* Columnas compactas en móvil */
+    @media (max-width: 767px) {
+        #tablaCajas { font-size: .78rem; }
+        #tablaCajas td, #tablaCajas th { padding: .35rem .4rem; }
+        .col-apertura { width: 90px; max-width: 90px; }
+        .col-estado   { width: 60px; max-width: 60px; }
+        .col-acciones { width: 80px; max-width: 80px; }
+        .btn-resumen-sm { font-size: .7rem; padding: .25rem .4rem; white-space: nowrap; }
+    }
 </style>
 @endpush
 
@@ -45,12 +54,12 @@
                 <table id="tablaCajas" class="table table-sm table-striped align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Apertura</th>
-                            <th>Cierre</th>
+                            <th class="col-apertura">Apertura</th>
+                            <th class="d-none d-md-table-cell">Cierre</th>
                             <th class="d-none d-md-table-cell">Saldo inicial</th>
                             <th class="d-none d-md-table-cell">Saldo final</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="col-estado">Estado</th>
+                            <th class="col-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -59,12 +68,14 @@
                             $apertura = \Carbon\Carbon::parse($item->fecha_hora_apertura);
                         @endphp
                         <tr data-fecha="{{ $apertura->format('Y-m-d') }}">
-                            <td>
-                                <div class="fw-semibold text-capitalize">{{ $apertura->locale('es_CO')->isoFormat('dddd') }}</div>
+                            <td class="col-apertura">
+                                {{-- Día abreviado en móvil, completo en desktop --}}
+                                <div class="fw-semibold text-capitalize d-none d-md-block">{{ $apertura->locale('es_CO')->isoFormat('dddd') }}</div>
+                                <div class="fw-semibold text-capitalize d-md-none">{{ $apertura->locale('es_CO')->isoFormat('ddd') }}</div>
                                 <small class="text-muted">{{ $item->fecha_apertura }}</small>
                                 <small class="text-muted d-block"><i class="fa-solid fa-clock fa-xs me-1"></i>{{ $item->hora_apertura }}</small>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 @if ($item->fecha_hora_cierre)
                                 @php $cierre = \Carbon\Carbon::parse($item->fecha_hora_cierre); @endphp
                                 <div class="fw-semibold text-capitalize">{{ $cierre->locale('es_CO')->isoFormat('dddd') }}</div>
@@ -87,13 +98,13 @@
                             </td>
                             <td>
                                 <div class="d-flex flex-column gap-1">
-                                    <button type="button" class="btn btn-sm btn-outline-info"
+                                    <button type="button" class="btn btn-sm btn-outline-info btn-resumen-sm"
                                         onclick="verResumen('{{ route('cajas.resumen', $item->id) }}', '{{ $item->fecha_apertura }}')">
                                         <i class="fas fa-chart-bar"></i> Resumen
                                     </button>
                                     @can('cerrar-caja')
                                     @if ($item->estado == 1)
-                                    <button type="button" class="btn btn-sm btn-danger"
+                                    <button type="button" class="btn btn-sm btn-danger btn-resumen-sm"
                                         onclick="abrirCierre('{{ route('cajas.resumen', $item->id) }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
                                         <i class="fas fa-lock fa-xs"></i> Cerrar
                                     </button>
