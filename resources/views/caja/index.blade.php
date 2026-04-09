@@ -39,14 +39,28 @@
     @endcan
 
     <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <span><i class="fas fa-table me-1"></i> Tabla cajas</span>
-            <!-- Filtros -->
-            <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-outline-secondary filtro-btn active" data-filtro="todos">Todos</button>
-                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="hoy">Hoy</button>
-                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="semana">Semana</button>
-                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="mes">Mes</button>
+        <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                <span><i class="fas fa-table me-1"></i> Tabla cajas</span>
+                <!-- Orden -->
+                <button id="btnOrden" class="btn btn-sm btn-outline-dark" onclick="toggleOrden()">
+                    <i class="fas fa-sort-amount-down me-1" id="iconOrden"></i><span id="textoOrden">Reciente primero</span>
+                </button>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <!-- Período -->
+                <div class="d-flex gap-1 flex-wrap">
+                    <button class="btn btn-sm btn-outline-secondary filtro-periodo active" data-periodo="todos">Todos</button>
+                    <button class="btn btn-sm btn-outline-secondary filtro-periodo" data-periodo="hoy">Hoy</button>
+                    <button class="btn btn-sm btn-outline-secondary filtro-periodo" data-periodo="semana">Semana</button>
+                    <button class="btn btn-sm btn-outline-secondary filtro-periodo" data-periodo="mes">Mes</button>
+                </div>
+                <!-- Estado -->
+                <div class="d-flex gap-1 flex-wrap">
+                    <button class="btn btn-sm btn-outline-secondary filtro-estado active" data-estado="todas">Todas</button>
+                    <button class="btn btn-sm btn-outline-success filtro-estado" data-estado="1">Abiertas</button>
+                    <button class="btn btn-sm btn-outline-danger filtro-estado" data-estado="0">Cerradas</button>
+                </div>
             </div>
         </div>
         <div class="card-body p-0 p-md-3">
@@ -67,7 +81,7 @@
                         @php
                             $apertura = \Carbon\Carbon::parse($item->fecha_hora_apertura);
                         @endphp
-                        <tr data-fecha="{{ $apertura->format('Y-m-d') }}">
+                        <tr data-fecha="{{ $apertura->format('Y-m-d') }}" data-estado="{{ $item->estado ? '1' : '0' }}">
                             <td class="col-apertura">
                                 {{-- Día abreviado en móvil, completo en desktop --}}
                                 <div class="fw-semibold text-capitalize d-none d-md-block">{{ $apertura->locale('es_CO')->isoFormat('dddd') }}</div>
@@ -170,41 +184,83 @@
 
 @push('js')
 <script>
-// ── Filtros ───────────────────────────────────────────────────────────────────
-document.querySelectorAll('.filtro-btn').forEach(btn => {
+// ── Estado del filtro ─────────────────────────────────────────────────────────
+let periodoActivo = 'todos';
+let estadoActivo  = 'todas';
+let ordenDesc     = true; // true = reciente primero
+
+// Período
+document.querySelectorAll('.filtro-periodo').forEach(btn => {
     btn.addEventListener('click', function () {
-        document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.filtro-periodo').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        filtrarTabla(this.dataset.filtro);
+        periodoActivo = this.dataset.periodo;
+        aplicarFiltros();
     });
 });
 
-function filtrarTabla(filtro) {
-    const rows   = document.querySelectorAll('#tablaCajas tbody tr');
+// Estado
+document.querySelectorAll('.filtro-estado').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.filtro-estado').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        estadoActivo = this.dataset.estado;
+        aplicarFiltros();
+    });
+});
+
+// Orden
+function toggleOrden() {
+    ordenDesc = !ordenDesc;
+    document.getElementById('iconOrden').className  = ordenDesc
+        ? 'fas fa-sort-amount-down me-1'
+        : 'fas fa-sort-amount-up me-1';
+    document.getElementById('textoOrden').textContent = ordenDesc
+        ? 'Reciente primero'
+        : 'Antiguo primero';
+    aplicarFiltros();
+}
+
+function aplicarFiltros() {
+    const tbody  = document.querySelector('#tablaCajas tbody');
+    const rows   = Array.from(tbody.querySelectorAll('tr'));
     const hoy    = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    // Inicio de la semana (lunes)
     const inicioSemana = new Date(hoy);
-    const dia = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1; // lunes = 0
-    inicioSemana.setDate(hoy.getDate() - dia);
+    const diaSemana    = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1;
+    inicioSemana.setDate(hoy.getDate() - diaSemana);
 
+    // 1. Filtrar
     let visibles = 0;
     rows.forEach(row => {
-        const fecha = new Date(row.dataset.fecha + 'T00:00:00');
-        let visible = true;
+        const fecha   = new Date(row.dataset.fecha + 'T00:00:00');
+        const estado  = row.dataset.estado;
 
-        if (filtro === 'hoy') {
-            visible = fecha.toDateString() === hoy.toDateString();
-        } else if (filtro === 'semana') {
-            visible = fecha >= inicioSemana && fecha <= hoy;
-        } else if (filtro === 'mes') {
-            visible = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
+        let pasaPeriodo = true;
+        if (periodoActivo === 'hoy') {
+            pasaPeriodo = fecha.toDateString() === hoy.toDateString();
+        } else if (periodoActivo === 'semana') {
+            pasaPeriodo = fecha >= inicioSemana && fecha <= hoy;
+        } else if (periodoActivo === 'mes') {
+            pasaPeriodo = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
         }
 
+        const pasaEstado = estadoActivo === 'todas' || estado === estadoActivo;
+
+        const visible = pasaPeriodo && pasaEstado;
         row.style.display = visible ? '' : 'none';
         if (visible) visibles++;
     });
+
+    // 2. Ordenar (solo las visibles, reinsertando en el DOM)
+    const visibleRows = rows.filter(r => r.style.display !== 'none');
+    visibleRows.sort((a, b) => {
+        const fa = new Date(a.dataset.fecha + 'T00:00:00');
+        const fb = new Date(b.dataset.fecha + 'T00:00:00');
+        return ordenDesc ? fb - fa : fa - fb;
+    });
+    visibleRows.forEach(row => tbody.appendChild(row));
 
     document.getElementById('sinResultados').style.display = visibles === 0 ? 'block' : 'none';
 }
