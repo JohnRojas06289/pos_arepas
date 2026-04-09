@@ -1,13 +1,14 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title','cajas')
 
-@push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" type="text/css">
-@endpush
-
 @push('css')
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
+<style>
+    #tablaCajas td, #tablaCajas th { vertical-align: middle; }
+    .filtro-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+    .badge-estado { font-size: .75rem; }
+</style>
 @endpush
 
 @section('content')
@@ -21,104 +22,96 @@
     </x-breadcrumb.template>
 
     @can('aperturar-caja')
-    <div class="mb-4">
+    <div class="mb-3">
         <a href="{{route('cajas.create')}}">
             <button type="button" class="btn btn-primary">Aperturar caja</button>
         </a>
     </div>
     @endcan
 
-
     <div class="card">
-        <div class="card-header">
-            <i class="fas fa-table me-1"></i>
-            Tabla cajas
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span><i class="fas fa-table me-1"></i> Tabla cajas</span>
+            <!-- Filtros -->
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-secondary filtro-btn active" data-filtro="todos">Todos</button>
+                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="hoy">Hoy</button>
+                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="semana">Semana</button>
+                <button class="btn btn-sm btn-outline-secondary filtro-btn" data-filtro="mes">Mes</button>
+            </div>
         </div>
-        <div class="card-body">
-            <table id="datatablesSimple" class="table-striped fs-6">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Apertura</th>
-                        <th>Cierre</th>
-                        <th>Saldo inicial</th>
-                        <th>Saldo final</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($cajas as $item)
-                    <tr>
-                        <td>
-                            {{$item->nombre}}
-                        </td>
-                        <td>
-                            <p class="fw-semibold mb-1">
-                                <span class="m-1"><i class="fa-solid fa-calendar-days"></i></span>
-                                {{$item->fecha_apertura}}
-                            </p>
-                            <p class="fw-semibold mb-0"><span class="m-1"><i class="fa-solid fa-clock"></i></span>
-                                {{$item->hora_apertura}}
-                            </p>
-                        </td>
-                        <td>
-                            @if ($item->fecha_hora_cierre)
-                            <p class="fw-semibold mb-1">
-                                <span class="m-1"><i class="fa-solid fa-calendar-days"></i></span>
-                                {{$item->fecha_cierre}}
-                            </p>
-                            <p class="fw-semibold mb-0"><span class="m-1"><i class="fa-solid fa-clock"></i></span>
-                                {{$item->hora_cierre}}
-                            </p>
-                            @endif
-                        </td>
-                        <td>
-                            {{number_format($item->saldo_inicial, 0, ',', '.')}}
-                        </td>
-                        <td>
-                            {{number_format($item->saldo_final, 0, ',', '.')}}
-                        </td>
-                        <td>
-                            <span class="badge rounded-pill {{ $item->estado == 1 ? 'text-bg-success' : 'text-bg-danger' }}">
-                                {{$item->estado == 1 ? 'aperturada' : 'cerrada'}}</span>
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                @can('ver-movimiento')
-                                <form action="{{route('movimientos.index')}}" method="get">
-                                    <input type="hidden" name="caja_id" value="{{$item->id}}">
-                                    <button type="submit" class="btn btn-success">
-                                        Ver
-                                    </button>
-                                </form>
-                                @endcan
-
-                                <button type="button" class="btn btn-outline-info"
-                                    onclick="verResumen('{{ route('cajas.resumen', $item->id) }}', '{{ $item->fecha_apertura }}')">
-                                    <i class="fas fa-chart-bar"></i> Resumen
-                                </button>
-
-                                @can('cerrar-caja')
-                                @if ($item->estado == 1)
-                                <button type="button" class="btn btn-danger"
-                                    onclick="abrirCierre('{{ route('cajas.resumen', $item->id) }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
-                                    Cerrar
-                                </button>
+        <div class="card-body p-0 p-md-3">
+            <div class="table-responsive">
+                <table id="tablaCajas" class="table table-sm table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Apertura</th>
+                            <th>Cierre</th>
+                            <th class="d-none d-md-table-cell">Saldo inicial</th>
+                            <th class="d-none d-md-table-cell">Saldo final</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($cajas as $item)
+                        @php
+                            $apertura = \Carbon\Carbon::parse($item->fecha_hora_apertura);
+                        @endphp
+                        <tr data-fecha="{{ $apertura->format('Y-m-d') }}">
+                            <td>
+                                <div class="fw-semibold text-capitalize">{{ $apertura->locale('es_CO')->isoFormat('dddd') }}</div>
+                                <small class="text-muted">{{ $item->fecha_apertura }}</small>
+                                <small class="text-muted d-block"><i class="fa-solid fa-clock fa-xs me-1"></i>{{ $item->hora_apertura }}</small>
+                            </td>
+                            <td>
+                                @if ($item->fecha_hora_cierre)
+                                @php $cierre = \Carbon\Carbon::parse($item->fecha_hora_cierre); @endphp
+                                <div class="fw-semibold text-capitalize">{{ $cierre->locale('es_CO')->isoFormat('dddd') }}</div>
+                                <small class="text-muted">{{ $item->fecha_cierre }}</small>
+                                <small class="text-muted d-block"><i class="fa-solid fa-clock fa-xs me-1"></i>{{ $item->hora_cierre }}</small>
+                                @else
+                                <small class="text-muted">—</small>
                                 @endif
-                                @endcan
-
-                            </div>
-                        </td>
-                    </tr>
-
-                    @endforeach
-                </tbody>
-            </table>
-
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                ${{ number_format($item->saldo_inicial, 0, ',', '.') }}
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                ${{ number_format($item->saldo_final, 0, ',', '.') }}
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill badge-estado {{ $item->estado == 1 ? 'text-bg-success' : 'text-bg-danger' }}">
+                                    {{ $item->estado == 1 ? 'Abierta' : 'Cerrada' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    <button type="button" class="btn btn-sm btn-outline-info"
+                                        onclick="verResumen('{{ route('cajas.resumen', $item->id) }}', '{{ $item->fecha_apertura }}')">
+                                        <i class="fas fa-chart-bar"></i> Resumen
+                                    </button>
+                                    @can('cerrar-caja')
+                                    @if ($item->estado == 1)
+                                    <button type="button" class="btn btn-sm btn-danger"
+                                        onclick="abrirCierre('{{ route('cajas.resumen', $item->id) }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
+                                        <i class="fas fa-lock fa-xs"></i> Cerrar
+                                    </button>
+                                    @endif
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div id="sinResultados" class="text-center text-muted py-4" style="display:none;">
+                <i class="fas fa-search fa-2x mb-2"></i>
+                <p>No hay cajas en este período.</p>
+            </div>
         </div>
     </div>
-
 </div>
 
 <!-- Modal Resumen de Caja -->
@@ -165,11 +158,49 @@
 @endsection
 
 @push('js')
-<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
 <script>
+// ── Filtros ───────────────────────────────────────────────────────────────────
+document.querySelectorAll('.filtro-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        filtrarTabla(this.dataset.filtro);
+    });
+});
+
+function filtrarTabla(filtro) {
+    const rows   = document.querySelectorAll('#tablaCajas tbody tr');
+    const hoy    = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // Inicio de la semana (lunes)
+    const inicioSemana = new Date(hoy);
+    const dia = hoy.getDay() === 0 ? 6 : hoy.getDay() - 1; // lunes = 0
+    inicioSemana.setDate(hoy.getDate() - dia);
+
+    let visibles = 0;
+    rows.forEach(row => {
+        const fecha = new Date(row.dataset.fecha + 'T00:00:00');
+        let visible = true;
+
+        if (filtro === 'hoy') {
+            visible = fecha.toDateString() === hoy.toDateString();
+        } else if (filtro === 'semana') {
+            visible = fecha >= inicioSemana && fecha <= hoy;
+        } else if (filtro === 'mes') {
+            visible = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear();
+        }
+
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibles++;
+    });
+
+    document.getElementById('sinResultados').style.display = visibles === 0 ? 'block' : 'none';
+}
+
+// ── Resumen ───────────────────────────────────────────────────────────────────
 function fmt(n) {
-    return '$' + Number(n).toLocaleString('es-CO', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    return '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
 function buildResumenHtml(data) {
@@ -260,5 +291,3 @@ function abrirCierre(resumenUrl, actionUrl, fecha) {
 }
 </script>
 @endpush
-
-
