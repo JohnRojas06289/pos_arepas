@@ -95,14 +95,14 @@
                                 @endcan
 
                                 <button type="button" class="btn btn-outline-info"
-                                    onclick="verResumen('{{ $item->id }}', '{{ $item->fecha_apertura }}')">
+                                    onclick="verResumen('{{ route('cajas.resumen', $item->id) }}', '{{ $item->fecha_apertura }}')">
                                     <i class="fas fa-chart-bar"></i> Resumen
                                 </button>
 
                                 @can('cerrar-caja')
                                 @if ($item->estado == 1)
                                 <button type="button" class="btn btn-danger"
-                                    onclick="abrirCierre('{{ $item->id }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
+                                    onclick="abrirCierre('{{ route('cajas.resumen', $item->id) }}', '{{ route('cajas.destroy', $item->id) }}', '{{ $item->fecha_apertura }}')">
                                     Cerrar
                                 </button>
                                 @endif
@@ -228,33 +228,33 @@ function buildResumenHtml(data) {
         </div>`;
 }
 
-async function fetchResumen(cajaId) {
-    const res = await fetch(`/cajas/${cajaId}/resumen`, {
+async function fetchResumen(resumenUrl) {
+    const res = await fetch(resumenUrl, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
     });
     if (!res.ok) throw new Error('Error al cargar el resumen');
     return res.json();
 }
 
-function verResumen(cajaId, fecha) {
+function verResumen(resumenUrl, fecha) {
     document.getElementById('resumenFecha').textContent = fecha;
     document.getElementById('resumenBody').innerHTML =
         '<div class="text-center py-4"><div class="spinner-border text-info"></div><p class="mt-2">Cargando...</p></div>';
     new bootstrap.Modal(document.getElementById('resumenModal')).show();
 
-    fetchResumen(cajaId)
+    fetchResumen(resumenUrl)
         .then(data => { document.getElementById('resumenBody').innerHTML = buildResumenHtml(data); })
         .catch(() => { document.getElementById('resumenBody').innerHTML = '<div class="alert alert-danger">Error al cargar el resumen.</div>'; });
 }
 
-function abrirCierre(cajaId, actionUrl, fecha) {
+function abrirCierre(resumenUrl, actionUrl, fecha) {
     document.getElementById('cierreFecha').textContent = fecha;
     document.getElementById('cierreForm').action = actionUrl;
     document.getElementById('cierreBody').innerHTML =
         '<div class="text-center py-4"><div class="spinner-border text-danger"></div><p class="mt-2">Cargando resumen...</p></div>';
     new bootstrap.Modal(document.getElementById('cierreModal')).show();
 
-    fetchResumen(cajaId)
+    fetchResumen(resumenUrl)
         .then(data => { document.getElementById('cierreBody').innerHTML = buildResumenHtml(data); })
         .catch(() => { document.getElementById('cierreBody').innerHTML = '<div class="alert alert-warning">No se pudo cargar el resumen, pero puedes cerrar la caja de todos modos.</div>'; });
 }
