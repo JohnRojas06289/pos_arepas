@@ -77,7 +77,7 @@
                                 <input type="number" id="cantidad" class="form-control" placeholder="0">
                             </div>
                             <div class="col-md-3">
-                                <label for="precio_compra" class="form-label">Costo Unitario</label>
+                                <label for="precio_compra" class="form-label">Precio</label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
                                     <input type="number" id="precio_compra" class="form-control" step="0.1" placeholder="0.00">
@@ -101,8 +101,7 @@
                                     <tr>
                                         <th>Producto</th>
                                         <th>Cant.</th>
-                                        <th>Costo</th>
-                                        <th>Subtotal</th>
+                                        <th>Precio</th>
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
@@ -111,7 +110,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr class="fw-bold fs-5">
-                                        <td colspan="3" class="text-end">Total:</td>
+                                        <td colspan="2" class="text-end">Total:</td>
                                         <td colspan="2">
                                             $ <span id="total">0</span>
                                             <input type="hidden" name="total" value="0" id="inputTotal">
@@ -133,8 +132,8 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="proveedore_id" class="form-label">Proveedor <span class="text-danger">*</span></label>
-                            <select name="proveedore_id" id="proveedore_id" required class="form-control selectpicker show-tick" data-live-search="true" title="Seleccionar...">
+                            <label for="proveedore_id" class="form-label">Proveedor</label>
+                            <select name="proveedore_id" id="proveedore_id" class="form-control selectpicker show-tick" data-live-search="true" title="Seleccionar...">
                                 @foreach ($proveedores as $item)
                                 <option value="{{$item->id}}">{{$item->nombre_documento}}</option>
                                 @endforeach
@@ -144,13 +143,14 @@
 
                         <div class="mb-3">
                             <label for="fecha_hora" class="form-label">Fecha y Hora <span class="text-danger">*</span></label>
+                            <!-- fecha_hora sigue siendo obligatorio -->
                             <input required type="datetime-local" name="fecha_hora" id="fecha_hora" class="form-control" value="{{ \Carbon\Carbon::now()->format('Y-m-d\TH:i') }}">
                             @error('fecha_hora') <small class="text-danger">{{ $message }}</small> @enderror
                         </div>
 
                         <div class="mb-3">
-                             <label for="metodo_pago" class="form-label">Método de Pago <span class="text-danger">*</span></label>
-                             <select required name="metodo_pago" id="metodo_pago" class="form-control selectpicker" title="Seleccionar...">
+                             <label for="metodo_pago" class="form-label">Método de Pago</label>
+                             <select name="metodo_pago" id="metodo_pago" class="form-control selectpicker" title="Seleccionar...">
                                  @foreach ($optionsMetodoPago as $item)
                                  <option value="{{$item->value}}">{{$item->name}}</option>
                                  @endforeach
@@ -160,8 +160,8 @@
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label for="comprobante_id" class="form-label">Tipo Comp. <span class="text-danger">*</span></label>
-                                <select name="comprobante_id" id="comprobante_id" required class="form-control selectpicker" title="Tipo">
+                                <label for="comprobante_id" class="form-label">Tipo Comp.</label>
+                                <select name="comprobante_id" id="comprobante_id" class="form-control selectpicker" title="Tipo">
                                     @foreach ($comprobantes as $item)
                                     <option value="{{$item->id}}">{{$item->nombre}}</option>
                                     @endforeach
@@ -321,15 +321,14 @@
             // Simple validation
             if (parseInt(cantidad) > 0 && parseFloat(precioCompra) > 0) {
                 if (!arrayIdProductos.includes(idProducto)) {
-                    subtotal[cont] = round(cantidad * precioCompra);
+                    subtotal[cont] = round(parseFloat(precioCompra));
                     sumas = round(sumas + subtotal[cont]);
                     total = round(sumas);
 
                     let fila = '<tr id="fila' + cont + '">' +
                         '<td><input type="hidden" name="arrayidproducto[]" value="' + idProducto + '">' + textProducto + '</td>' +
                         '<td><input type="hidden" name="arraycantidad[]" value="' + cantidad + '">' + cantidad + '</td>' +
-                        '<td><input type="hidden" name="arraypreciocompra[]" value="' + precioCompra + '">$' + precioCompra + '</td>' +
-                        '<td><input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">$' + subtotal[cont] + '</td>' +
+                        '<td><input type="hidden" name="arraypreciocompra[]" value="' + precioCompra + '"><input type="hidden" name="arrayfechavencimiento[]" value="' + fechaVencimiento + '">$' + precioCompra + '</td>' +
                         '<td><button class="btn btn-sm btn-danger" type="button" onClick="eliminarProducto(' + cont + ', ' + idProducto + ')"><i class="fas fa-trash"></i></button></td>' +
                         '</tr>';
 
@@ -512,15 +511,14 @@
             showModal('Este producto ya está en la lista', 'warning'); return;
         }
 
-        subtotal[cont] = round(cantidad * precio);
+        subtotal[cont] = round(parseFloat(precio));
         sumas = round(sumas + subtotal[cont]);
         total = round(sumas);
 
         const fila = '<tr id="fila' + cont + '">' +
             '<td><input type="hidden" name="arrayidproducto[]" value="' + productoId + '">' + productoNom + '</td>' +
             '<td><input type="hidden" name="arraycantidad[]" value="' + cantidad + '">' + cantidad + '</td>' +
-            '<td><input type="hidden" name="arraypreciocompra[]" value="' + precio + '">$' + precio + '</td>' +
-            '<td><input type="hidden" name="arrayfechavencimiento[]" value="">$' + subtotal[cont] + '</td>' +
+            '<td><input type="hidden" name="arraypreciocompra[]" value="' + precio + '"><input type="hidden" name="arrayfechavencimiento[]" value="">$' + precio + '</td>' +
             '<td><button class="btn btn-sm btn-danger" type="button" onClick="eliminarProducto(' + cont + ', \'' + productoId + '\')"><i class="fas fa-trash"></i></button></td>' +
             '</tr>';
 
