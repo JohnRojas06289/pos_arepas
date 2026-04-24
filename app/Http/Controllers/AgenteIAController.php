@@ -297,12 +297,12 @@ PROMPT;
             'contents'           => [['role' => 'user', 'parts' => [['text' => $mensaje]]]],
             'generationConfig'   => [
                 'temperature'      => 0.1,
-                'maxOutputTokens'  => 400,
+                'maxOutputTokens'  => 800,
                 'responseMimeType' => 'application/json',
             ],
         ];
 
-        $response = Http::timeout(15)
+        $response = Http::timeout(20)
             ->withHeaders(['Content-Type' => 'application/json'])
             ->post($url, $body);
 
@@ -310,10 +310,24 @@ PROMPT;
             throw new \Exception('Gemini API error ' . $response->status());
         }
 
-        $raw = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+        $raw    = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+        $raw    = $this->limpiarJSON($raw);
         $parsed = json_decode($raw, true);
-        Log::info('AgenteIA primera llamada raw', ['raw' => $raw, 'parsed' => $parsed]);
+        Log::info('AgenteIA primera llamada', ['raw' => substr($raw, 0, 300), 'parsed_keys' => array_keys($parsed ?? [])]);
         return $parsed ?? [];
+    }
+
+    /**
+     * Limpia la respuesta de Gemini eliminando bloques markdown
+     * y caracteres extraños que invalidan el JSON.
+     */
+    private function limpiarJSON(string $raw): string
+    {
+        $raw = trim($raw);
+        // Quitar ```json ... ``` o ``` ... ```
+        $raw = preg_replace('/^```(?:json)?\s*/i', '', $raw);
+        $raw = preg_replace('/\s*```$/', '', $raw);
+        return trim($raw);
     }
 
     private function llamarGeminiInterpretarResultados(
