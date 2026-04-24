@@ -175,7 +175,7 @@
                         <td>{{ $item->inventario?->fecha_vencimiento_format ?? 'N/A' }}</td>
                         <td>
                             <div class="btn-group" role="group">
-                                @if($item->inventario)
+                                @if($item->inventario && $item->inventario->id)
                                     <a href="{{ route('inventario.edit', $item->inventario->id) }}" class="btn btn-warning">Editar</a>
                                     <form action="{{ route('inventario.destroy', $item->inventario->id) }}" method="POST"
                                         onsubmit="return confirm('¿Estás seguro de que deseas eliminar este elemento?');">
@@ -183,6 +183,8 @@
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger">Eliminar</button>
                                     </form>
+                                @elseif($item->inventario)
+                                    <span class="badge bg-secondary">Vista histórica</span>
                                 @else
                                     <span class="badge bg-secondary">Sin Inventario</span>
                                 @endif
