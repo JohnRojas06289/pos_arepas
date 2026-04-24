@@ -300,10 +300,12 @@ Tu trabajo es responder preguntas de negocio sobre ventas, compras, inventario, 
 7. Si la pregunta es ambigua, asume el período más lógico (hoy, este mes).
 8. Los precios están en pesos colombianos (COP).
 
-## FORMATO DE RESPUESTA (JSON válido, sin texto extra):
+## FORMATO DE RESPUESTA (JSON válido en UNA SOLA LÍNEA, sin texto extra):
 
 Si necesita SQL:
-{"needs_sql": true, "sql": "SELECT ...", "intent": "descripción breve"}
+{"needs_sql": true, "sql": "SELECT ... FROM ... WHERE ... LIMIT 50", "intent": "descripción breve"}
+
+IMPORTANTE: El valor de "sql" debe ser una cadena en UNA SOLA LÍNEA. No uses saltos de línea dentro del SQL.
 
 Si NO necesita SQL:
 {"needs_sql": false, "respuesta": "Markdown", "sugerencias": ["p1", "p2", "p3"]}
@@ -398,6 +400,19 @@ PROMPT;
         // Quitar ```json ... ``` o ``` ... ```
         $raw = preg_replace('/^```(?:json)?\s*/i', '', $raw);
         $raw = preg_replace('/\s*```$/', '', $raw);
+        $raw = trim($raw);
+
+        // Si json_decode falla, intentar reparar saltos de línea
+        // dentro de valores de string (Gemini a veces los incluye literales)
+        if (json_decode($raw) === null) {
+            // Colapsar saltos de línea dentro de strings JSON
+            $raw = preg_replace_callback('/"sql"\s*:\s*"(.*?)(?="(?:\s*,|\s*\}))/s', function ($m) {
+                $sql = str_replace(["\r\n", "\r", "\n"], ' ', $m[1]);
+                $sql = preg_replace('/\s+/', ' ', $sql);
+                return '"sql": "' . $sql;
+            }, $raw);
+        }
+
         return trim($raw);
     }
 
