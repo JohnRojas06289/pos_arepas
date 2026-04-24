@@ -464,6 +464,7 @@ PROMPT;
         }
 
         $raw    = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+        $raw    = $this->limpiarJSON($raw);
         $parsed = json_decode($raw, true) ?? [];
 
         return [
@@ -532,6 +533,7 @@ PROMPT;
         }
 
         $raw    = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+        $raw    = $this->limpiarJSON($raw);
         $parsed = json_decode($raw, true);
 
         return [
