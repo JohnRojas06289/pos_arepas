@@ -79,6 +79,7 @@ class PermissionSeeder extends Seeder
             'ver-producto',
             'crear-producto',
             'editar-producto',
+            'eliminar-producto',
 
             //Perfil 
             'ver-perfil',

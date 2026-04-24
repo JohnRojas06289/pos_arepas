@@ -90,7 +90,7 @@ class InventarioControlller extends Controller
                 })
                 ->orderBy('nombre', 'asc')
                 ->get()
-                ->map(function($producto) use ($fecha, $selectedRange) {
+                ->map(function($producto) use ($fecha, $selectedRange, $selectedRangeCompras) {
                     // Get the last Kardex entry for this product on or before the selected date
                     $kardex = Kardex::where('producto_id', $producto->id)
                         ->whereDate('created_at', '<=', $fecha)
