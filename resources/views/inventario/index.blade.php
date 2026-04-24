@@ -113,16 +113,38 @@
         </div>
     </div>
 
+    @if(request('fecha'))
+    <div class="alert alert-info d-flex align-items-center gap-3 mb-3 flex-wrap">
+        <i class="fas fa-history fa-lg"></i>
+        <div>
+            <strong>Vista histórica</strong> — Stock al cierre del
+            <strong>{{ \Carbon\Carbon::parse(request('fecha'))->locale('es')->isoFormat('D [de] MMMM [de] YYYY') }}</strong>.
+            <span class="text-muted">Solo lectura, no se puede editar.</span>
+        </div>
+        <a href="{{ route('inventario.index', array_filter(['categoria_id' => request('categoria_id'), 'periodo' => $periodo, 'periodo_compras' => $periodo_compras])) }}"
+           class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="fas fa-times me-1"></i> Volver al inventario actual
+        </a>
+    </div>
+    @endif
+
     <div class="card">
         <div class="card-header d-flex align-items-center gap-2 flex-wrap">
             <i class="fas fa-table me-1"></i>
             Tabla inventario
-            <span class="badge bg-success ms-1">
-                Ventas: {{ $periodo == 'hoy' ? 'Hoy' : ($periodo == 'ayer' ? 'Ayer' : ($periodo == 'semana' ? 'Esta Semana' : 'Este Mes')) }}
-            </span>
-            <span class="badge bg-primary ms-1">
-                Compras: {{ $periodo_compras == 'hoy' ? 'Hoy' : ($periodo_compras == 'ayer' ? 'Ayer' : ($periodo_compras == 'semana' ? 'Esta Semana' : 'Este Mes')) }}
-            </span>
+            @if(request('fecha'))
+                <span class="badge bg-info ms-1">
+                    <i class="fas fa-calendar-day me-1"></i>
+                    {{ \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y') }}
+                </span>
+            @else
+                <span class="badge bg-success ms-1">
+                    Ventas: {{ $periodo == 'hoy' ? 'Hoy' : ($periodo == 'ayer' ? 'Ayer' : ($periodo == 'semana' ? 'Esta Semana' : 'Este Mes')) }}
+                </span>
+                <span class="badge bg-primary ms-1">
+                    Compras: {{ $periodo_compras == 'hoy' ? 'Hoy' : ($periodo_compras == 'ayer' ? 'Ayer' : ($periodo_compras == 'semana' ? 'Esta Semana' : 'Este Mes')) }}
+                </span>
+            @endif
         </div>
         <div class="card-body">
             <table id="datatablesSimple" class="table-striped fs-6">
@@ -130,11 +152,13 @@
                     <tr>
                         <th>Código</th>
                         <th>Producto</th>
-                        <th>Stock</th>
+                        <th>{{ request('fecha') ? 'Stock al ' . \Carbon\Carbon::parse(request('fecha'))->format('d/m/Y') : 'Stock' }}</th>
                         <th>Vendidos</th>
                         <th>Comprados</th>
+                        @if(!request('fecha'))
                         <th>Fecha de Vencimiento</th>
                         <th>Acciones</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -172,6 +196,7 @@
                             </button>
                         </td>
 
+                        @if(!request('fecha'))
                         <td>{{ $item->inventario?->fecha_vencimiento_format ?? 'N/A' }}</td>
                         <td>
                             <div class="btn-group" role="group">
@@ -183,13 +208,12 @@
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger">Eliminar</button>
                                     </form>
-                                @elseif($item->inventario)
-                                    <span class="badge bg-secondary">Vista histórica</span>
                                 @else
                                     <span class="badge bg-secondary">Sin Inventario</span>
                                 @endif
                             </div>
                         </td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
