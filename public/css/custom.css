@@ -1167,6 +1167,14 @@ textarea:focus-visible {
     padding: var(--space-4);
     border-top: 1px solid var(--color-gray-200);
     background: var(--color-gray-50);
+    flex-wrap: wrap;
+}
+
+.product-actions a,
+.product-actions form.d-inline {
+    flex: 1;
+    display: flex;
+    min-width: 0;
 }
 
 .product-actions .btn {
@@ -1176,6 +1184,8 @@ textarea:focus-visible {
     justify-content: center;
     gap: var(--space-1);
     transition: all var(--transition-base);
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .product-actions .btn:hover {

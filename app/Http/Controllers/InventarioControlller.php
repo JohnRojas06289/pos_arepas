@@ -162,7 +162,7 @@ class InventarioControlller extends Controller
             ->map(function ($venta) use ($productoId) {
                 $pivot = $venta->productos->firstWhere('id', $productoId)?->pivot;
                 return [
-                    'fecha' => Carbon::parse($venta->fecha_hora)->format('d/m/Y'),
+                    'fecha' => Carbon::parse($venta->fecha_hora)->locale('es')->isoFormat('ddd D/MM/YYYY'),
                     'hora' => Carbon::parse($venta->fecha_hora)->format('H:i'),
                     'cliente' => $venta->cliente?->persona?->nombre ?? 'Público general',
                     'vendedor' => $venta->user?->name ?? 'N/A',
@@ -217,7 +217,7 @@ class InventarioControlller extends Controller
             ->map(function ($compra) {
                 $dt = Carbon::parse($compra->created_at);
                 return [
-                    'fecha'           => $dt->format('d/m/Y'),
+                    'fecha'           => $dt->locale('es')->isoFormat('ddd D/MM/YYYY'),
                     'hora'            => $dt->format('H:i'),
                     'proveedor'       => $compra->proveedor ?? 'N/A',
                     'cantidad'        => $compra->cantidad,
