@@ -323,6 +323,17 @@ PROMPT;
                 'temperature'      => 0.1,
                 'maxOutputTokens'  => 800,
                 'responseMimeType' => 'application/json',
+                'responseSchema'   => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'needs_sql'  => ['type' => 'boolean'],
+                        'sql'        => ['type' => 'string'],
+                        'intent'     => ['type' => 'string'],
+                        'respuesta'  => ['type' => 'string'],
+                        'sugerencias'=> ['type' => 'array', 'items' => ['type' => 'string']],
+                    ],
+                    'required' => ['needs_sql'],
+                ],
             ],
         ];
 
@@ -331,13 +342,14 @@ PROMPT;
             ->post($url, $body);
 
         if (!$response->successful()) {
+            Log::error('Gemini primera llamada error', ['status' => $response->status(), 'body' => $response->body()]);
             throw new \Exception('Gemini API error ' . $response->status());
         }
 
         $raw    = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
         $raw    = $this->limpiarJSON($raw);
         $parsed = json_decode($raw, true);
-        Log::info('AgenteIA primera llamada', ['raw' => substr($raw, 0, 300), 'parsed_keys' => array_keys($parsed ?? [])]);
+        Log::info('AgenteIA primera llamada', ['parsed_keys' => array_keys($parsed ?? []), 'needs_sql' => $parsed['needs_sql'] ?? 'N/A']);
         return $parsed ?? [];
     }
 
