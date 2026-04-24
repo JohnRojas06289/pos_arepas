@@ -419,15 +419,59 @@
                 } else {
                     sinDatos.style.display = 'none';
                     tabla.closest('.table-responsive').style.display = 'block';
+
+                    const parseMoney = s => parseInt(String(s).replace(/\./g, '')) || 0;
+                    const formatMoney = n => n.toLocaleString('es-CO');
+
+                    // Agrupar por fecha
+                    const grupos = {};
                     data.ventas.forEach(v => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${v.fecha}</td><td>${v.hora}</td><td>${v.cliente}</td><td>${v.vendedor}</td>
-                            <td class="text-center"><span class="badge bg-success">${v.cantidad}</span></td>
-                            <td class="text-end">$${v.precio_unitario}</td>
-                            <td class="text-end fw-bold">$${v.total}</td>
-                            <td><code>${v.comprobante}</code></td>`;
-                        tabla.appendChild(tr);
+                        if (!grupos[v.fecha]) grupos[v.fecha] = [];
+                        grupos[v.fecha].push(v);
                     });
+
+                    let totalCantidad = 0, totalPesos = 0;
+
+                    Object.entries(grupos).forEach(([fecha, filas]) => {
+                        let subtotalCantidad = 0, subtotalPesos = 0;
+
+                        filas.forEach(v => {
+                            subtotalCantidad += parseInt(v.cantidad);
+                            subtotalPesos    += parseMoney(v.total);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${v.fecha}</td><td>${v.hora}</td><td>${v.cliente}</td><td>${v.vendedor}</td>
+                                <td class="text-center"><span class="badge bg-success">${v.cantidad}</span></td>
+                                <td class="text-end">$${v.precio_unitario}</td>
+                                <td class="text-end fw-bold">$${v.total}</td>
+                                <td><code>${v.comprobante}</code></td>`;
+                            tabla.appendChild(tr);
+                        });
+
+                        if (filas.length > 1) {
+                            const sub = document.createElement('tr');
+                            sub.className = 'table-success fw-semibold';
+                            sub.innerHTML = `<td colspan="4" class="text-end">Subtotal ${fecha}</td>
+                                <td class="text-center">${subtotalCantidad}</td>
+                                <td></td>
+                                <td class="text-end">$${formatMoney(subtotalPesos)}</td>
+                                <td></td>`;
+                            tabla.appendChild(sub);
+                        }
+
+                        totalCantidad += subtotalCantidad;
+                        totalPesos    += subtotalPesos;
+                    });
+
+                    if (data.ventas.length > 1) {
+                        const total = document.createElement('tr');
+                        total.className = 'table-dark fw-bold';
+                        total.innerHTML = `<td colspan="4" class="text-end">Total del período</td>
+                            <td class="text-center">${totalCantidad}</td>
+                            <td></td>
+                            <td class="text-end">$${formatMoney(totalPesos)}</td>
+                            <td></td>`;
+                        tabla.appendChild(total);
+                    }
                 }
             })
             .catch(() => {
@@ -468,15 +512,58 @@
                 } else {
                     sinDatos.style.display = 'none';
                     tabla.closest('.table-responsive').style.display = 'block';
+
+                    const parseMoney = s => parseInt(String(s).replace(/\./g, '')) || 0;
+                    const formatMoney = n => n.toLocaleString('es-CO');
+
+                    const grupos = {};
                     data.compras.forEach(c => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `<td>${c.fecha}</td><td>${c.hora}</td><td>${c.proveedor}</td>
-                            <td class="text-center"><span class="badge bg-primary">${c.cantidad}</span></td>
-                            <td class="text-end">$${c.precio_unitario}</td>
-                            <td class="text-end fw-bold">$${c.total}</td>
-                            <td><code>${c.comprobante}</code></td>`;
-                        tabla.appendChild(tr);
+                        if (!grupos[c.fecha]) grupos[c.fecha] = [];
+                        grupos[c.fecha].push(c);
                     });
+
+                    let totalCantidad = 0, totalPesos = 0;
+
+                    Object.entries(grupos).forEach(([fecha, filas]) => {
+                        let subtotalCantidad = 0, subtotalPesos = 0;
+
+                        filas.forEach(c => {
+                            subtotalCantidad += parseInt(c.cantidad);
+                            subtotalPesos    += parseMoney(c.total);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>${c.fecha}</td><td>${c.hora}</td><td>${c.proveedor}</td>
+                                <td class="text-center"><span class="badge bg-primary">${c.cantidad}</span></td>
+                                <td class="text-end">$${c.precio_unitario}</td>
+                                <td class="text-end fw-bold">$${c.total}</td>
+                                <td><code>${c.comprobante}</code></td>`;
+                            tabla.appendChild(tr);
+                        });
+
+                        if (filas.length > 1) {
+                            const sub = document.createElement('tr');
+                            sub.className = 'table-primary fw-semibold';
+                            sub.innerHTML = `<td colspan="3" class="text-end">Subtotal ${fecha}</td>
+                                <td class="text-center">${subtotalCantidad}</td>
+                                <td></td>
+                                <td class="text-end">$${formatMoney(subtotalPesos)}</td>
+                                <td></td>`;
+                            tabla.appendChild(sub);
+                        }
+
+                        totalCantidad += subtotalCantidad;
+                        totalPesos    += subtotalPesos;
+                    });
+
+                    if (data.compras.length > 1) {
+                        const total = document.createElement('tr');
+                        total.className = 'table-dark fw-bold';
+                        total.innerHTML = `<td colspan="3" class="text-end">Total del período</td>
+                            <td class="text-center">${totalCantidad}</td>
+                            <td></td>
+                            <td class="text-end">$${formatMoney(totalPesos)}</td>
+                            <td></td>`;
+                        tabla.appendChild(total);
+                    }
                 }
             })
             .catch(() => {
