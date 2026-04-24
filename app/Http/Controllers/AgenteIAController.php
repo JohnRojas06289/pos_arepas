@@ -311,7 +311,9 @@ PROMPT;
         }
 
         $raw = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
-        return json_decode($raw, true) ?? [];
+        $parsed = json_decode($raw, true);
+        Log::info('AgenteIA primera llamada raw', ['raw' => $raw, 'parsed' => $parsed]);
+        return $parsed ?? [];
     }
 
     private function llamarGeminiInterpretarResultados(
