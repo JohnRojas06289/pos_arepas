@@ -57,8 +57,23 @@ class ProductoService
 
 
     /**
+     * Eliminar un producto y su imagen asociada
+     */
+    public function eliminarProducto(Producto $producto): void
+    {
+        if ($producto->img_path) {
+            $disk = config('filesystems.disks.cloudinary.cloud_name') ? 'cloudinary' : config('filesystems.default');
+            if (Storage::disk($disk)->exists($producto->img_path)) {
+                Storage::disk($disk)->delete($producto->img_path);
+            }
+        }
+
+        $producto->delete();
+    }
+
+    /**
      * Guarda una imagen en el Storage
-     * 
+     *
      */
     private function handleUploadImage(UploadedFile $image, $img_path = null): string
     {

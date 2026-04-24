@@ -54,7 +54,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     // ── Productos ─────────────────────────────────────────────────────────
     Route::get('productos/export', [ProductoController::class, 'export'])->name('productos.export');
     Route::post('productos/import', [ProductoController::class, 'import'])->name('productos.import');
-    Route::resource('productos', ProductoController::class)->except('show', 'destroy');
+    Route::resource('productos', ProductoController::class)->except('show');
 
     // ── Inventario ────────────────────────────────────────────────────────
     Route::get('inventario/ventas-detalle/{producto}', [InventarioControlller::class, 'ventasDetalle'])

@@ -272,6 +272,19 @@ class ProductoController extends Controller
         }
     }
 
+    public function destroy(Producto $producto): RedirectResponse
+    {
+        try {
+            $this->productoService->eliminarProducto($producto);
+            ActivityLogService::log('Eliminación de producto', 'Productos', ['id' => $producto->id, 'nombre' => $producto->nombre]);
+
+            return redirect()->route('productos.index')->with('success', 'Producto eliminado correctamente');
+        } catch (Throwable $e) {
+            Log::error('Error al eliminar el producto', ['error' => $e->getMessage()]);
+            return redirect()->route('productos.index')->with('error', 'No se pudo eliminar el producto: ' . $e->getMessage());
+        }
+    }
+
     // ── Helpers privados ──────────────────────────────────────────────────
 
     /**

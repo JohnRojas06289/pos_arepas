@@ -188,6 +188,16 @@
                     </button>
                 </form>
                 @endcan
+
+                @can('eliminar-producto')
+                <form action="{{route('productos.destroy', $item->id)}}" method="POST" class="d-inline form-eliminar-producto">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+                @endcan
             </div>
         </div>
 
@@ -295,6 +305,24 @@
 
 @push('js')
 <script>
+    document.querySelectorAll('.form-eliminar-producto').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Eliminar producto?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+            }).then(result => {
+                if (result.isConfirmed) form.submit();
+            });
+        });
+    });
+
     let currentView = 'grid';
 
     function filterProducts() {
