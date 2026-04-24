@@ -104,15 +104,37 @@ class AgenteIAController extends Controller
 
         try {
             $resultados = $this->ejecutarConsultaSegura($sql);
+        } catch (\InvalidArgumentException $e) {
+            // Violación de seguridad — no reintentar
+            Log::warning('AgenteIA: SQL bloqueada por seguridad', ['error' => $e->getMessage()]);
+            return [
+                'respuesta'   => 'No puedo ejecutar ese tipo de consulta por razones de seguridad.',
+                'sugerencias' => ['¿Cuánto se vendió hoy?', '¿Cuáles son los productos más vendidos?', '¿Cuánto se gastó este mes?'],
+            ];
         } catch (\Exception $e) {
-            Log::warning('AgenteIA: SQL rechazada o fallida', [
+            // Error de BD — pedirle a Gemini que corrija el SQL
+            Log::warning('AgenteIA: SQL con error de BD, solicitando corrección', [
                 'sql'   => $sql,
                 'error' => $e->getMessage(),
             ]);
-            return [
-                'respuesta'   => 'No pude obtener esa información. Intenta reformular la pregunta con otros términos.',
-                'sugerencias' => ['¿Cuánto se vendió esta semana?', '¿Cuáles son los productos más vendidos?', '¿Cuánto se gastó este mes?'],
-            ];
+            $sqlCorregida = $this->pedirCorreccionSQL($apiKey, $sql, $e->getMessage());
+
+            if (!$sqlCorregida) {
+                return [
+                    'respuesta'   => 'No pude obtener esa información. Intenta reformular la pregunta.',
+                    'sugerencias' => ['¿Cuánto se vendió esta semana?', '¿Cuáles son los productos más vendidos?', '¿Cuánto se gastó este mes?'],
+                ];
+            }
+
+            try {
+                $resultados = $this->ejecutarConsultaSegura($sqlCorregida);
+            } catch (\Exception $e2) {
+                Log::warning('AgenteIA: SQL corregida también falló', ['error' => $e2->getMessage()]);
+                return [
+                    'respuesta'   => 'No pude obtener esa información. Intenta reformular la pregunta.',
+                    'sugerencias' => ['¿Cuánto se vendió esta semana?', '¿Cuáles son los productos más vendidos?', '¿Cuánto se gastó este mes?'],
+                ];
+            }
         }
 
         // Segunda llamada: interpretar resultados
@@ -127,20 +149,20 @@ class AgenteIAController extends Controller
     {
         // Solo SELECT
         if (!preg_match('/^\s*SELECT\s/i', $sql)) {
-            throw new \Exception('Solo se permiten consultas SELECT.');
+            throw new \InvalidArgumentException('Solo se permiten consultas SELECT.');
         }
 
         // Palabras clave peligrosas
         foreach (self::BLOCKED_KEYWORDS as $keyword) {
             if (stripos($sql, $keyword) !== false) {
-                throw new \Exception("Consulta bloqueada: contiene '{$keyword}'.");
+                throw new \InvalidArgumentException("Consulta bloqueada: contiene '{$keyword}'.");
             }
         }
 
         // Tablas bloqueadas
         foreach (self::BLOCKED_TABLES as $table) {
             if (preg_match('/\b' . preg_quote($table, '/') . '\b/i', $sql)) {
-                throw new \Exception("Acceso a tabla restringida: '{$table}'.");
+                throw new \InvalidArgumentException("Acceso a tabla restringida: '{$table}'.");
             }
         }
 
@@ -315,6 +337,55 @@ PROMPT;
         $parsed = json_decode($raw, true);
         Log::info('AgenteIA primera llamada', ['raw' => substr($raw, 0, 300), 'parsed_keys' => array_keys($parsed ?? [])]);
         return $parsed ?? [];
+    }
+
+    /**
+     * Le pide a Gemini que corrija una query SQL que falló,
+     * pasándole el error exacto de PostgreSQL.
+     */
+    private function pedirCorreccionSQL(string $apiKey, string $sqlOriginal, string $error): ?string
+    {
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
+
+        $prompt = <<<PROMPT
+Eres un experto en PostgreSQL. La siguiente consulta SQL falló con este error:
+
+ERROR: {$error}
+
+SQL FALLIDA:
+{$sqlOriginal}
+
+Corrige el SQL para que sea válido en PostgreSQL.
+- Solo devuelve el SQL corregido, sin explicaciones ni markdown.
+- Mantén la misma lógica de negocio.
+- Regla clave de GROUP BY en PostgreSQL: todas las columnas del SELECT que no sean agregados deben estar en el GROUP BY con la MISMA expresión.
+
+Devuelve SOLO el SQL corregido como texto plano.
+PROMPT;
+
+        $body = [
+            'system_instruction' => ['parts' => [['text' => $prompt]]],
+            'contents'           => [['role' => 'user', 'parts' => [['text' => 'Corrige el SQL.']]]],
+            'generationConfig'   => ['temperature' => 0.0, 'maxOutputTokens' => 500],
+        ];
+
+        try {
+            $response = Http::timeout(15)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($url, $body);
+
+            if (!$response->successful()) return null;
+
+            $sql = $response->json()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            $sql = $this->limpiarJSON($sql); // reutiliza para quitar markdown
+            $sql = trim($sql, "; \n");
+
+            Log::info('AgenteIA: SQL corregida por Gemini', ['sql' => $sql]);
+
+            return !empty($sql) ? $sql : null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
