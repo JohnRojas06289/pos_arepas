@@ -1,16 +1,11 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title','Ventas')
 
-@push('css-datatable')
-<link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" type="text/css">
-@endpush
 @push('css')
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 <style>
-    .row-not-space {
-        width: 110px;
-    }
+    .row-not-space { width: 110px; }
 </style>
 @endpush
 
@@ -25,7 +20,7 @@
 
     @can('crear-venta')
     <div class="mb-4">
-        <a href="{{route('pos.index')}}">
+        <a href="{{ route('pos.index') }}">
             <button type="button" class="btn btn-primary">Añadir nuevo registro</button>
         </a>
     </div>
@@ -45,10 +40,10 @@
                 </div>
                 <div class="col-auto">
                     <button type="submit" class="btn btn-sm btn-secondary">Filtrar</button>
-                    <a href="{{ route('ventas.index') }}" class="btn btn-sm btn-outline-secondary ms-1">Últimos 90 días</a>
+                    <a href="{{ route('ventas.index') }}" class="btn btn-sm btn-outline-secondary ms-1">Últimos 30 días</a>
                 </div>
                 <div class="col-auto ms-auto text-muted small align-self-center">
-                    Mostrando {{ $ventas->count() }} venta(s) del {{ $desde }} al {{ $hasta }}
+                    {{ $ventas->total() }} venta(s) del {{ $desde }} al {{ $hasta }}
                 </div>
             </form>
         </div>
@@ -60,7 +55,7 @@
             Tabla ventas
         </div>
         <div class="card-body table-responsive">
-            <table id="datatablesSimple" class="table table-striped table-hover align-middle">
+            <table class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Comprobante</th>
@@ -72,85 +67,94 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($ventas as $item)
+                    @forelse ($ventas as $item)
                     <tr>
                         <td>
-                            <p class="fw-semibold mb-1">{{$item->comprobante?->tipo_comprobante ?? 'N/A'}}</p>
-                            <p class="text-muted mb-0">{{$item->numero_comprobante}}</p>
+                            <p class="fw-semibold mb-1">{{ $item->comprobante?->tipo_comprobante ?? 'N/A' }}</p>
+                            <p class="text-muted mb-0">{{ $item->numero_comprobante }}</p>
                         </td>
                         <td>
                             <p class="fw-semibold mb-1">{{ ucfirst($item->cliente?->persona?->tipo_persona ?? 'Cliente') }}</p>
-                            <p class="text-muted mb-0">{{$item->cliente?->persona?->razon_social ?? 'Cliente general'}}</p>
+                            <p class="text-muted mb-0">{{ $item->cliente?->persona?->razon_social ?? 'Cliente general' }}</p>
                         </td>
                         <td class="d-none d-md-table-cell">
                             <div class="row-not-space">
                                 <p class="fw-semibold mb-1">
-                                    <span class="m-1"><i class="fa-solid fa-calendar-days"></i>
-                                    </span>{{$item->fecha}}
+                                    <span class="m-1"><i class="fa-solid fa-calendar-days"></i></span>{{ $item->fecha }}
                                 </p>
                                 <p class="fw-semibold mb-0">
-                                    <span class="m-1"><i class="fa-solid fa-clock"></i>
-                                    </span>{{$item->hora}}
+                                    <span class="m-1"><i class="fa-solid fa-clock"></i></span>{{ $item->hora }}
                                 </p>
                             </div>
                         </td>
                         <td class="d-none d-lg-table-cell">
-                            {{$item->user?->name ?? 'N/A'}}
+                            {{ $item->user?->name ?? 'N/A' }}
                         </td>
+                        <td>{{ $item->total }}</td>
                         <td>
-                            {{$item->total}}
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-
+                            <div class="btn-group" role="group">
                                 @can('mostrar-venta')
-                                <form action="{{route('ventas.show', ['venta'=> $item]) }}" method="get">
-                                    <button type="submit" class="btn btn-success">
-                                        Ver
-                                    </button>
-                                </form>
+                                <a href="{{ route('ventas.show', $item) }}" class="btn btn-success btn-sm">Ver</a>
                                 @endcan
-
-                                <!-- Button trigger modal -->
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#verPDFModal-{{$item->id}}">
-                                    PDF
-                                </button>
-
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm btn-ver-pdf"
+                                    data-pdf-url="{{ route('export.pdf-comprobante-venta', ['id' => Crypt::encrypt($item->id)]) }}"
+                                >PDF</button>
                             </div>
                         </td>
-
                     </tr>
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="verPDFModal-{{$item->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-xl">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">PDF de la venta</h1>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <iframe src="{{ route('export.pdf-comprobante-venta', ['id' => Crypt::encrypt($item->id)]) }}" style="width: 100%; height:500px;" frameborder="0"></iframe>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No hay ventas en el período seleccionado.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
+
+            {{-- Paginación --}}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small">
+                    Mostrando {{ $ventas->firstItem() ?? 0 }}–{{ $ventas->lastItem() ?? 0 }} de {{ $ventas->total() }}
+                </div>
+                {{ $ventas->links() }}
+            </div>
         </div>
     </div>
+</div>
 
+{{-- Modal PDF único y reutilizable --}}
+<div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">PDF de la venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="pdfIframe" src="" style="width:100%; height:500px;" frameborder="0"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection
 
 @push('js')
-<script src="{{ asset('js/simple-datatables.min.js') }}" type="text/javascript"></script>
-<script src="{{ asset('js/datatables-simple-demo.js') }}"></script>
+<script>
+    document.querySelectorAll('.btn-ver-pdf').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('pdfIframe').src = this.dataset.pdfUrl;
+            new bootstrap.Modal(document.getElementById('pdfModal')).show();
+        });
+    });
+
+    // Limpiar el iframe al cerrar el modal para detener la carga del PDF
+    document.getElementById('pdfModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('pdfIframe').src = '';
+    });
+</script>
 @endpush
-
-

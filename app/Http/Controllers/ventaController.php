@@ -44,13 +44,14 @@ class ventaController extends Controller
      */
     public function index(Request $request): View
     {
-        $desde = $request->input('desde', now()->subDays(90)->toDateString());
+        $desde = $request->input('desde', now()->subDays(30)->toDateString());
         $hasta = $request->input('hasta', now()->toDateString());
 
         $ventas = Venta::with(['comprobante', 'cliente.persona', 'user'])
             ->whereBetween('created_at', [$desde . ' 00:00:00', $hasta . ' 23:59:59'])
             ->latest()
-            ->get();
+            ->paginate(50)
+            ->withQueryString();
 
         return view('venta.index', compact('ventas', 'desde', 'hasta'));
     }
