@@ -18,6 +18,14 @@ class CheckMovimientoCajaUserMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!$request->caja_id) {
+            $cajaAbierta = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
+            if ($cajaAbierta) {
+                return redirect()->route('movimientos.index', ['caja_id' => $cajaAbierta->id]);
+            }
+            return redirect()->route('cajas.index')->with('error', 'Selecciona una caja para ver los movimientos.');
+        }
+
         $caja = Caja::findOrfail($request->caja_id);
         if ($caja->user_id != Auth::id()) {
             throw new HttpException(401, 'No autorizado');
