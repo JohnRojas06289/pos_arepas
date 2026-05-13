@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CategoriaGastoEnum;
 use App\Models\Cliente;
 use App\Models\Compra;
 use App\Models\Gasto;
@@ -165,8 +164,8 @@ class homeController extends Controller
                 ->orderByDesc('total')
                 ->get()
                 ->map(fn($g) => [
-                    'label' => CategoriaGastoEnum::from($g->categoria)->label(),
-                    'color' => CategoriaGastoEnum::from($g->categoria)->color(),
+                    'label' => $g->categoria->label(),
+                    'color' => $g->categoria->color(),
                     'total' => (float) $g->total,
                 ]);
 
