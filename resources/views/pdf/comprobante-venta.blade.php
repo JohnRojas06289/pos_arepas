@@ -96,7 +96,7 @@
         <div class="header">
             <div class="column">
                 <div class="column bordered">
-                    <div><strong>{{strtoupper($venta->comprobante->nombre)}} DE VENTA ELECTRÓNICA</strong></div>
+                    <div><strong>{{strtoupper($venta->comprobante?->nombre ?? 'COMPROBANTE')}} DE VENTA ELECTRÓNICA</strong></div>
                     <div><strong>{{$venta->numero_comprobante}}</strong></div>
                 </div>
 
@@ -110,9 +110,9 @@
         </div>
 
         <div class="datos">
-            <div><strong>Nombre/Razón Social:</strong> {{strtoupper($venta->cliente->persona->razon_social)}}</div>
-            <div><strong>Dirección:</strong> {{strtoupper($venta->cliente->persona->direccion)}}</div>
-            <div><strong>{{strtoupper($venta->cliente->persona->documento->nombre)}}:</strong> {{$venta->cliente->persona->numero_documento}}</div>
+            <div><strong>Nombre/Razón Social:</strong> {{strtoupper($venta->cliente?->persona?->razon_social ?? 'CLIENTE GENERAL')}}</div>
+            <div><strong>Dirección:</strong> {{strtoupper($venta->cliente?->persona?->direccion ?? '-')}}</div>
+            <div><strong>{{strtoupper($venta->cliente?->persona?->documento?->nombre ?? 'DOCUMENTO')}}:</strong> {{$venta->cliente?->persona?->numero_documento ?? '-'}}</div>
             <div><strong>Fecha:</strong> {{date("d/m/Y", strtotime($venta->fecha_hora))}}</div>
             <div><strong>Hora:</strong> {{date("H:i", strtotime($venta->fecha_hora))}}</div>
         </div>
@@ -131,7 +131,7 @@
                 @foreach ($venta->productos as $detalle)
                 <tr>
                     <td>{{$detalle->pivot->cantidad}}</td>
-                    <td>{{$detalle->presentacione->sigla}}</td>
+                    <td>{{$detalle->presentacione?->sigla ?? 'UND'}}</td>
                     <td>{{$detalle->nombre}}</td>
                     <td>{{number_format($detalle->pivot->precio_venta, 0, ',', '.')}}</td>
                     <td>{{number_format($detalle->pivot->cantidad * $detalle->pivot->precio_venta, 0, ',', '.')}}</td>
