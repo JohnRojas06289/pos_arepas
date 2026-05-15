@@ -6,6 +6,7 @@ use App\Enums\MetodoPagoEnum;
 use App\Models\ActivityLog;
 use App\Models\Cliente;
 use App\Models\Compra;
+use App\Models\Producto;
 use App\Models\Venta;
 use App\Services\ActivityLogService;
 use App\Services\LogManagementService;
@@ -97,10 +98,11 @@ class ActivityLogController extends Controller
             }
         }
 
-        $clientes          = $log->isVentaLog() ? Cliente::with('persona')->whereHas('persona', fn($q) => $q->where('estado', 1))->get() : collect();
-        $metodosPago       = MetodoPagoEnum::cases();
+        $clientes    = $log->isVentaLog() ? Cliente::with('persona')->whereHas('persona', fn($q) => $q->where('estado', 1))->get() : collect();
+        $metodosPago = MetodoPagoEnum::cases();
+        $productos   = $log->isVentaLog() ? Producto::orderBy('nombre')->get() : collect();
 
-        return view('activityLog.show', compact('log', 'venta', 'compra', 'clientes', 'metodosPago'));
+        return view('activityLog.show', compact('log', 'venta', 'compra', 'clientes', 'metodosPago', 'productos'));
     }
 
     public function destroy(string $id): RedirectResponse
@@ -160,11 +162,16 @@ class ActivityLogController extends Controller
     }
 
     /**
-     * Editar campos no-inventario de una venta (metodo_pago, cliente).
+     * Editar campos de una venta: metodo_pago, cliente y productos/cantidades (solo admin).
+     * No ajusta inventario — solo actualiza la venta y la tabla pivote.
      */
     public function updateVenta(Request $request, string $logId): RedirectResponse
     {
         try {
+            if (!Auth::user()->hasRole('administrador')) {
+                return redirect()->back()->with('error', 'Solo el administrador puede editar ventas');
+            }
+
             $log = ActivityLog::findOrFail($logId);
 
             if (!$log->isVentaLog()) {
@@ -179,17 +186,46 @@ class ActivityLogController extends Controller
             $venta = Venta::findOrFail($ventaId);
 
             $validated = $request->validate([
-                'metodo_pago' => 'required|string',
-                'cliente_id'  => 'nullable|exists:clientes,id',
+                'metodo_pago'              => 'required|string',
+                'cliente_id'               => 'nullable|exists:clientes,id',
+                'productos'                => 'required|array|min:1',
+                'productos.*.producto_id'  => 'required|exists:productos,id',
+                'productos.*.cantidad'     => 'required|integer|min:1',
+                'productos.*.precio_venta' => 'required|numeric|min:0',
             ]);
 
             DB::beginTransaction();
-            $venta->update($validated);
-            ActivityLogService::log('Edición de venta', 'Ventas', [
+
+            $syncData = [];
+            foreach ($validated['productos'] as $prod) {
+                $syncData[$prod['producto_id']] = [
+                    'cantidad'    => $prod['cantidad'],
+                    'precio_venta' => $prod['precio_venta'],
+                ];
+            }
+            $venta->productos()->sync($syncData);
+
+            $nuevoTotal = collect($validated['productos'])
+                ->sum(fn($p) => $p['cantidad'] * $p['precio_venta']);
+
+            $venta->update([
+                'metodo_pago' => $validated['metodo_pago'],
+                'cliente_id'  => $validated['cliente_id'],
+                'subtotal'    => $nuevoTotal,
+                'total'       => $nuevoTotal,
+            ]);
+
+            ActivityLogService::log('Edición de venta (admin)', 'Ventas', [
                 'venta_id'           => $venta->id,
                 'numero_comprobante' => $venta->numero_comprobante,
-                'cambios'            => $validated,
+                'cambios'            => [
+                    'metodo_pago' => $validated['metodo_pago'],
+                    'cliente_id'  => $validated['cliente_id'],
+                    'nuevo_total' => $nuevoTotal,
+                    'productos'   => count($validated['productos']),
+                ],
             ]);
+
             DB::commit();
 
             return redirect()->route('activityLog.show', $logId)->with('success', 'Venta actualizada correctamente');

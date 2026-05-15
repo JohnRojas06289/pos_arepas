@@ -38,7 +38,9 @@ class homeController extends Controller
             $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']  ?? 0;
             $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
-            $ventasFiado     = $ventasPorMetodo['FIADO']     ?? 0;
+
+            $gastosHoy = Gasto::whereDate('fecha', Carbon::today())->sum('monto');
+            $totalMenosGastos = $ventasHoy - $gastosHoy;
 
             $ventasPorCliente = Venta::with(['user', 'cliente.persona', 'productos'])
                 ->whereBetween('created_at', [$hoyInicio, $hoyFin])
@@ -50,7 +52,8 @@ class homeController extends Controller
                 'ventasEfectivo',
                 'ventasNequi',
                 'ventasDaviplata',
-                'ventasFiado',
+                'gastosHoy',
+                'totalMenosGastos',
                 'ventasPorCliente'
             ));
         } catch (\Throwable $e) {

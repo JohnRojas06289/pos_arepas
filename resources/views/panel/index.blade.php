@@ -96,13 +96,28 @@
             <div class="kpi-card danger h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
-                        <div class="kpi-label">Fiado</div>
-                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($ventasFiado, 0, ',', '.') }}</div>
+                        <div class="kpi-label">Total gastos</div>
+                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($gastosHoy, 0, ',', '.') }}</div>
                         <div class="small fw-semibold" style="color:var(--color-danger);">
-                            <i class="fas fa-handshake me-1"></i>Pendiente
+                            <i class="fas fa-file-invoice-dollar me-1"></i>Gastos del día
                         </div>
                     </div>
-                    <div class="kpi-icon danger ms-3"><i class="fas fa-handshake"></i></div>
+                    <div class="kpi-icon danger ms-3"><i class="fas fa-file-invoice-dollar"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card success h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Total - Gastos</div>
+                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($totalMenosGastos, 0, ',', '.') }}</div>
+                        <div class="small fw-semibold" style="color:var(--color-success);">
+                            <i class="fas fa-chart-line me-1"></i>Neto del día
+                        </div>
+                    </div>
+                    <div class="kpi-icon success ms-3"><i class="fas fa-chart-line"></i></div>
                 </div>
             </div>
         </div>

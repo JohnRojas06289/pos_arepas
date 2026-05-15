@@ -103,12 +103,14 @@
                 <div class="card-body d-flex flex-column gap-2">
                     <div class="section-title mb-2">Acciones</div>
 
-                    {{-- Editar venta --}}
+                    {{-- Editar venta (solo admin) --}}
+                    @hasrole('administrador')
                     @if($log->isVentaLog() && $venta && $log->getVentaId() && !$venta->revertida)
                     <button type="button" class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#editVentaModal">
                         <i class="fas fa-edit me-1"></i> Editar venta
                     </button>
                     @endif
+                    @endhasrole
 
                     {{-- Revertir venta --}}
                     @if($log->isVentaLog() && $venta && !$venta->revertida)
@@ -318,10 +320,11 @@
     </div>
 </div>
 
-{{-- Modal: Editar venta --}}
+{{-- Modal: Editar venta (solo admin) --}}
+@hasrole('administrador')
 @if($log->isVentaLog() && $venta && $log->getVentaId() && !$venta->revertida)
 <div class="modal fade" id="editVentaModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <form action="{{ route('activityLog.updateVenta', $log->id) }}" method="POST">
                 @csrf
@@ -333,32 +336,92 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info py-2" style="font-size:0.82rem;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Solo se pueden editar campos que no afectan el inventario. Para cambios en productos, revierte y crea una nueva venta.
+                    <div class="alert alert-warning py-2 mb-3" style="font-size:0.82rem;">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Los cambios en productos y cantidades actualizan el total de la venta pero <strong>no ajustan el inventario</strong>.
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Método de pago</label>
+                            <select name="metodo_pago" class="form-select">
+                                @foreach($metodosPago as $metodo)
+                                <option value="{{ $metodo->value }}" {{ $venta->metodo_pago === $metodo->value ? 'selected' : '' }}>
+                                    {{ $metodo->value }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold">Cliente</label>
+                            <select name="cliente_id" class="form-select">
+                                <option value="">— Cliente general —</option>
+                                @foreach($clientes as $cliente)
+                                <option value="{{ $cliente->id }}" {{ $venta->cliente_id === $cliente->id ? 'selected' : '' }}>
+                                    {{ $cliente->persona->razon_social }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Método de pago</label>
-                        <select name="metodo_pago" class="form-select">
-                            @foreach($metodosPago as $metodo)
-                            <option value="{{ $metodo->value }}" {{ $venta->metodo_pago === $metodo->value ? 'selected' : '' }}>
-                                {{ $metodo->value }}
-                            </option>
-                            @endforeach
-                        </select>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-semibold mb-0">Productos</label>
+                            <button type="button" id="add-producto-btn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-plus me-1"></i>Agregar producto
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead style="font-size:0.78rem;background:var(--table-header-bg,#f8f9fa);">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center" style="width:90px;">Cant.</th>
+                                        <th class="text-end" style="width:120px;">Precio unit.</th>
+                                        <th style="width:36px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productos-body">
+                                    @foreach($venta->productos as $idx => $item)
+                                    <tr class="producto-row">
+                                        <td>
+                                            <select name="productos[{{ $idx }}][producto_id]" class="form-select form-select-sm producto-select" required>
+                                                @foreach($productos as $p)
+                                                <option value="{{ $p->id }}"
+                                                    data-precio="{{ $p->precio_venta }}"
+                                                    {{ $p->id === $item->id ? 'selected' : '' }}>
+                                                    {{ $p->nombre }}
+                                                </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="productos[{{ $idx }}][cantidad]"
+                                                   value="{{ $item->pivot->cantidad }}"
+                                                   class="form-control form-control-sm text-center cantidad-input"
+                                                   min="1" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="productos[{{ $idx }}][precio_venta]"
+                                                   value="{{ $item->pivot->precio_venta }}"
+                                                   class="form-control form-control-sm text-end precio-input"
+                                                   min="0" step="1" required>
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-row p-1" title="Quitar">
+                                                <i class="fas fa-times" style="font-size:0.7rem;"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="mb-0">
-                        <label class="form-label fw-semibold">Cliente</label>
-                        <select name="cliente_id" class="form-select">
-                            <option value="">— Cliente general —</option>
-                            @foreach($clientes as $cliente)
-                            <option value="{{ $cliente->id }}" {{ $venta->cliente_id === $cliente->id ? 'selected' : '' }}>
-                                {{ $cliente->persona->razon_social }}
-                            </option>
-                            @endforeach
-                        </select>
+                    <div class="text-end fw-bold border-top pt-2" style="font-size:1.05rem;">
+                        Total: $<span id="total-calculado">{{ number_format($venta->total, 0, ',', '.') }}</span>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -371,6 +434,69 @@
         </div>
     </div>
 </div>
+
+@push('js')
+<script>
+const allProductos = @json($productos->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre, 'precio_venta' => $p->precio_venta]));
+let rowIndex = {{ $venta->productos->count() }};
+
+function recalcularTotal() {
+    let total = 0;
+    document.querySelectorAll('#productos-body .producto-row').forEach(row => {
+        const cant  = parseFloat(row.querySelector('.cantidad-input').value) || 0;
+        const precio = parseFloat(row.querySelector('.precio-input').value) || 0;
+        total += cant * precio;
+    });
+    document.getElementById('total-calculado').textContent =
+        new Intl.NumberFormat('es-CO').format(Math.round(total));
+}
+
+function buildOptions(selectedId) {
+    return allProductos.map(p =>
+        `<option value="${p.id}" data-precio="${p.precio_venta}" ${p.id === selectedId ? 'selected' : ''}>${p.nombre}</option>`
+    ).join('');
+}
+
+function bindRowEvents(row) {
+    row.querySelector('.remove-row').addEventListener('click', function () {
+        if (document.querySelectorAll('#productos-body .producto-row').length > 1) {
+            row.remove();
+            recalcularTotal();
+        }
+    });
+    row.querySelector('.cantidad-input').addEventListener('input', recalcularTotal);
+    row.querySelector('.precio-input').addEventListener('input', recalcularTotal);
+    row.querySelector('.producto-select').addEventListener('change', function () {
+        const precio = this.selectedOptions[0]?.dataset.precio;
+        if (precio) row.querySelector('.precio-input').value = precio;
+        recalcularTotal();
+    });
+}
+
+function addRow() {
+    const idx = rowIndex++;
+    const firstPrecio = allProductos[0]?.precio_venta ?? 0;
+    const tr = document.createElement('tr');
+    tr.className = 'producto-row';
+    tr.innerHTML = `
+        <td><select name="productos[${idx}][producto_id]" class="form-select form-select-sm producto-select" required>${buildOptions(null)}</select></td>
+        <td><input type="number" name="productos[${idx}][cantidad]" value="1" class="form-control form-control-sm text-center cantidad-input" min="1" required></td>
+        <td><input type="number" name="productos[${idx}][precio_venta]" value="${firstPrecio}" class="form-control form-control-sm text-end precio-input" min="0" step="1" required></td>
+        <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row p-1" title="Quitar"><i class="fas fa-times" style="font-size:0.7rem;"></i></button></td>
+    `;
+    document.getElementById('productos-body').appendChild(tr);
+    bindRowEvents(tr);
+    recalcularTotal();
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('#productos-body .producto-row').forEach(bindRowEvents);
+    document.getElementById('add-producto-btn').addEventListener('click', addRow);
+    recalcularTotal();
+});
+</script>
+@endpush
 @endif
+@endhasrole
 
 @endsection
