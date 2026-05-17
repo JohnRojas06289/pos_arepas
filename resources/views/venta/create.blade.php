@@ -717,6 +717,11 @@
                 <div class="text-center text-muted mt-5" id="emptyCartMessage">
                     <i class="fa-solid fa-basket-shopping fa-3x mb-3 opacity-50"></i>
                     <p>Carrito vacío</p>
+                    <button type="button" id="btnDeleteEmptyCart" class="btn btn-sm btn-outline-danger mt-1"
+                            onclick="removeCart(activeCartIndex)"
+                            style="display:none;font-size:0.8rem;">
+                        <i class="fa-solid fa-trash me-1"></i> Eliminar carrito
+                    </button>
                 </div>
                 <div id="cartList"></div>
             </div>
@@ -817,7 +822,7 @@
     // ── Multi-cart state ──
     var carts = [{ id: 1, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0 }];
     var activeCartIndex = 0;
-    var MAX_CARTS = 4;
+    var MAX_CARTS = 10;
     // Transparent proxy: existing code using `cart` automatically targets the active cart
     Object.defineProperty(window, 'cart', {
         get: function() { return carts[activeCartIndex].items; },
@@ -1224,6 +1229,8 @@
         if (cart.length === 0) {
             document.getElementById('emptyCartMessage').style.display = 'block';
             document.getElementById('btnPay').disabled = true;
+            var btnDel = document.getElementById('btnDeleteEmptyCart');
+            if (btnDel) btnDel.style.display = carts.length > 1 ? 'inline-block' : 'none';
         } else {
             document.getElementById('emptyCartMessage').style.display = 'none';
             
