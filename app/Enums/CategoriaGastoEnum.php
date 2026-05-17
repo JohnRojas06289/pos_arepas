@@ -12,6 +12,7 @@ enum CategoriaGastoEnum: string
     case Publicidad      = 'PUBLICIDAD';
     case Impuestos       = 'IMPUESTOS';
     case Otros           = 'OTROS';
+    case Surtido         = 'SURTIDO';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum CategoriaGastoEnum: string
             self::Publicidad        => 'Publicidad',
             self::Impuestos         => 'Impuestos',
             self::Otros             => 'Otros',
+            self::Surtido           => 'Surtido',
         };
     }
 
@@ -38,6 +40,7 @@ enum CategoriaGastoEnum: string
             self::Publicidad        => 'danger',
             self::Impuestos         => 'dark',
             self::Otros             => 'light',
+            self::Surtido           => 'warning',
         };
     }
 }

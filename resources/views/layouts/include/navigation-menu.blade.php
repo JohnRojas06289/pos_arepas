@@ -23,8 +23,7 @@
 
                 @can('crear-pedido')
                 <x-nav.nav-link content='Tomar Pedido'
-                    route='pedidos.create'
-                    :active="request()->routeIs('pedidos.create')"
+                    :href="route('pedidos.create')"
                     icon='fa-solid fa-clipboard-list' />
                 @endcan
 
