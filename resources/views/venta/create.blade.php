@@ -915,6 +915,7 @@
         if (mobileCount) mobileCount.innerText = totalItems;
 
         calculateChange();
+        persistCarts();
     }
 
     function showKeyboardHint(text) {
@@ -927,6 +928,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        loadPersistedCarts();
+        renderCart();
+        loadCartPaymentState();
         renderCartTabs();
 
         // Auto-collapse sidebar with animation
@@ -1659,11 +1663,33 @@
     // MULTI-CART SYSTEM
     // ================================================================
 
+    function persistCarts() {
+        try {
+            localStorage.setItem('pos_carts', JSON.stringify(carts));
+            localStorage.setItem('pos_active_cart', activeCartIndex);
+        } catch(e) {}
+    }
+
+    function loadPersistedCarts() {
+        try {
+            var saved = localStorage.getItem('pos_carts');
+            var savedIndex = parseInt(localStorage.getItem('pos_active_cart')) || 0;
+            if (saved) {
+                var parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    carts = parsed;
+                    activeCartIndex = savedIndex < parsed.length ? savedIndex : 0;
+                }
+            }
+        } catch(e) {}
+    }
+
     function saveCartPaymentState() {
         var c = carts[activeCartIndex];
         c.metodoPago = document.getElementById('selectMetodoPago').value;
         c.dineroRecibido = parseFloat(document.getElementById('dinero_recibido').value) || 0;
         c.vuelto = parseFloat(document.getElementById('vuelto').value) || 0;
+        persistCarts();
     }
 
     function loadCartPaymentState() {
@@ -1748,6 +1774,7 @@
         });
         var btnAdd = document.getElementById('btnAddCart');
         if (btnAdd) btnAdd.disabled = carts.length >= MAX_CARTS;
+        persistCarts();
     }
 
     function removeCart(index) {
