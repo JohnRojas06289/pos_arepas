@@ -26,6 +26,7 @@ use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\roleController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\ventaController;
+use App\Http\Controllers\PedidoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -108,6 +109,12 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     })->name('notifications.markAsRead');
 
     Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
+
+    // ── Pedidos ───────────────────────────────────────────────────────────
+    Route::get('/pedido', [PedidoController::class, 'create'])->name('pedidos.create');
+    Route::post('/pedido', [PedidoController::class, 'store'])->name('pedidos.store');
+    Route::get('/pedidos/pendientes', [PedidoController::class, 'pendientes'])->name('pedidos.pendientes');
+    Route::post('/pedidos/{pedido}/tomar', [PedidoController::class, 'tomar'])->name('pedidos.tomar');
 
     // ── Agente IA ─────────────────────────────────────────────────────────
     Route::post('/agente-ia/chat', [AgenteIAController::class, 'chat'])->name('agente-ia.chat');

@@ -746,6 +746,53 @@
         opacity: 0.25;
         cursor: default;
     }
+
+    /* ── Pedidos pendientes ── */
+    .cart-orders-btn {
+        position: relative;
+        width: 34px; height: 34px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.2s ease; padding: 0; flex-shrink: 0;
+    }
+    .cart-orders-btn.has-orders {
+        border-color: #f97316;
+        color: #f97316;
+        animation: ordersPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes ordersPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.4); }
+        50% { box-shadow: 0 0 0 6px rgba(249,115,22,0); }
+    }
+    .cart-orders-badge {
+        position: absolute; top: -5px; right: -5px;
+        width: 16px; height: 16px;
+        border-radius: 50%;
+        background: #f97316; color: #fff;
+        font-size: 0.6rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .orders-panel {
+        position: absolute; top: 0; left: 0; right: 0;
+        background: var(--bg-card);
+        border-bottom: 2px solid var(--border-color);
+        z-index: 50;
+        max-height: 60%;
+        overflow-y: auto;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        display: none;
+    }
+    .orders-panel.open { display: block; }
+    .order-item {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .order-item:last-child { border-bottom: none; }
 </style>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 @endpush
@@ -855,6 +902,14 @@
                 <button type="button" class="cart-add-btn" id="btnAddCart" onclick="addNewCart()" title="Nuevo carrito">
                     <i class="fa-solid fa-plus"></i>
                 </button>
+                @can('crear-venta')
+                <button type="button" class="cart-orders-btn ms-1" id="btnPendingOrders"
+                        onclick="toggleOrdersPanel()" title="Pedidos pendientes"
+                        style="display:none;" data-can-ver-pedidos="1">
+                    <i class="fa-solid fa-bell"></i>
+                    <span id="pendingOrdersCount" class="cart-orders-badge">0</span>
+                </button>
+                @endcan
             </div>
             
             <div class="d-none">
@@ -864,6 +919,18 @@
                         <option value="{{ $op->value }}" {{ $loop->first ? 'selected' : '' }}>{{ $op->value }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div class="orders-panel" id="ordersPanel">
+                <div class="p-2 d-flex justify-content-between align-items-center"
+                     style="background:var(--bg-sidebar);color:#fff;font-size:0.8rem;font-weight:700;">
+                    <span><i class="fa-solid fa-clock me-1" style="color:#f97316;"></i> Pedidos pendientes</span>
+                    <button type="button" onclick="toggleOrdersPanel()"
+                            style="background:none;border:none;color:#fff;font-size:0.9rem;cursor:pointer;">✕</button>
+                </div>
+                <div id="ordersList">
+                    <div class="text-center text-muted p-3" style="font-size:0.85rem;">Sin pedidos pendientes</div>
+                </div>
             </div>
 
             <div class="cart-items" id="cartItemsContainer">
@@ -1969,6 +2036,123 @@
         renderCart();
         loadCartPaymentState();
         renderCartTabs();
+    }
+
+    // ================================================================
+    // PEDIDOS PENDIENTES — POLLING
+    // ================================================================
+    var _ordersOpen    = false;
+    var _lastOrderIds  = [];
+
+    function toggleOrdersPanel() {
+        _ordersOpen = !_ordersOpen;
+        document.getElementById('ordersPanel').classList.toggle('open', _ordersOpen);
+    }
+
+    function loadOrder(orderId) {
+        fetch('{{ route("pedidos.tomar", ":id") }}'.replace(':id', orderId), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            saveCartPaymentState();
+            var newId = Math.max.apply(null, carts.map(function(c) { return c.id; })) + 1;
+            carts.push({
+                id: newId,
+                items: data.items.map(function(item) {
+                    return {
+                        id: String(item.id),
+                        nombre: item.nombre,
+                        precio: item.precio,
+                        cantidad: item.cantidad,
+                        sigla: item.sigla || 'UND',
+                        stock: 9999,
+                        subtotal: item.subtotal,
+                        isNew: false
+                    };
+                }),
+                metodoPago: 'EFECTIVO',
+                dineroRecibido: 0,
+                vuelto: 0
+            });
+            activeCartIndex = carts.length - 1;
+            renderCart();
+            loadCartPaymentState();
+            renderCartTabs();
+            _ordersOpen = false;
+            document.getElementById('ordersPanel').classList.remove('open');
+            Swal.fire({
+                icon: 'success',
+                title: 'Pedido de ' + data.nombre_tomador + ' cargado',
+                toast: true, position: 'top-end',
+                showConfirmButton: false, timer: 2500, timerProgressBar: true
+            });
+            pollPendingOrders();
+        })
+        .catch(function() {
+            Swal.fire({ icon: 'error', title: 'Error al cargar el pedido', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        });
+    }
+
+    function pollPendingOrders() {
+        fetch('{{ route("pedidos.pendientes") }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+        .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function(orders) {
+            var btn     = document.getElementById('btnPendingOrders');
+            var countEl = document.getElementById('pendingOrdersCount');
+            var listEl  = document.getElementById('ordersList');
+            if (!btn) return;
+
+            if (orders.length > 0) {
+                btn.style.display = 'inline-flex';
+                btn.classList.add('has-orders');
+                countEl.textContent = orders.length;
+
+                var newIds = orders.map(function(o) { return o.id; });
+                var hasNew = newIds.some(function(id) { return _lastOrderIds.indexOf(id) === -1; });
+                if (hasNew && _lastOrderIds.length > 0) {
+                    playSound(880, 0.15);
+                }
+                _lastOrderIds = newIds;
+
+                listEl.innerHTML = orders.map(function(o) {
+                    var itemNames = o.items.slice(0,2).map(function(i){ return i.nombre; }).join(', ');
+                    if (o.items.length > 2) itemNames += '...';
+                    return '<div class="order-item">' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-weight:700;font-size:0.82rem;">' + o.nombre_tomador + '</div>' +
+                            '<div style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + itemNames + '</div>' +
+                            '<div style="font-size:0.7rem;color:var(--text-muted);">' + o.created_at_human + '</div>' +
+                        '</div>' +
+                        '<div style="text-align:right;flex-shrink:0;">' +
+                            '<div style="font-weight:800;font-size:0.82rem;font-family:\'JetBrains Mono\',monospace;color:var(--color-success);">$' + o.total.toLocaleString() + '</div>' +
+                            '<button type="button" class="btn btn-sm btn-success mt-1" style="font-size:0.72rem;padding:3px 8px;" onclick="loadOrder(' + o.id + ')">' +
+                                '<i class="fa-solid fa-cart-plus me-1"></i>Cargar' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+            } else {
+                btn.classList.remove('has-orders');
+                countEl.textContent = '0';
+                _lastOrderIds = [];
+                listEl.innerHTML = '<div class="text-center text-muted p-3" style="font-size:0.85rem;">Sin pedidos pendientes</div>';
+            }
+        })
+        .catch(function() {});
+    }
+
+    // Solo iniciar el polling si el usuario tiene el permiso (botón presente en DOM)
+    if (document.querySelector('[data-can-ver-pedidos]')) {
+        pollPendingOrders();
+        setInterval(pollPendingOrders, 6000);
     }
 </script>
 @endpush

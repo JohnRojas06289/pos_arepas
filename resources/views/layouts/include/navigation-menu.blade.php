@@ -21,6 +21,13 @@
                     :href="route('pos.index')" />
                 @endcan
 
+                @can('crear-pedido')
+                <x-nav.nav-link content='Tomar Pedido'
+                    route='pedidos.create'
+                    :active="request()->routeIs('pedidos.create')"
+                    icon='fa-solid fa-clipboard-list' />
+                @endcan
+
                 @can('ver-venta')
                 <x-nav.nav-link content='Historial de Ventas'
                     icon='fas fa-receipt'
