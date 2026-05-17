@@ -389,8 +389,11 @@ h1, h2, h3, h4, h5, h6 {
   padding: 1.1rem 1rem 0.3rem !important;
   margin-top: 0.15rem !important;
 }
+.sb-sidenav-dark .sb-sidenav-menu .nav {
+  padding-top: 0 !important;
+}
 .sb-sidenav-dark .sb-sidenav-menu .nav > *:first-child {
-  padding-top: 0.35rem !important;
+  padding-top: 0.2rem !important;
   margin-top: 0 !important;
 }
 
