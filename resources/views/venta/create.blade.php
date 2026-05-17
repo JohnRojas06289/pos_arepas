@@ -441,17 +441,83 @@
         }
         .cart-section.mobile-open { transform: translateY(0); }
 
-        .product-card { border-radius: 10px; }
-        .product-img-container { height: 100px; }
+        /* ── Vista de lista en móvil ── */
+        #productsContainer {
+            flex-direction: column !important;
+            --bs-gutter-x: 0 !important;
+            --bs-gutter-y: 0 !important;
+            margin: 0 !important;
+        }
+        #productsContainer > .product-item {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+            padding: 0 !important;
+        }
+        .product-card {
+            flex-direction: row !important;
+            border-radius: 0 !important;
+            border: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            box-shadow: none !important;
+            min-height: 50px;
+        }
+        .product-card:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .product-card:active {
+            background: var(--color-accent-subtle) !important;
+            transform: none !important;
+        }
+        .product-img-container { display: none !important; }
+        .product-card .card-body {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 10px 12px !important;
+            text-align: left !important;
+            gap: 10px;
+            width: 100%;
+        }
+        .product-name {
+            font-size: 0.9rem !important;
+            flex: 1 1 0 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0 !important;
+        }
+        .product-price {
+            font-size: 0.88rem !important;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .stock-display { display: none !important; }
+
+        /* Espacio para la alpha-bar fija */
+        #productGrid { padding-right: 26px !important; }
+
+        /* Alpha-bar flotante en móvil */
+        #alpha-bar {
+            display: flex !important;
+            position: fixed !important;
+            right: 0;
+            top: 60px;
+            bottom: 0;
+            height: auto !important;
+            width: 22px !important;
+            z-index: 20;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -2px 0 8px rgba(0,0,0,0.08);
+        }
+
         .total-display { font-size: 2rem !important; }
         #btnPay { font-size: 1.1rem; padding: 16px !important; }
         .cart-footer { padding: 0.75rem; }
         .smart-cash-btn { min-height: 44px; }
-    }
-
-    @media (max-width: 576px) {
-        .product-name { font-size: 0.8rem; }
-        .product-price { font-size: 0.95rem; }
     }
 
 
@@ -463,21 +529,31 @@
     }
 
     /* ── Multi-cart tabs ── */
+    #cartTabsContainer {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        flex-wrap: nowrap;
+    }
+    #cartTabsContainer::-webkit-scrollbar { display: none; }
     .cart-tab {
         position: relative;
-        width: 38px;
+        width: 48px;
         height: 34px;
         border-radius: 8px;
         background: rgba(255,255,255,0.1);
         border: 2px solid transparent;
         color: rgba(255,255,255,0.55);
-        font-size: 0.95rem;
+        font-size: 0.75rem;
         cursor: pointer;
         transition: all 0.2s ease;
         display: inline-flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 1px;
         flex-shrink: 0;
+        line-height: 1;
     }
     .cart-tab:hover {
         background: rgba(255,255,255,0.2);
@@ -557,6 +633,68 @@
     .cart-add-btn:disabled {
         opacity: 0.3;
         cursor: not-allowed;
+    }
+
+    /* ── Fila de recomendados ── */
+    .recommended-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 6px 2px 8px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        flex-shrink: 0;
+    }
+    .recommended-row::-webkit-scrollbar { display: none; }
+    .recommended-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .rec-item {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        padding: 5px 9px;
+        border-radius: 20px;
+        border: 1.5px solid var(--border-color);
+        background: var(--bg-card);
+        cursor: pointer;
+        transition: all 0.18s ease;
+        flex-shrink: 0;
+        text-align: left;
+        line-height: 1.2;
+    }
+    .rec-item:hover {
+        border-color: var(--color-accent);
+        background: var(--color-accent-subtle);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(240,199,94,0.2);
+    }
+    .rec-item:active { transform: translateY(0); }
+    .rec-item-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        max-width: 110px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .rec-item-price {
+        font-size: 0.7rem;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--color-primary);
+        font-weight: 700;
     }
 
     /* ── Barra alfabética ── */
@@ -646,6 +784,21 @@
                 </div>
             </div>
 
+            @if($recomendados->isNotEmpty())
+            <div class="recommended-row">
+                <span class="recommended-label">
+                    <i class="fa-solid fa-fire" style="color:#f97316;"></i> Top
+                </span>
+                @foreach($recomendados as $rec)
+                <button type="button" class="rec-item"
+                    onclick="addToCart('{{$rec->id}}', '{{addslashes($rec->nombre)}}', {{$rec->precio ?? 0}}, {{ (int)$rec->cantidad }}, '{{$rec->sigla ?? 'UND'}}')">
+                    <span class="rec-item-name">{{$rec->nombre}}</span>
+                    <span class="rec-item-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($rec->precio ?? 0, 0, ',', '.') }}</span>
+                </button>
+                @endforeach
+            </div>
+            @endif
+
             <div class="row g-3" id="productsContainer">
                 @foreach ($productos as $item)
                 <div class="col-6 col-md-3 col-lg-20 product-item"
@@ -686,7 +839,7 @@
         </div>
 
         <!-- Barra alfabética — columna independiente, fuera del scroll de productos -->
-        <div id="alpha-bar" class="d-none d-md-flex">
+        <div id="alpha-bar">
             @foreach(range('A','Z') as $letter)
             <span class="alpha-letter" data-letter="{{ $letter }}">{{ $letter }}</span>
             @endforeach
@@ -1768,7 +1921,8 @@
             btn.className = 'cart-tab' + (isActive ? ' active' : '');
             btn.title = 'Carrito ' + (idx + 1) + (hasItems && !isActive ? ' (en pausa)' : '');
             btn.onclick = (function(i) { return function() { switchCart(i); }; })(idx);
-            btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>' +
+            btn.innerHTML = '<i class="fa-solid fa-cart-shopping" style="font-size:0.85rem;"></i>' +
+                '<span style="font-size:0.65rem;font-weight:700;opacity:0.85;">' + (idx + 1) + '</span>' +
                 (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '') +
                 (canDelete ? '<span class="cart-tab-close" title="Eliminar carrito">✕</span>' : '');
             if (canDelete) {

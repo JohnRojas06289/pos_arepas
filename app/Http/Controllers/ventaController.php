@@ -79,6 +79,28 @@ class ventaController extends Controller
             ->orderBy('productos.nombre', 'asc')
             ->get();
 
+        $recomendados = Producto::join('producto_venta as pv', 'pv.producto_id', '=', 'productos.id')
+            ->leftJoin('inventario as i', 'i.producto_id', '=', 'productos.id')
+            ->leftJoin('presentaciones as p', 'p.id', '=', 'productos.presentacione_id')
+            ->select(
+                'productos.id',
+                'productos.nombre',
+                'productos.precio',
+                'productos.img_path',
+                'productos.categoria_id',
+                DB::raw("COALESCE(p.sigla, 'UND') as sigla"),
+                DB::raw("COALESCE(i.cantidad, 0) as cantidad"),
+                DB::raw('SUM(pv.cantidad) as total_vendido')
+            )
+            ->where('productos.estado', 1)
+            ->groupBy(
+                'productos.id', 'productos.nombre', 'productos.precio',
+                'productos.img_path', 'productos.categoria_id', 'p.sigla', 'i.cantidad'
+            )
+            ->orderByDesc('total_vendido')
+            ->limit(10)
+            ->get();
+
         $categorias = Cache::remember('categorias_activas_sorted', 3600, function () {
             return Categoria::with('caracteristica')
                 ->join('caracteristicas as c', 'categorias.caracteristica_id', '=', 'c.id')
@@ -96,6 +118,7 @@ class ventaController extends Controller
 
         return view('venta.create', compact(
             'productos',
+            'recomendados',
             'categorias',
             'comprobantes',
             'optionsMetodoPago',
