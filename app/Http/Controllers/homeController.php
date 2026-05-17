@@ -21,6 +21,9 @@ class homeController extends Controller
     public function index(): View|RedirectResponse
     {
         if (!Auth::user()->can('ver-panel')) {
+            if (Auth::user()->can('crear-pedido')) {
+                return redirect()->route('pedidos.panel');
+            }
             return redirect()->route('ventas.create');
         }
 
@@ -172,9 +175,10 @@ class homeController extends Controller
                     'total' => (float) $g->total,
                 ]);
 
-            $gananciaBruta = $ingresosPeriodo - $costoCompras;
-            $gananciaNeta  = $ingresosPeriodo - $costoCompras - $gastosNegocio;
-            $margenNeto    = $ingresosPeriodo > 0
+            $gananciaBruta    = $ingresosPeriodo - $costoCompras;
+            $gananciaNeta     = $ingresosPeriodo - $costoCompras - $gastosNegocio;
+            $totalMenosGastos = $ventasPeriodo - $gastosNegocio;
+            $margenNeto       = $ingresosPeriodo > 0
                 ? round(($gananciaNeta / $ingresosPeriodo) * 100, 1)
                 : 0;
 
@@ -199,6 +203,7 @@ class homeController extends Controller
                 'ingresosPeriodo',
                 'costoCompras',
                 'gastosNegocio',
+                'totalMenosGastos',
                 'gastosPorCategoria',
                 'gananciaBruta',
                 'gananciaNeta',

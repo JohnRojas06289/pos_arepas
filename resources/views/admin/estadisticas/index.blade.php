@@ -128,6 +128,35 @@
             </div>
         </div>
 
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card danger h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Gastos</div>
+                        <div class="kpi-value" style="font-size:1.35rem;">${{ number_format($gastosNegocio, 0, ',', '.') }}</div>
+                        <div class="small" style="color:var(--color-danger);">Del período</div>
+                    </div>
+                    <div class="kpi-icon danger ms-2"><i class="fas fa-file-invoice-dollar"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl">
+            @php $colorNeto = $totalMenosGastos >= 0 ? 'success' : 'danger'; @endphp
+            <div class="kpi-card {{ $colorNeto }} h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Total − Gastos</div>
+                        <div class="kpi-value" style="font-size:1.35rem;">${{ number_format($totalMenosGastos, 0, ',', '.') }}</div>
+                        <div class="small" style="color:var(--color-{{ $colorNeto }});">Ventas menos gastos</div>
+                    </div>
+                    <div class="kpi-icon {{ $colorNeto }} ms-2">
+                        <i class="fas fa-{{ $totalMenosGastos >= 0 ? 'chart-line' : 'exclamation-triangle' }}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     {{-- KPIs secundarios --}}

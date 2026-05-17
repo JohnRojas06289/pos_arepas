@@ -26,6 +26,7 @@ use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\roleController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\ventaController;
+use App\Http\Controllers\CierreInventarioController;
 use App\Http\Controllers\PedidoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('compras', compraController::class)->except('edit', 'update', 'destroy');
     Route::resource('cajas', CajaController::class)->except('edit', 'update', 'show');
     Route::get('cajas/{caja}/resumen', [CajaController::class, 'resumen'])->name('cajas.resumen');
+    Route::get('cajas/{caja}/cierre-inventario',  [CierreInventarioController::class, 'create'])->name('cajas.cierre-inventario.create');
+    Route::post('cajas/{caja}/cierre-inventario', [CierreInventarioController::class, 'store'])->name('cajas.cierre-inventario.store');
+    Route::get('cierre-inventario/{cierre}',      [CierreInventarioController::class, 'show'])->name('cierre-inventario.show');
     Route::resource('movimientos', MovimientoController::class)->except('show', 'edit', 'update', 'destroy');
 
     // ── Administración ────────────────────────────────────────────────────
@@ -111,8 +115,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::get('/logout', [logoutController::class, 'logout'])->name('logout');
 
     // ── Pedidos ───────────────────────────────────────────────────────────
-    Route::get('/pedido', [PedidoController::class, 'create'])->name('pedidos.create');
-    Route::post('/pedido', [PedidoController::class, 'store'])->name('pedidos.store');
+    Route::get('/pedidos/panel',      [PedidoController::class, 'panel'])->name('pedidos.panel');
+    Route::get('/pedido',             [PedidoController::class, 'create'])->name('pedidos.create');
+    Route::post('/pedido',            [PedidoController::class, 'store'])->name('pedidos.store');
     Route::get('/pedidos/pendientes', [PedidoController::class, 'pendientes'])->name('pedidos.pendientes');
     Route::post('/pedidos/{pedido}/tomar', [PedidoController::class, 'tomar'])->name('pedidos.tomar');
 

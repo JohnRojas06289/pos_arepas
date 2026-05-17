@@ -6,6 +6,7 @@ use App\Models\Categoria;
 use App\Models\Pedido;
 use App\Models\Producto;
 use App\Services\EmpresaService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,10 +19,37 @@ class PedidoController extends Controller
 
     public function __construct(EmpresaService $empresaService)
     {
-        $this->middleware('permission:crear-pedido', ['only' => ['create', 'store']]);
+        $this->middleware('permission:crear-pedido', ['only' => ['create', 'store', 'panel']]);
         $this->middleware('permission:crear-venta',  ['only' => ['pendientes', 'tomar']]);
 
         $this->empresaService = $empresaService;
+    }
+
+    public function panel(): View
+    {
+        $hoyInicio = Carbon::now()->startOfDay();
+        $hoyFin    = Carbon::now()->endOfDay();
+        $userId    = auth()->id();
+
+        $pedidosHoy = Pedido::where('user_id', $userId)
+            ->whereBetween('created_at', [$hoyInicio, $hoyFin])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $totalHoy       = $pedidosHoy->sum('total');
+        $pendientes     = $pedidosHoy->where('estado', 'pendiente');
+        $tomados        = $pedidosHoy->where('estado', 'tomado');
+        $totalPorCobrar = $pendientes->sum('total');
+        $totalFacturado = $tomados->sum('total');
+
+        return view('pedidos.panel', compact(
+            'pedidosHoy',
+            'totalHoy',
+            'pendientes',
+            'tomados',
+            'totalPorCobrar',
+            'totalFacturado',
+        ));
     }
 
     public function create(): View

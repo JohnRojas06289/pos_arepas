@@ -116,6 +116,12 @@
                                         onclick="verResumen('{{ route('cajas.resumen', $item->id) }}', '{{ $item->fecha_apertura }}')">
                                         <i class="fas fa-chart-bar"></i> Resumen
                                     </button>
+                                    @can('ver-inventario')
+                                    <a href="{{ route('cajas.cierre-inventario.create', $item->id) }}"
+                                       class="btn btn-sm btn-outline-warning btn-resumen-sm">
+                                        <i class="fas fa-boxes fa-xs"></i> Inventario
+                                    </a>
+                                    @endcan
                                     @can('cerrar-caja')
                                     @if ($item->estado == 1)
                                     <button type="button" class="btn btn-sm btn-danger btn-resumen-sm"
