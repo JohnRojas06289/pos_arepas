@@ -1,16 +1,7 @@
 <div id="layoutSidenav_nav">
     <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
 
-        {{-- Header del sidebar --}}
-        <div class="sb-sidenav-brand-header">
-            <span class="brand-icon" style="font-size:1.3rem;">&#127807;</span>
-            <div>
-                <div class="sb-sidenav-brand-name">Arepas Boyacenses</div>
-                <div class="sb-sidenav-brand-version">Sistema POS v2.0</div>
-            </div>
-        </div>
-
-        <div class="sb-sidenav-menu">
+<div class="sb-sidenav-menu">
             <div class="nav flex-column py-2">
 
                 {{-- ======= VENTAS ======= --}}

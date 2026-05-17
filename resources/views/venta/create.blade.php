@@ -462,6 +462,75 @@
         }
     }
 
+    /* ── Multi-cart tabs ── */
+    .cart-tab {
+        position: relative;
+        width: 38px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        border: 2px solid transparent;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .cart-tab:hover {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+    }
+    .cart-tab.active {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: var(--color-secondary);
+        box-shadow: 0 2px 8px rgba(240,199,94,0.35);
+    }
+    .cart-tab-dot {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ade80;
+        border: 1.5px solid rgba(0,0,0,0.25);
+        animation: cartDotBlink 1.2s ease-in-out infinite;
+        pointer-events: none;
+    }
+    @keyframes cartDotBlink {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.25; transform: scale(0.65); }
+    }
+    .cart-add-btn {
+        width: 30px;
+        height: 34px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.1);
+        border: 2px dashed rgba(255,255,255,0.35);
+        color: rgba(255,255,255,0.6);
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .cart-add-btn:not(:disabled):hover {
+        background: rgba(255,255,255,0.22);
+        color: #fff;
+        border-color: rgba(255,255,255,0.65);
+    }
+    .cart-add-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
     /* ── Barra alfabética ── */
     #alpha-bar {
         width: 22px;
@@ -597,13 +666,14 @@
 
         <!-- Column 3: Cart -->
         <div class="col-md-3 cart-section shadow-lg">
-            <div class="p-3 d-flex justify-content-between align-items-center"
-                 style="background:var(--bg-sidebar);color:#fff;border-bottom:1px solid var(--border-sidebar);">
-                <h5 class="m-0 fw-700" style="font-size:1rem;font-weight:700;">
-                    <i class="fa-solid fa-cart-shopping me-2" style="color:var(--color-accent);"></i>Carrito
-                </h5>
+            <div class="d-flex align-items-center"
+                 style="background:var(--bg-sidebar);border-bottom:1px solid var(--border-sidebar);padding:6px 8px;gap:6px;">
+                <div class="d-flex gap-1 flex-grow-1" id="cartTabsContainer"></div>
                 <span class="badge" id="cartCount"
-                      style="background:var(--color-accent);color:var(--color-secondary);font-family:'JetBrains Mono',monospace;font-weight:700;">0</span>
+                      style="background:var(--color-accent);color:var(--color-secondary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.9rem;white-space:nowrap;">0</span>
+                <button type="button" class="cart-add-btn" id="btnAddCart" onclick="addNewCart()" title="Nuevo carrito">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
             </div>
             
             <div class="d-none">
@@ -716,7 +786,16 @@
 
 @push('js')
 <script>
-    var cart = [];
+    // ── Multi-cart state ──
+    var carts = [{ id: 1, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0 }];
+    var activeCartIndex = 0;
+    var MAX_CARTS = 4;
+    // Transparent proxy: existing code using `cart` automatically targets the active cart
+    Object.defineProperty(window, 'cart', {
+        get: function() { return carts[activeCartIndex].items; },
+        set: function(v) { carts[activeCartIndex].items = v; },
+        configurable: true
+    });
     var total = 0;
     var soundEnabled = true; // Cambiar a false para desactivar sonidos
 
@@ -820,6 +899,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        renderCartTabs();
+
         // Auto-collapse sidebar with animation
         if (!document.body.classList.contains('sb-sidenav-toggled')) {
             setTimeout(function() {
@@ -1240,12 +1321,16 @@
 
     function cancelarVenta() {
         cart = [];
+        carts[activeCartIndex].metodoPago = 'EFECTIVO';
+        carts[activeCartIndex].dineroRecibido = 0;
+        carts[activeCartIndex].vuelto = 0;
         document.getElementById('dinero_recibido').value = '';
         document.getElementById('dinero_recibido_display').value = '';
         document.getElementById('vuelto').value = '';
         document.getElementById('vuelto_display').value = '';
         pagarEfectivo();
         renderCart();
+        renderCartTabs();
         document.getElementById('searchInput').focus();
     }
 
@@ -1368,15 +1453,19 @@
             // Limpiar todo para la siguiente venta
             cart = [];
             total = 0;
+            carts[activeCartIndex].metodoPago = 'EFECTIVO';
+            carts[activeCartIndex].dineroRecibido = 0;
+            carts[activeCartIndex].vuelto = 0;
             document.getElementById('inputSubtotal').value = '0';
             document.getElementById('inputTotal').value = '0';
-            
+
             pagarEfectivo();
             document.getElementById('dinero_recibido').value = '';
             document.getElementById('dinero_recibido_display').value = '';
             document.getElementById('vuelto').value = '';
             document.getElementById('vuelto_display').value = '';
             renderCart(); // Esto repinta el carrito vacío
+            renderCartTabs();
 
             // Restaurar botón
             btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora
@@ -1516,6 +1605,13 @@
             }
         }, { passive: true });
 
+        // ── Actualizar tabs al agregar productos ──
+        var _origAddToCart = window.addToCart;
+        window.addToCart = function() {
+            _origAddToCart.apply(this, arguments);
+            renderCartTabs();
+        };
+
         // ── Inicializar ──
         updateAvailability();
 
@@ -1530,5 +1626,92 @@
             searchInput.addEventListener('input', function() { setTimeout(updateAvailability, 60); });
         }
     })();
+
+    // ================================================================
+    // MULTI-CART SYSTEM
+    // ================================================================
+
+    function saveCartPaymentState() {
+        var c = carts[activeCartIndex];
+        c.metodoPago = document.getElementById('selectMetodoPago').value;
+        c.dineroRecibido = parseFloat(document.getElementById('dinero_recibido').value) || 0;
+        c.vuelto = parseFloat(document.getElementById('vuelto').value) || 0;
+    }
+
+    function loadCartPaymentState() {
+        var c = carts[activeCartIndex];
+        var select = document.getElementById('selectMetodoPago');
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === c.metodoPago) { select.selectedIndex = i; break; }
+        }
+        if (c.metodoPago === 'EFECTIVO') {
+            pagarEfectivo();
+        } else {
+            var badge = document.getElementById('paymentBadge');
+            badge.style.fontSize = '0.8rem';
+            if (c.metodoPago === 'NEQUI') {
+                badge.className = 'badge';
+                badge.style.backgroundColor = '#230836';
+                badge.style.color = '#fff';
+                badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> NEQUI';
+            } else {
+                badge.className = 'badge bg-danger';
+                badge.style.backgroundColor = '';
+                badge.style.color = '';
+                badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
+            }
+            document.getElementById('efectivoCampos').style.display = 'none';
+            document.getElementById('smartCashWrapper').style.display = 'none';
+        }
+        document.getElementById('dinero_recibido').value = c.dineroRecibido || '';
+        document.getElementById('dinero_recibido_display').value = c.dineroRecibido ? formatNumber(c.dineroRecibido) : '';
+        document.getElementById('vuelto').value = c.vuelto || '';
+        document.getElementById('vuelto_display').value = c.vuelto ? formatNumber(c.vuelto) : '';
+    }
+
+    function switchCart(index) {
+        if (index === activeCartIndex) return;
+        saveCartPaymentState();
+        activeCartIndex = index;
+        renderCart();
+        loadCartPaymentState();
+        renderCartTabs();
+        setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
+    }
+
+    function addNewCart() {
+        if (carts.length >= MAX_CARTS) {
+            Swal.fire({ icon: 'info', title: 'Máximo ' + MAX_CARTS + ' carritos', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+            return;
+        }
+        saveCartPaymentState();
+        var newId = Math.max.apply(null, carts.map(function(c) { return c.id; })) + 1;
+        carts.push({ id: newId, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0 });
+        activeCartIndex = carts.length - 1;
+        renderCart();
+        loadCartPaymentState();
+        renderCartTabs();
+        setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
+    }
+
+    function renderCartTabs() {
+        var container = document.getElementById('cartTabsContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        carts.forEach(function(c, idx) {
+            var isActive = idx === activeCartIndex;
+            var hasItems = c.items.length > 0;
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'cart-tab' + (isActive ? ' active' : '');
+            btn.title = 'Carrito ' + (idx + 1) + (hasItems && !isActive ? ' (en pausa)' : '');
+            btn.onclick = (function(i) { return function() { switchCart(i); }; })(idx);
+            btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>' +
+                (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '');
+            container.appendChild(btn);
+        });
+        var btnAdd = document.getElementById('btnAddCart');
+        if (btnAdd) btnAdd.disabled = carts.length >= MAX_CARTS;
+    }
 </script>
 @endpush
