@@ -1988,8 +1988,7 @@
             btn.className = 'cart-tab' + (isActive ? ' active' : '');
             btn.title = 'Carrito ' + (idx + 1) + (hasItems && !isActive ? ' (en pausa)' : '');
             btn.onclick = (function(i) { return function() { switchCart(i); }; })(idx);
-            btn.innerHTML = '<i class="fa-solid fa-cart-shopping" style="font-size:0.85rem;"></i>' +
-                '<span style="font-size:0.65rem;font-weight:700;opacity:0.85;">' + (idx + 1) + '</span>' +
+            btn.innerHTML = '<span style="font-size:1rem;font-weight:800;">' + (idx + 1) + '</span>' +
                 (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '') +
                 (canDelete ? '<span class="cart-tab-close" title="Eliminar carrito">✕</span>' : '');
             if (canDelete) {
