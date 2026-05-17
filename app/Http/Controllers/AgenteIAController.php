@@ -464,6 +464,14 @@ PROMPT;
                 'temperature'      => 0.3,
                 'maxOutputTokens'  => 600,
                 'responseMimeType' => 'application/json',
+                'responseSchema'   => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'respuesta'   => ['type' => 'string'],
+                        'sugerencias' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    ],
+                    'required' => ['respuesta', 'sugerencias'],
+                ],
             ],
         ];
 
@@ -533,6 +541,14 @@ PROMPT;
                 'temperature'      => 0.3,
                 'maxOutputTokens'  => 600,
                 'responseMimeType' => 'application/json',
+                'responseSchema'   => [
+                    'type'       => 'object',
+                    'properties' => [
+                        'respuesta'   => ['type' => 'string'],
+                        'sugerencias' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    ],
+                    'required' => ['respuesta', 'sugerencias'],
+                ],
             ],
         ];
 
