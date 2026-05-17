@@ -489,6 +489,34 @@
         color: var(--color-secondary);
         box-shadow: 0 2px 8px rgba(240,199,94,0.35);
     }
+    .cart-tab-close {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #ef4444;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        z-index: 3;
+        line-height: 1;
+        pointer-events: none;
+    }
+    .cart-tab:hover .cart-tab-close {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .cart-tab-close:hover {
+        transform: scale(1.2);
+        background: #dc2626;
+    }
     .cart-tab-dot {
         position: absolute;
         top: 3px;
@@ -1701,17 +1729,58 @@
         carts.forEach(function(c, idx) {
             var isActive = idx === activeCartIndex;
             var hasItems = c.items.length > 0;
+            var canDelete = carts.length > 1;
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'cart-tab' + (isActive ? ' active' : '');
             btn.title = 'Carrito ' + (idx + 1) + (hasItems && !isActive ? ' (en pausa)' : '');
             btn.onclick = (function(i) { return function() { switchCart(i); }; })(idx);
             btn.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>' +
-                (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '');
+                (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '') +
+                (canDelete ? '<span class="cart-tab-close" title="Eliminar carrito">✕</span>' : '');
+            if (canDelete) {
+                var closeBtn = btn.querySelector('.cart-tab-close');
+                closeBtn.addEventListener('click', (function(i) {
+                    return function(e) { e.stopPropagation(); removeCart(i); };
+                })(idx));
+            }
             container.appendChild(btn);
         });
         var btnAdd = document.getElementById('btnAddCart');
         if (btnAdd) btnAdd.disabled = carts.length >= MAX_CARTS;
+    }
+
+    function removeCart(index) {
+        var c = carts[index];
+        if (c.items.length > 0) {
+            Swal.fire({
+                title: '¿Eliminar carrito ' + (index + 1) + '?',
+                text: 'Tiene ' + c.items.length + ' producto(s) en pausa. Se perderán.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then(function(result) {
+                if (result.isConfirmed) { doRemoveCart(index); }
+            });
+        } else {
+            doRemoveCart(index);
+        }
+    }
+
+    function doRemoveCart(index) {
+        if (carts.length <= 1) return;
+        carts.splice(index, 1);
+        if (activeCartIndex >= carts.length) {
+            activeCartIndex = carts.length - 1;
+        } else if (activeCartIndex > index) {
+            activeCartIndex--;
+        }
+        renderCart();
+        loadCartPaymentState();
+        renderCartTabs();
     }
 </script>
 @endpush
