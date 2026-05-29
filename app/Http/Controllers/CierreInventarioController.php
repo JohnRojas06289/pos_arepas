@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Caja;
 use App\Models\CierreInventario;
+use App\Models\Inventario;
 use App\Models\Producto;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CierreInventarioController extends Controller
 {
@@ -55,14 +57,29 @@ class CierreInventarioController extends Controller
             ];
         }
 
-        CierreInventario::create([
-            'caja_id' => $caja->id,
-            'user_id' => auth()->id(),
-            'items'   => $items,
-        ]);
+        DB::transaction(function () use ($caja, $items) {
+            CierreInventario::create([
+                'caja_id' => $caja->id,
+                'user_id' => auth()->id(),
+                'items'   => $items,
+            ]);
+
+            foreach ($items as $item) {
+                if ($item['cantidad_fisica'] === null) {
+                    continue;
+                }
+
+                $inventario = Inventario::where('producto_id', $item['producto_id'])->first();
+                if (!$inventario) {
+                    continue;
+                }
+
+                $inventario->update(['cantidad' => $item['cantidad_fisica']]);
+            }
+        });
 
         return redirect()->route('cajas.index')
-            ->with('success', 'Cierre de inventario guardado correctamente.');
+            ->with('success', 'Cierre de inventario guardado y stock actualizado correctamente.');
     }
 
     public function show(CierreInventario $cierre): View

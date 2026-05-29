@@ -304,6 +304,11 @@
         }
     }
 
+    $('form').on('submit', function () {
+        const btn = $('#guardar');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Registrando...');
+    });
+
     function agregarProducto() {
         let idProducto = $('#producto_id').val();
         let textProducto = $('#producto_id option:selected').text();

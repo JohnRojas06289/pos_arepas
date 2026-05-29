@@ -37,6 +37,16 @@
     @media (max-width: 767px) {
         .tabla-inventario { font-size: .8rem; }
         .input-fisica { max-width: 70px; }
+        .resumen-panel { display: none; }
+        .resumen-panel.visible { display: block; }
+    }
+
+    #btnToggleResumen {
+        display: none;
+    }
+
+    @media (max-width: 767px) {
+        #btnToggleResumen { display: inline-flex; }
     }
 </style>
 @endpush
@@ -88,9 +98,22 @@
         @csrf
 
         <div class="card mb-3">
-            <div class="card-header">
-                <i class="fas fa-table me-1"></i> Conteo de Inventario
-                <small class="text-muted ms-2">(deja en blanco si no contaste ese producto)</small>
+            <div class="card-header d-flex align-items-center flex-wrap gap-2">
+                <span><i class="fas fa-table me-1"></i> Conteo de Inventario</span>
+                <small class="text-muted">(deja en blanco si no contaste ese producto)</small>
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <input
+                        type="text"
+                        id="buscadorProducto"
+                        class="form-control form-control-sm"
+                        placeholder="Buscar producto..."
+                        style="max-width:200px"
+                        autocomplete="off"
+                    >
+                    <button type="button" id="btnToggleResumen" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-chart-bar me-1"></i> Diferencias
+                    </button>
+                </div>
             </div>
             <div class="card-body p-0 p-md-2">
                 <div class="table-responsive">
@@ -145,15 +168,6 @@
             </div>
         </div>
 
-        {{-- Botón guardar (encima del panel sticky) --}}
-        <div class="d-flex justify-content-end mb-3 gap-2">
-            <a href="{{ route('cajas.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-times me-1"></i> Cancelar
-            </a>
-            <button type="submit" class="btn btn-success">
-                <i class="fas fa-save me-1"></i> Guardar cierre
-            </button>
-        </div>
     </form>
 
     {{-- Panel resumen sticky --}}
@@ -186,6 +200,16 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    {{-- Botón enviar --}}
+    <div class="d-flex justify-content-end mt-3 pb-3 gap-2">
+        <a href="{{ route('cajas.index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-times me-1"></i> Cancelar
+        </a>
+        <button type="submit" form="formCierre" class="btn btn-success btn-lg" id="btnEnviar">
+            <i class="fas fa-paper-plane me-2"></i> Enviar cierre
+        </button>
     </div>
 
 </div>
@@ -261,6 +285,33 @@
     inputs.forEach(function (input) {
         input.addEventListener('input', actualizarResumen);
         input.addEventListener('change', actualizarResumen);
+    });
+
+    // ── Buscador de productos ──────────────────────────────────────────────
+    document.getElementById('buscadorProducto').addEventListener('input', function () {
+        const q = this.value.trim().toLowerCase();
+        document.querySelectorAll('.tabla-inventario tbody tr').forEach(function (tr) {
+            const nombre = tr.querySelector('td:nth-child(2)');
+            if (!nombre) return;
+            tr.style.display = nombre.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+    });
+
+    // ── Toggle panel diferencias en mobile ────────────────────────────────
+    document.getElementById('btnToggleResumen').addEventListener('click', function () {
+        const panel = document.querySelector('.resumen-panel');
+        panel.classList.toggle('visible');
+        const visible = panel.classList.contains('visible');
+        this.innerHTML = visible
+            ? '<i class="fas fa-times me-1"></i> Ocultar'
+            : '<i class="fas fa-chart-bar me-1"></i> Diferencias';
+    });
+
+    // ── Protección doble submit ────────────────────────────────────────────
+    document.getElementById('formCierre').addEventListener('submit', function () {
+        const btn = document.getElementById('btnEnviar');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Guardando...';
     });
 })();
 </script>
