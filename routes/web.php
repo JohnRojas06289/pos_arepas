@@ -6,7 +6,6 @@ use App\Http\Controllers\CajaController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\categoriaController;
 use App\Http\Controllers\clienteController;
-use App\Http\Controllers\compraController;
 use App\Http\Controllers\EmpleadoController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\ExportExcelController;
@@ -76,11 +75,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     // ── Gastos ────────────────────────────────────────────────────────────
     Route::resource('gastos', GastoController::class)->only('index', 'create', 'store', 'destroy');
 
-    // ── Ventas y Compras ──────────────────────────────────────────────────
+    // ── Ventas ────────────────────────────────────────────────────────────
     Route::get('/pos', [ventaController::class, 'create'])->name('pos.index');
     Route::resource('ventas', ventaController::class)->except('edit', 'update', 'destroy');
-    Route::post('compras/scan-factura', [compraController::class, 'scanFactura'])->name('compras.scan-factura');
-    Route::resource('compras', compraController::class)->except('edit', 'update', 'destroy');
     Route::resource('cajas', CajaController::class)->except('edit', 'update', 'show');
     Route::get('cajas/{caja}/resumen', [CajaController::class, 'resumen'])->name('cajas.resumen');
     Route::get('cajas/{caja}/cierre-inventario',  [CierreInventarioController::class, 'create'])->name('cajas.cierre-inventario.create');

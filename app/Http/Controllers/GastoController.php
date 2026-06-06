@@ -23,6 +23,13 @@ use Throwable;
 
 class GastoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:ver-gasto')->only('index');
+        $this->middleware('permission:crear-gasto')->only('create', 'store');
+        $this->middleware('permission:eliminar-gasto')->only('destroy');
+    }
+
     public function index(): View
     {
         $gastos = Gasto::where('user_id', Auth::id())
@@ -34,16 +41,12 @@ class GastoController extends Controller
         $optionsMetodoPago = MetodoPagoEnum::cases();
 
         // Totales resumen
-        $hoy  = now()->toDateString();
-        $mes  = now()->format('Y-m');
+        $hoy = now()->toDateString();
 
         $totalHoy = $gastos->filter(fn($g) => $g->fecha->toDateString() === $hoy)->sum('monto');
-        $totalMes = $gastos->filter(fn($g) => $g->fecha->format('Y-m') === $mes)->sum('monto');
-        $totalAll = $gastos->sum('monto');
 
         return view('gasto.index', compact(
-            'gastos', 'categorias', 'optionsMetodoPago',
-            'totalHoy', 'totalMes', 'totalAll'
+            'gastos', 'categorias', 'optionsMetodoPago', 'totalHoy'
         ));
     }
 

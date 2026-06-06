@@ -91,6 +91,11 @@ class PermissionSeeder extends Seeder
             'editar-proveedore',
             'eliminar-proveedore',
 
+            //Gasto
+            'ver-gasto',
+            'crear-gasto',
+            'eliminar-gasto',
+
             //Venta
             'ver-venta',
             'crear-venta',

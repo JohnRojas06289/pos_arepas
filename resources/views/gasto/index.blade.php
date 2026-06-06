@@ -38,29 +38,13 @@
         <div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
-    {{-- Cards resumen --}}
+    {{-- Card resumen --}}
     <div class="row g-3 mb-4">
-        <div class="col-4">
+        <div class="col-12 col-sm-4">
             <div class="card text-center border-0 shadow-sm h-100">
                 <div class="card-body py-3">
-                    <small class="text-muted d-block">Hoy</small>
+                    <small class="text-muted d-block">Gastos de hoy</small>
                     <strong class="fs-5 text-danger">${{ number_format($totalHoy, 0, ',', '.') }}</strong>
-                </div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="card text-center border-0 shadow-sm h-100">
-                <div class="card-body py-3">
-                    <small class="text-muted d-block">Este mes</small>
-                    <strong class="fs-5 text-warning">${{ number_format($totalMes, 0, ',', '.') }}</strong>
-                </div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="card text-center border-0 shadow-sm h-100">
-                <div class="card-body py-3">
-                    <small class="text-muted d-block">Total</small>
-                    <strong class="fs-5 text-dark">${{ number_format($totalAll, 0, ',', '.') }}</strong>
                 </div>
             </div>
         </div>

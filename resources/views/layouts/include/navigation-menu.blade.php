@@ -46,7 +46,7 @@
                 @endcan
 
                 {{-- ======= INVENTARIO ======= --}}
-                @canany(['ver-producto', 'ver-inventario', 'ver-kardex', 'ver-compra'])
+                @canany(['ver-producto', 'ver-inventario', 'ver-kardex', 'ver-gasto', 'crear-gasto'])
                 <x-nav.heading>Inventario</x-nav.heading>
                 @endcanany
 
@@ -68,23 +68,11 @@
                     :href="route('kardex.index')" />
                 @endcan
 
-                @can('ver-compra')
-                <x-nav.link-collapsed
-                    id="collapseCompras"
-                    icon="fa-solid fa-store"
-                    content="Compras">
-                    @can('ver-compra')
-                    <x-nav.link-collapsed-item :href="route('compras.index')" content="Ver compras" />
-                    @endcan
-                    @can('crear-compra')
-                    <x-nav.link-collapsed-item :href="route('compras.create')" content="Nueva compra" />
-                    @endcan
-                </x-nav.link-collapsed>
-                @endcan
-
+                @canany(['ver-gasto', 'crear-gasto'])
                 <x-nav.nav-link content='Gastos'
                     icon='fas fa-file-invoice-dollar'
                     :href="route('gastos.index')" />
+                @endcanany
 
                 {{-- ======= CATÁLOGO ======= --}}
                 @canany(['ver-categoria', 'ver-marca', 'ver-presentacione'])
