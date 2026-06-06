@@ -2,6 +2,10 @@
 
 @section('title', 'Registrar Gasto')
 
+@push('css')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+@endpush
+
 @section('content')
 <div class="container-fluid px-2">
     <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
@@ -142,7 +146,7 @@
                                             <input type="number" id="s_cantidad" class="form-control" min="1" step="1" placeholder="0">
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label">Precio unit.</label>
+                                            <label class="form-label">Precio total</label>
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" id="s_precio" class="form-control" min="0" step="1" placeholder="0">
@@ -167,9 +171,8 @@
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th class="text-center" style="width:80px">Cant.</th>
-                                                    <th class="text-end" style="width:110px">Precio</th>
+                                                    <th class="text-end" style="width:120px">Precio Total</th>
                                                     <th class="text-center" style="width:110px">Vencimiento</th>
-                                                    <th class="text-end" style="width:110px">Subtotal</th>
                                                     <th style="width:50px"></th>
                                                 </tr>
                                             </thead>
@@ -182,7 +185,7 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr class="fw-bold">
-                                                    <td colspan="4" class="text-end">Total surtido:</td>
+                                                    <td colspan="3" class="text-end">Total surtido:</td>
                                                     <td class="text-end" id="s_total_display">$0</td>
                                                     <td></td>
                                                 </tr>
@@ -247,6 +250,7 @@
 </div>
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 <script>
 (function () {
     'use strict';
@@ -259,6 +263,7 @@
     var btnSubmit        = document.getElementById('btn-submit');
 
     var sProductoId    = document.getElementById('s_producto_id');
+    var tomSelect      = new TomSelect('#s_producto_id', { placeholder: 'Buscar producto...', allowEmptyOption: true });
     var sCantidad      = document.getElementById('s_cantidad');
     var sPrecio        = document.getElementById('s_precio');
     var sVencimiento   = document.getElementById('s_vencimiento');
@@ -300,7 +305,7 @@
 
     function calcTotal() {
         return productos.reduce(function (acc, p) {
-            return acc + p.cantidad * p.precio;
+            return acc + p.precioTotal;
         }, 0);
     }
 
@@ -328,14 +333,12 @@
             sTbody.appendChild(sEmptyRow);
         } else {
             productos.forEach(function (p, idx) {
-                var subtotal = p.cantidad * p.precio;
                 var tr = document.createElement('tr');
                 tr.innerHTML =
                     '<td>' + escapeHtml(p.nombre) + '</td>' +
                     '<td class="text-center">' + p.cantidad + '</td>' +
-                    '<td class="text-end">' + formatCOP(p.precio) + '</td>' +
+                    '<td class="text-end">' + formatCOP(p.precioTotal) + '</td>' +
                     '<td class="text-center">' + (p.vencimiento || '—') + '</td>' +
-                    '<td class="text-end">' + formatCOP(subtotal) + '</td>' +
                     '<td class="text-center">' +
                         '<button type="button" class="btn btn-sm btn-outline-danger" data-remove="' + idx + '">' +
                             '<i class="fas fa-times"></i>' +
@@ -343,10 +346,11 @@
                     '</td>';
                 sTbody.appendChild(tr);
 
+                var precioUnit = p.cantidad > 0 ? p.precioTotal / p.cantidad : 0;
                 sHiddenInputs.innerHTML +=
                     '<input type="hidden" name="arrayidproducto[]" value="' + escapeAttr(p.id) + '">' +
                     '<input type="hidden" name="arraycantidad[]" value="' + p.cantidad + '">' +
-                    '<input type="hidden" name="arraypreciocompra[]" value="' + p.precio + '">' +
+                    '<input type="hidden" name="arraypreciocompra[]" value="' + precioUnit + '">' +
                     '<input type="hidden" name="arrayfechavencimiento[]" value="' + escapeAttr(p.vencimiento) + '">';
             });
 
@@ -370,19 +374,19 @@
         var precio     = parseFloat(sPrecio.value);
         var venc       = sVencimiento.value;
         var opt        = sProductoId.options[sProductoId.selectedIndex];
-        var nombre     = opt ? (opt.dataset.nombre || opt.text) : '';
+        var nombre     = opt ? (opt.dataset.nombre || opt.text).trim() : '';
 
         if (!productoId)           { showAlert('Selecciona un producto.'); return; }
         if (!cantidad || cantidad < 1) { showAlert('Ingresa una cantidad válida (mínimo 1).'); return; }
         if (isNaN(precio) || precio < 0) { showAlert('Ingresa un precio válido.'); return; }
 
-        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precio: precio, vencimiento: venc });
+        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precioTotal: precio, vencimiento: venc });
         renderTable();
 
         sCantidad.value    = '';
         sPrecio.value      = '';
         sVencimiento.value = '';
-        sProductoId.value  = '';
+        tomSelect.clear();
     });
 
     document.getElementById('gasto-form').addEventListener('submit', function (e) {
