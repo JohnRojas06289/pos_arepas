@@ -26,9 +26,11 @@
                 <li class="breadcrumb-item active">Gastos</li>
             </ol>
         </div>
+        @can('crear-gasto')
         <a href="{{ route('gastos.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i> Nuevo Gasto
         </a>
+        @endcan
     </div>
 
     @if (session('success'))
@@ -123,6 +125,7 @@
                                         <i class="fas fa-paperclip"></i>
                                     </a>
                                     @endif
+                                    @can('eliminar-gasto')
                                     <form action="{{ route('gastos.destroy', $gasto->id) }}" method="POST"
                                         onsubmit="return confirm('¿Eliminar este gasto?')">
                                         @csrf @method('DELETE')
@@ -130,6 +133,7 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

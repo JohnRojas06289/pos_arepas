@@ -16,6 +16,8 @@ class PermissionSeeder extends Seeder
 
             //Registro de actividad
             'ver-registro-actividad',
+            'eliminar-registro-actividad',
+            'revertir-venta',
 
             //Panel
             'ver-panel',
