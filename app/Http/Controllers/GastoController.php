@@ -145,7 +145,6 @@ class GastoController extends Controller
                 'proveedore_id'      => $request->proveedore_id,
                 'comprobante_id'     => $request->comprobante_id,
                 'numero_comprobante' => $request->numero_comprobante,
-                'metodo_pago'        => $request->metodo_pago,
                 'fecha_hora'         => $request->fecha . 'T' . now()->format('H:i'),
                 'subtotal'           => $total,
                 'total'              => $total,
