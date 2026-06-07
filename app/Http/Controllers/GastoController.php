@@ -69,7 +69,7 @@ class GastoController extends Controller
     {
         $request->validate([
             'categoria'   => 'required|string',
-            'descripcion' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
             'fecha'       => 'required|date',
             'metodo_pago' => 'nullable|string',
             'notas'       => 'nullable|string|max:1000',

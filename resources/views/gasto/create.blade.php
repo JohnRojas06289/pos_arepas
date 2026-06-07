@@ -52,12 +52,11 @@
 
                         {{-- Descripción --}}
                         <div class="mb-3">
-                            <label for="descripcion" class="form-label">Descripción <span class="text-danger">*</span></label>
+                            <label for="descripcion" class="form-label">Descripción</label>
                             <input type="text" name="descripcion" id="descripcion"
                                 class="form-control @error('descripcion') is-invalid @enderror"
                                 value="{{ old('descripcion') }}"
-                                placeholder="Ej: Arriendo mes de abril"
-                                required>
+                                placeholder="Ej: Arriendo mes de abril">
                             @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
@@ -171,7 +170,7 @@
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th class="text-center" style="width:80px">Cant.</th>
-                                                    <th class="text-end" style="width:120px">Precio Total</th>
+                                                    <th class="text-end" style="width:120px">Precio Unit.</th>
                                                     <th class="text-center" style="width:110px">Vencimiento</th>
                                                     <th style="width:50px"></th>
                                                 </tr>
@@ -337,7 +336,7 @@
                 tr.innerHTML =
                     '<td>' + escapeHtml(p.nombre) + '</td>' +
                     '<td class="text-center">' + p.cantidad + '</td>' +
-                    '<td class="text-end">' + formatCOP(p.precioTotal) + '</td>' +
+                    '<td class="text-end">' + formatCOP(p.cantidad > 0 ? p.precioTotal / p.cantidad : 0) + '</td>' +
                     '<td class="text-center">' + (p.vencimiento || '—') + '</td>' +
                     '<td class="text-center">' +
                         '<button type="button" class="btn btn-sm btn-outline-danger" data-remove="' + idx + '">' +
