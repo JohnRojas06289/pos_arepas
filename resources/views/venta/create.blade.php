@@ -921,6 +921,16 @@
                 </select>
             </div>
 
+            <div id="cartNameBar" style="background:var(--bg-sidebar);border-bottom:1px solid rgba(255,255,255,0.1);padding:4px 8px;">
+                <input type="text" id="cartNameInput" maxlength="30"
+                       placeholder="Nombre del carrito..."
+                       style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:5px 10px;color:#fff;font-size:0.82rem;font-weight:600;outline:none;transition:border-color 0.2s,background 0.2s;"
+                       oninput="updateCartName(this.value)"
+                       onkeydown="if(event.key==='Enter')this.blur()"
+                       onfocus="this.style.borderColor='var(--color-accent)';this.style.background='rgba(255,255,255,0.14)'"
+                       onblur="this.style.borderColor='rgba(255,255,255,0.15)';this.style.background='rgba(255,255,255,0.08)'">
+            </div>
+
             <div class="orders-panel" id="ordersPanel">
                 <div class="p-2 d-flex justify-content-between align-items-center"
                      style="background:var(--bg-sidebar);color:#fff;font-size:0.8rem;font-weight:700;">
@@ -1039,10 +1049,19 @@
 
 @push('js')
 <script>
+    // ── UUID helper ──
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
     // ── Multi-cart state ──
-    var carts = [{ id: 1, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0 }];
+    var carts = [{ uuid: generateUUID(), id: 1, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0, name: '' }];
     var activeCartIndex = 0;
     var MAX_CARTS = 10;
+    var _syncTimeout = null;
     // Transparent proxy: existing code using `cart` automatically targets the active cart
     Object.defineProperty(window, 'cart', {
         get: function() { return carts[activeCartIndex].items; },
@@ -1152,11 +1171,15 @@
         }, 1500);
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        loadPersistedCarts();
+    document.addEventListener('DOMContentLoaded', async function() {
+        var loadedFromServer = await loadCartsFromServer();
+        if (!loadedFromServer) {
+            loadPersistedCarts();
+        }
         renderCart();
         loadCartPaymentState();
         renderCartTabs();
+        loadCartName();
 
         // Auto-collapse sidebar with animation
         if (!document.body.classList.contains('sb-sidenav-toggled')) {
@@ -1895,6 +1918,33 @@
             localStorage.setItem('pos_carts', JSON.stringify(carts));
             localStorage.setItem('pos_active_cart', activeCartIndex);
         } catch(e) {}
+
+        // Sync a BD con debounce de 1.5s para no saturar en cada tecla
+        clearTimeout(_syncTimeout);
+        _syncTimeout = setTimeout(syncCartsToServer, 1500);
+    }
+
+    function syncCartsToServer() {
+        fetch('{{ route("pos.carritos.sync") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ carts: carts })
+        }).catch(function() {}); // Silencioso — localStorage es el fallback
+    }
+
+    function syncDeleteCartFromServer(uuid) {
+        fetch('{{ route("pos.carritos.destroy", ":uuid") }}'.replace(':uuid', uuid), {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        }).catch(function() {});
     }
 
     function loadPersistedCarts() {
@@ -1904,11 +1954,40 @@
             if (saved) {
                 var parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
+                    // Asegurar que carritos viejos (sin uuid) reciban uno
+                    parsed.forEach(function(c) { if (!c.uuid) c.uuid = generateUUID(); });
                     carts = parsed;
                     activeCartIndex = savedIndex < parsed.length ? savedIndex : 0;
                 }
             }
         } catch(e) {}
+    }
+
+    async function loadCartsFromServer() {
+        try {
+            var response = await fetch('{{ route("pos.carritos.index") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+            });
+            if (!response.ok) return false;
+            var data = await response.json();
+            if (!Array.isArray(data) || data.length === 0) return false;
+
+            carts = data.map(function(c, idx) {
+                return {
+                    uuid:           c.id,
+                    id:             idx + 1,
+                    name:           c.nombre || '',
+                    items:          Array.isArray(c.items) ? c.items : [],
+                    metodoPago:     c.metodo_pago || 'EFECTIVO',
+                    dineroRecibido: parseFloat(c.dinero_recibido) || 0,
+                    vuelto:         parseFloat(c.vuelto) || 0,
+                };
+            });
+            activeCartIndex = 0;
+            return true;
+        } catch(e) {
+            return false;
+        }
     }
 
     function saveCartPaymentState() {
@@ -1957,6 +2036,7 @@
         renderCart();
         loadCartPaymentState();
         renderCartTabs();
+        loadCartName();
         setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
     }
 
@@ -1966,12 +2046,13 @@
             return;
         }
         saveCartPaymentState();
-        var newId = Math.max.apply(null, carts.map(function(c) { return c.id; })) + 1;
-        carts.push({ id: newId, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0 });
+        var newId = Math.max.apply(null, carts.map(function(c) { return c.id || 0; })) + 1;
+        carts.push({ uuid: generateUUID(), id: newId, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0, name: '' });
         activeCartIndex = carts.length - 1;
         renderCart();
         loadCartPaymentState();
         renderCartTabs();
+        loadCartName();
         setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
     }
 
@@ -1983,12 +2064,14 @@
             var isActive = idx === activeCartIndex;
             var hasItems = c.items.length > 0;
             var canDelete = carts.length > 1;
+            var cartName = (c.name && c.name.trim()) ? c.name.trim() : '';
+            var label = cartName ? cartName[0].toUpperCase() : (idx + 1);
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'cart-tab' + (isActive ? ' active' : '');
-            btn.title = 'Carrito ' + (idx + 1) + (hasItems && !isActive ? ' (en pausa)' : '');
+            btn.title = (cartName || ('Carrito ' + (idx + 1))) + (hasItems && !isActive ? ' (en pausa)' : '');
             btn.onclick = (function(i) { return function() { switchCart(i); }; })(idx);
-            btn.innerHTML = '<span style="font-size:1rem;font-weight:800;">' + (idx + 1) + '</span>' +
+            btn.innerHTML = '<span style="font-size:1rem;font-weight:800;">' + label + '</span>' +
                 (hasItems && !isActive ? '<span class="cart-tab-dot"></span>' : '') +
                 (canDelete ? '<span class="cart-tab-close" title="Eliminar carrito">✕</span>' : '');
             if (canDelete) {
@@ -2002,6 +2085,18 @@
         var btnAdd = document.getElementById('btnAddCart');
         if (btnAdd) btnAdd.disabled = carts.length >= MAX_CARTS;
         persistCarts();
+    }
+
+    function updateCartName(value) {
+        carts[activeCartIndex].name = value;
+        renderCartTabs();
+        persistCarts();
+    }
+
+    function loadCartName() {
+        var input = document.getElementById('cartNameInput');
+        if (!input) return;
+        input.value = carts[activeCartIndex].name || '';
     }
 
     function removeCart(index) {
@@ -2026,6 +2121,8 @@
 
     function doRemoveCart(index) {
         if (carts.length <= 1) return;
+        var removedUuid = carts[index].uuid;
+        if (removedUuid) syncDeleteCartFromServer(removedUuid);
         carts.splice(index, 1);
         if (activeCartIndex >= carts.length) {
             activeCartIndex = carts.length - 1;

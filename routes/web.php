@@ -26,6 +26,7 @@ use App\Http\Controllers\roleController;
 use App\Http\Controllers\userController;
 use App\Http\Controllers\ventaController;
 use App\Http\Controllers\CierreInventarioController;
+use App\Http\Controllers\CarritoPOSController;
 use App\Http\Controllers\PedidoController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -78,6 +79,11 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     // ── Ventas ────────────────────────────────────────────────────────────
     Route::get('/pos', [ventaController::class, 'create'])->name('pos.index');
     Route::resource('ventas', ventaController::class)->except('edit', 'update', 'destroy');
+
+    // ── Carritos POS (persistencia en BD) ─────────────────────────────────
+    Route::get('/pos/carritos',          [CarritoPOSController::class, 'index'])->name('pos.carritos.index');
+    Route::post('/pos/carritos/sync',    [CarritoPOSController::class, 'sync'])->name('pos.carritos.sync');
+    Route::delete('/pos/carritos/{uuid}',[CarritoPOSController::class, 'destroy'])->name('pos.carritos.destroy');
     Route::resource('cajas', CajaController::class)->except('edit', 'update', 'show');
     Route::get('cajas/{caja}/resumen', [CajaController::class, 'resumen'])->name('cajas.resumen');
     Route::get('cajas/{caja}/cierre-inventario',  [CierreInventarioController::class, 'create'])->name('cajas.cierre-inventario.create');
