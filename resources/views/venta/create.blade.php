@@ -1919,9 +1919,9 @@
             localStorage.setItem('pos_active_cart', activeCartIndex);
         } catch(e) {}
 
-        // Sync a BD con debounce de 1.5s para no saturar en cada tecla
+        // Sync a BD con debounce de 600ms para no saturar en cada tecla
         clearTimeout(_syncTimeout);
-        _syncTimeout = setTimeout(syncCartsToServer, 1500);
+        _syncTimeout = setTimeout(syncCartsToServer, 600);
     }
 
     function syncCartsToServer() {
@@ -1972,6 +1972,14 @@
             var data = await response.json();
             if (!Array.isArray(data) || data.length === 0) return false;
 
+            // Solo preferir BD si hay al menos un carrito con datos reales
+            // (items o nombre). Si BD tiene solo carritos vacíos y sin nombre,
+            // es mejor cargar localStorage que puede tener datos más frescos.
+            var hasData = data.some(function(c) {
+                return (Array.isArray(c.items) && c.items.length > 0) || (c.nombre && c.nombre.trim());
+            });
+            if (!hasData) return false;
+
             carts = data.map(function(c, idx) {
                 return {
                     uuid:           c.id,
@@ -1980,7 +1988,7 @@
                     items:          Array.isArray(c.items) ? c.items : [],
                     metodoPago:     c.metodo_pago || 'EFECTIVO',
                     dineroRecibido: parseFloat(c.dinero_recibido) || 0,
-                    vuelto:         parseFloat(c.vuelto) || 0,
+                    vuelto:         parseFloat(c.vuelto) ?? 0,
                 };
             });
             activeCartIndex = 0;
@@ -2250,5 +2258,24 @@
         pollPendingOrders();
         setInterval(pollPendingOrders, 6000);
     }
+
+    // ── Sync a BD antes de cerrar el tab o el navegador ──
+    // keepalive permite que el fetch complete incluso si la página se está cerrando
+    window.addEventListener('beforeunload', function() {
+        clearTimeout(_syncTimeout);
+        try {
+            fetch('{{ route("pos.carritos.sync") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ carts: carts }),
+                keepalive: true
+            });
+        } catch(e) {}
+    });
 </script>
 @endpush
