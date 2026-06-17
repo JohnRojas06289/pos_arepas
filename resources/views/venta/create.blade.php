@@ -1060,7 +1060,6 @@
     // ── Multi-cart state ──
     var carts = [{ uuid: generateUUID(), id: 1, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0, name: '' }];
     var activeCartIndex = 0;
-    var MAX_CARTS = 10;
     var _syncTimeout = null;
     // Transparent proxy: existing code using `cart` automatically targets the active cart
     Object.defineProperty(window, 'cart', {
@@ -1919,9 +1918,19 @@
             localStorage.setItem('pos_active_cart', activeCartIndex);
         } catch(e) {}
 
-        // Sync a BD con debounce de 600ms para no saturar en cada tecla
+        // Sync inmediato a BD — sin debounce para no perder datos en apagones
+        syncCartsToServer();
+    }
+
+    function persistCartsDebounced() {
+        try {
+            localStorage.setItem('pos_carts', JSON.stringify(carts));
+            localStorage.setItem('pos_active_cart', activeCartIndex);
+        } catch(e) {}
+
+        // Debounce solo para cambios de nombre (evita sync por cada tecla)
         clearTimeout(_syncTimeout);
-        _syncTimeout = setTimeout(syncCartsToServer, 600);
+        _syncTimeout = setTimeout(syncCartsToServer, 800);
     }
 
     function syncCartsToServer() {
@@ -1971,14 +1980,6 @@
             if (!response.ok) return false;
             var data = await response.json();
             if (!Array.isArray(data) || data.length === 0) return false;
-
-            // Solo preferir BD si hay al menos un carrito con datos reales
-            // (items o nombre). Si BD tiene solo carritos vacíos y sin nombre,
-            // es mejor cargar localStorage que puede tener datos más frescos.
-            var hasData = data.some(function(c) {
-                return (Array.isArray(c.items) && c.items.length > 0) || (c.nombre && c.nombre.trim());
-            });
-            if (!hasData) return false;
 
             carts = data.map(function(c, idx) {
                 return {
@@ -2049,10 +2050,6 @@
     }
 
     function addNewCart() {
-        if (carts.length >= MAX_CARTS) {
-            Swal.fire({ icon: 'info', title: 'Máximo ' + MAX_CARTS + ' carritos', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
-            return;
-        }
         saveCartPaymentState();
         var newId = Math.max.apply(null, carts.map(function(c) { return c.id || 0; })) + 1;
         carts.push({ uuid: generateUUID(), id: newId, items: [], metodoPago: 'EFECTIVO', dineroRecibido: 0, vuelto: 0, name: '' });
@@ -2090,15 +2087,13 @@
             }
             container.appendChild(btn);
         });
-        var btnAdd = document.getElementById('btnAddCart');
-        if (btnAdd) btnAdd.disabled = carts.length >= MAX_CARTS;
         persistCarts();
     }
 
     function updateCartName(value) {
         carts[activeCartIndex].name = value;
         renderCartTabs();
-        persistCarts();
+        persistCartsDebounced();
     }
 
     function loadCartName() {
@@ -2258,6 +2253,9 @@
         pollPendingOrders();
         setInterval(pollPendingOrders, 6000);
     }
+
+    // ── Sync periódico cada 15s — red de seguridad ante apagones ──
+    setInterval(syncCartsToServer, 15000);
 
     // ── Sync a BD antes de cerrar el tab o el navegador ──
     // keepalive permite que el fetch complete incluso si la página se está cerrando
