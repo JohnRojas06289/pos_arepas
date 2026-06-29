@@ -35,6 +35,16 @@ class UpdateInventarioVentaListener
             }
 
             $cantidadAnterior = $registro->cantidad;
+
+            if ($registro->cantidad < $event->cantidad) {
+                \Log::warning('UpdateInventarioVentaListener: Stock insuficiente — se permite la venta', [
+                    'producto_id' => $event->producto_id,
+                    'disponible'  => $registro->cantidad,
+                    'requerido'   => $event->cantidad,
+                    'resultado'   => $registro->cantidad - $event->cantidad,
+                ]);
+            }
+
             $registro->decrement('cantidad', $event->cantidad);
 
             \Log::info('UpdateInventarioVentaListener: Stock updated', [

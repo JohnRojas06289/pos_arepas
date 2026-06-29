@@ -18,7 +18,7 @@ class CheckProductoInicializado
     {
         // Permitir acceso siempre: el controller distingue entre
         // inicialización (nueva) y reinicialización (ya existe inventario)
-        Producto::findOrfail($request->producto_id); // valida que el producto existe
+        Producto::findOrFail($request->producto_id); // valida que el producto existe
         return $next($request);
     }
 }

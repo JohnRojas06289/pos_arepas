@@ -153,7 +153,7 @@ class ProductoController extends Controller
                         $producto->categoria->caracteristica->nombre ?? 'Sin categoría',
                         $producto->marca->caracteristica->nombre ?? 'Sin marca',
                         $producto->presentacione->caracteristica->nombre ?? 'Sin presentación',
-                        $producto->inventario->stock ?? 0,
+                        $producto->inventario->cantidad ?? 0,
                         $producto->estado ? 'Activo' : 'Inactivo',
                     ]);
                 }
@@ -243,7 +243,7 @@ class ProductoController extends Controller
                     ]);
 
                     if (isset($data['Stock']) && is_numeric($data['Stock'])) {
-                        $producto->inventario()->create(['stock' => (int) $data['Stock']]);
+                        $producto->inventario()->create(['cantidad' => (int) $data['Stock']]);
                     }
 
                     $created++;

@@ -94,7 +94,7 @@ class EmpleadoController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         try {
-            $empleado = Empleado::findOrfail($id);
+            $empleado = Empleado::findOrFail($id);
 
             ActivityLogService::log('Eliminación de empleado', 'Empleados', [
                 'empleado' => $empleado

@@ -113,6 +113,49 @@
         </div>
     </div>
 
+    @if(isset($divergencias) && $divergencias->isNotEmpty())
+    <div class="alert alert-warning border-0 mb-3 shadow-sm" id="alertaDivergencias" role="alert"
+         style="border-left: 4px solid var(--color-warning, #f59e0b) !important;">
+        <div class="d-flex align-items-start gap-3 flex-wrap">
+            <i class="fas fa-exclamation-triangle fa-lg mt-1" style="color:var(--color-warning,#f59e0b);flex-shrink:0;"></i>
+            <div class="flex-grow-1">
+                <strong>{{ $divergencias->count() }} {{ $divergencias->count() === 1 ? 'producto tiene' : 'productos tienen' }} inventario desincronizado</strong>
+                <p class="mb-2 small text-muted">El stock en la tabla de inventario no coincide con el último saldo del Kardex. Esto puede causar que los números cambien según cómo se consulte.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" style="font-size:0.82rem;max-width:600px;">
+                        <thead class="table-warning">
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Stock en Inventario</th>
+                                <th class="text-center">Saldo en Kardex</th>
+                                <th class="text-center">Diferencia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($divergencias as $div)
+                            @php
+                                $prod = $productos->firstWhere('id', $div->producto_id);
+                                $diff = $div->inv_cantidad - $div->kardex_saldo;
+                            @endphp
+                            <tr>
+                                <td>{{ $prod?->nombre ?? $div->producto_id }}</td>
+                                <td class="text-center fw-bold">{{ $div->inv_cantidad }}</td>
+                                <td class="text-center fw-bold">{{ $div->kardex_saldo }}</td>
+                                <td class="text-center {{ $diff > 0 ? 'text-success' : 'text-danger' }}">
+                                    {{ $diff > 0 ? '+' : '' }}{{ $diff }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <small class="text-muted mt-1 d-block">Para corregir: reinicialice el inventario de cada producto afectado desde la pantalla de Productos.</small>
+            </div>
+            <button type="button" class="btn-close" onclick="document.getElementById('alertaDivergencias').remove()" aria-label="Cerrar"></button>
+        </div>
+    </div>
+    @endif
+
     @if(request('fecha'))
     <div class="alert alert-info d-flex align-items-center gap-3 mb-3 flex-wrap">
         <i class="fas fa-history fa-lg"></i>

@@ -18,7 +18,7 @@ class ExportPDFController extends Controller
     {
         $id = Crypt::decrypt($request->id);
 
-        $venta = Venta::findOrfail($id);
+        $venta = Venta::findOrFail($id);
         $empresa = Empresa::first();
 
         $pdf = Pdf::loadView('pdf.comprobante-venta', [

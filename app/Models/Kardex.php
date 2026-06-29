@@ -6,6 +6,7 @@ use App\Enums\TipoTransaccionEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Producto;
 
 class Kardex extends Model
 {
@@ -20,7 +21,7 @@ class Kardex extends Model
 
     public function producto(): BelongsTo
     {
-        return $this->belongsTo(Kardex::class);
+        return $this->belongsTo(Producto::class);
     }
 
     public function getFechaAttribute(): string
@@ -107,11 +108,16 @@ class Kardex extends Model
      */
     public function calcularPrecioVenta(string $producto_id): float
     {
-        $costoUltimoRegistro = $this->where('producto_id', $producto_id)
+        $ultimoRegistro = $this->where('producto_id', $producto_id)
             ->latest('id')
-            ->first()
-            ->costo_unitario;
+            ->first();
 
-        return $costoUltimoRegistro + round($costoUltimoRegistro * self::MARGEN_GANANCIA, 2);
+        if (!$ultimoRegistro) {
+            throw new \RuntimeException("Producto {$producto_id} no tiene registros en Kardex. Inicialícelo primero.");
+        }
+
+        $costo = $ultimoRegistro->costo_unitario;
+
+        return $costo + round($costo * self::MARGEN_GANANCIA, 2);
     }
 }

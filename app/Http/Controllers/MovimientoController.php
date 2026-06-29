@@ -24,7 +24,7 @@ class MovimientoController extends Controller
      */
     public function index(Request $request): View
     {
-        $caja = Caja::findOrfail($request->caja_id);
+        $caja = Caja::findOrFail($request->caja_id);
         return view('movimiento.index', compact('caja'));
     }
 

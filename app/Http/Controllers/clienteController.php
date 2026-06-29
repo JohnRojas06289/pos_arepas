@@ -37,6 +37,7 @@ class clienteController extends Controller
     public function index(): View
     {
         $clientes = Cliente::with('persona.documento')
+            ->withSum(['ventas' => fn($q) => $q->whereRaw('pagado = false')], 'saldo_pendiente')
             ->join('personas', 'clientes.persona_id', '=', 'personas.id')
             ->where('personas.estado', 1)
             ->orderBy('personas.razon_social', 'asc')
@@ -126,7 +127,7 @@ class clienteController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         try {
-            $cliente = Cliente::findOrfail($id);
+            $cliente = Cliente::findOrFail($id);
             $persona = $cliente->persona;
 
             $nuevoEstado = $persona->estado == 1 ? 0 : 1;
@@ -178,6 +179,7 @@ class clienteController extends Controller
             $ventasPendientes = $cliente->ventas()
                 ->whereRaw('pagado = false')
                 ->orderBy('created_at', 'asc')
+                ->lockForUpdate()
                 ->get();
 
             $montoRestante = $montoAbono;

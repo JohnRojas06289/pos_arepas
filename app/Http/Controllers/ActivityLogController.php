@@ -79,8 +79,13 @@ class ActivityLogController extends Controller
                 $venta = Venta::with(['productos.presentacione', 'cliente.persona', 'comprobante', 'user'])
                     ->find($log->getVentaId());
             }
-            // Fallback por proximidad de timestamp para logs anteriores
+            // Fallback por proximidad de timestamp para logs anteriores (sin venta_id guardado)
             if (!$venta) {
+                Log::warning('ActivityLog: usando fallback por timestamp para encontrar venta', [
+                    'log_id'    => $log->id,
+                    'user_id'   => $log->user_id,
+                    'log_time'  => $log->created_at,
+                ]);
                 $venta = Venta::with(['productos.presentacione', 'cliente.persona', 'comprobante', 'user'])
                     ->where('user_id', $log->user_id)
                     ->whereBetween('created_at', [
@@ -137,8 +142,13 @@ class ActivityLogController extends Controller
             // Buscar por venta_id guardado en el log (logs nuevos)
             $ventaId = $log->getVentaId();
 
-            // Fallback por proximidad de timestamp para logs anteriores
+            // Fallback por proximidad de timestamp para logs anteriores (sin venta_id guardado)
             if (!$ventaId) {
+                Log::warning('ActivityLog: usando fallback por timestamp para revertir venta', [
+                    'log_id'   => $log->id,
+                    'user_id'  => $log->user_id,
+                    'log_time' => $log->created_at,
+                ]);
                 $venta = Venta::where('user_id', $log->user_id)
                     ->whereBetween('created_at', [
                         $log->created_at->copy()->subSeconds(5),

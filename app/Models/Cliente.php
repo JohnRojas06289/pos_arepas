@@ -45,10 +45,16 @@ class Cliente extends Model
     }
 
     /**
-     * Get pending balance for credit clients
+     * Get pending balance for credit clients.
+     * Uses preloaded withSum value if available (avoids a DB query per client).
+     * Preload in controller with: ->withSum(['ventas' => fn($q) => $q->whereRaw('pagado = false')], 'saldo_pendiente')
      */
     public function getSaldoPendiente(): float
     {
+        if (array_key_exists('ventas_sum_saldo_pendiente', $this->getAttributes())) {
+            return (float) ($this->getAttributes()['ventas_sum_saldo_pendiente'] ?? 0);
+        }
+
         return (float) $this->ventas()
             ->whereRaw('pagado = false')
             ->sum('saldo_pendiente');

@@ -81,63 +81,86 @@ class InventarioControlller extends Controller
         
         // Check if date filter is applied
         $fecha = $request->fecha;
-        
+
+        // ── Precargar ventas y compras del período seleccionado (1 query cada una) ──
+        $ventasAgregadas = DB::table('producto_venta')
+            ->join('ventas', 'ventas.id', '=', 'producto_venta.venta_id')
+            ->where('ventas.revertida', 0)
+            ->whereBetween('ventas.fecha_hora', $selectedRange)
+            ->select('producto_venta.producto_id', DB::raw('SUM(producto_venta.cantidad) as total'))
+            ->groupBy('producto_venta.producto_id')
+            ->pluck('total', 'producto_id');
+
+        $comprasAgregadas = DB::table('compra_producto')
+            ->join('compras', 'compras.id', '=', 'compra_producto.compra_id')
+            ->whereBetween('compras.created_at', $selectedRangeCompras)
+            ->select('compra_producto.producto_id', DB::raw('SUM(compra_producto.cantidad) as total'))
+            ->groupBy('compra_producto.producto_id')
+            ->pluck('total', 'producto_id');
+
         if ($fecha) {
-            // When filtering by date, we need to get the last Kardex entry for each product on that date
+            // Kardex histórico: última entrada por producto en/antes de $fecha
+            // DISTINCT ON es nativo de PostgreSQL: devuelve 1 fila por producto_id
+            $kardexHistorico = DB::table('kardex')
+                ->selectRaw('DISTINCT ON (producto_id) producto_id, saldo')
+                ->whereDate('created_at', '<=', $fecha)
+                ->orderBy('producto_id')
+                ->orderByDesc('created_at')
+                ->pluck('saldo', 'producto_id');
+
             $productos = Producto::with(['presentacione', 'categoria.caracteristica'])
-                ->when($request->categoria_id, function($query, $categoria_id) {
-                    return $query->where('categoria_id', $categoria_id);
-                })
+                ->when($request->categoria_id, fn($q, $id) => $q->where('categoria_id', $id))
                 ->orderBy('nombre', 'asc')
                 ->get()
-                ->map(function($producto) use ($fecha, $selectedRange, $selectedRangeCompras) {
-                    // Get the last Kardex entry for this product on or before the selected date
-                    $kardex = Kardex::where('producto_id', $producto->id)
-                        ->whereDate('created_at', '<=', $fecha)
-                        ->orderBy('created_at', 'desc')
-                        ->orderBy('id', 'desc')
-                        ->first();
-                    
-                    // Create a virtual inventario object with the historical stock
-                    if ($kardex) {
-                        $producto->inventario = (object)[
-                            'cantidad' => $kardex->saldo,
-                            'fecha_vencimiento' => null,
-                            'fecha_vencimiento_format' => 'N/A (Histórico)',
-                            'id' => null // No editing allowed for historical data
-                        ];
-                    } else {
-                        // Product didn't exist or had no kardex entries on that date
-                        $producto->inventario = (object)[
-                            'cantidad' => 0,
-                            'fecha_vencimiento' => null,
-                            'fecha_vencimiento_format' => 'N/A',
-                            'id' => null
-                        ];
-                    }
-                    
-                    // Add sales and purchases count for the selected period
-                    $producto->vendidos_periodo  = $this->getVentasPorProducto($producto->id, $selectedRange);
-                    $producto->comprados_periodo = $this->getComprasPorProducto($producto->id, $selectedRangeCompras);
+                ->map(function ($producto) use ($ventasAgregadas, $comprasAgregadas, $kardexHistorico) {
+                    $saldo = $kardexHistorico[$producto->id] ?? null;
+
+                    $producto->inventario = $saldo !== null
+                        ? (object)['cantidad' => (int) $saldo, 'fecha_vencimiento' => null, 'fecha_vencimiento_format' => 'N/A (Histórico)', 'id' => null]
+                        : (object)['cantidad' => 0, 'fecha_vencimiento' => null, 'fecha_vencimiento_format' => 'N/A', 'id' => null];
+
+                    $producto->vendidos_periodo  = (int) ($ventasAgregadas[$producto->id] ?? 0);
+                    $producto->comprados_periodo = (int) ($comprasAgregadas[$producto->id] ?? 0);
 
                     return $producto;
                 });
         } else {
             // Default behavior: show current inventory
             $productos = Producto::with(['inventario', 'presentacione', 'categoria.caracteristica'])
-                ->when($request->categoria_id, function($query, $categoria_id) {
-                    return $query->where('categoria_id', $categoria_id);
-                })
+                ->when($request->categoria_id, fn($q, $id) => $q->where('categoria_id', $id))
                 ->orderBy('nombre', 'asc')
                 ->get()
-                ->map(function($producto) use ($selectedRange, $selectedRangeCompras) {
-                    $producto->vendidos_periodo  = $this->getVentasPorProducto($producto->id, $selectedRange);
-                    $producto->comprados_periodo = $this->getComprasPorProducto($producto->id, $selectedRangeCompras);
+                ->map(function ($producto) use ($ventasAgregadas, $comprasAgregadas) {
+                    $producto->vendidos_periodo  = (int) ($ventasAgregadas[$producto->id] ?? 0);
+                    $producto->comprados_periodo = (int) ($comprasAgregadas[$producto->id] ?? 0);
                     return $producto;
                 });
         }
 
-        return view('inventario.index', compact('productos', 'categorias', 'periodo', 'periodo_compras'));
+        // ── Detectar divergencias entre inventario.cantidad y Kardex.saldo ──
+        // Si hay productos donde ambos no coinciden, es señal de desincronización.
+        $divergencias = DB::table('inventario as i')
+            ->joinSub(
+                DB::table('kardex')
+                    ->selectRaw('DISTINCT ON (producto_id) producto_id, saldo')
+                    ->orderBy('producto_id')
+                    ->orderByDesc('created_at'),
+                'k',
+                'k.producto_id', '=', 'i.producto_id'
+            )
+            ->whereRaw('i.cantidad != k.saldo')
+            ->select('i.producto_id', 'i.cantidad as inv_cantidad', 'k.saldo as kardex_saldo')
+            ->get();
+
+        if ($divergencias->isNotEmpty()) {
+            \Log::warning('Inventario: divergencias detectadas entre inventario y Kardex', [
+                'total'        => $divergencias->count(),
+                'producto_ids' => $divergencias->pluck('producto_id')->all(),
+                'detalle'      => $divergencias->toArray(),
+            ]);
+        }
+
+        return view('inventario.index', compact('productos', 'categorias', 'periodo', 'periodo_compras', 'divergencias'));
     }
 
     /**
@@ -242,7 +265,7 @@ class InventarioControlller extends Controller
      */
     public function create(Request $request): View
     {
-        $producto = Producto::findOrfail($request->producto_id);
+        $producto = Producto::findOrFail($request->producto_id);
         $ubicaciones = Ubicacione::all();
 
         $inventario        = Inventario::where('producto_id', $producto->id)->first();

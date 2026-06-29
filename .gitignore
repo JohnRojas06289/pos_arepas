@@ -23,3 +23,12 @@ yarn-error.log
 /test_db.php
 /database/*.sqlite
 /database/*.sqlite-journal
+
+# Archivos sensibles — nunca deben estar en el repo
+CREDENCIALES.md
+heroku_*.txt
+backup_*.sql
+debug*.html
+error.log
+git_log.txt
+*.log

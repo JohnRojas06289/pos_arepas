@@ -113,7 +113,7 @@ class proveedorController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         try {
-            $persona = Persona::findOrfail($id);
+            $persona = Persona::findOrFail($id);
 
             $nuevoEstado = $persona->estado == 1 ? 0 : 1;
             $persona->update(['estado' => $nuevoEstado]);

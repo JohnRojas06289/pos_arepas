@@ -521,6 +521,37 @@
     }
 
 
+    /* ── Vista simple: sin imágenes, tarjetas más pequeñas ── */
+    #productsContainer.pos-view-simple .product-img-container {
+        display: none !important;
+    }
+    #productsContainer.pos-view-simple .product-item {
+        flex: 0 0 16.666% !important;
+        max-width: 16.666% !important;
+    }
+    #productsContainer.pos-view-simple .product-card .card-body {
+        padding: 0.5rem 0.4rem !important;
+        text-align: center;
+    }
+    #productsContainer.pos-view-simple .product-name {
+        font-size: 0.78rem !important;
+    }
+    #productsContainer.pos-view-simple .product-price {
+        font-size: 0.88rem !important;
+    }
+    @media (max-width: 991px) {
+        #productsContainer.pos-view-simple .product-item {
+            flex: 0 0 25% !important;
+            max-width: 25% !important;
+        }
+    }
+    @media (max-width: 575px) {
+        #productsContainer.pos-view-simple .product-item {
+            flex: 0 0 33.333% !important;
+            max-width: 33.333% !important;
+        }
+    }
+
     @media (min-width: 992px) {
         .col-lg-20 {
             flex: 0 0 auto;
@@ -822,12 +853,26 @@
         <!-- Column 2: Products -->
         <div class="col-12 col-md product-grid" id="productGrid">
             <div class="sticky-top pb-3 pt-1 mb-2" style="z-index:10;background:var(--bg-primary);">
-                <div class="input-group input-group-lg" style="border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow);">
-                    <span class="input-group-text" style="background:var(--bg-input);border:1.5px solid var(--border-input);border-right:none;border-radius:12px 0 0 12px;">
-                        <i class="fa-solid fa-search" style="color:var(--text-muted);"></i>
-                    </span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre o código..." autofocus
-                           style="border-radius:0 12px 12px 0;border:1.5px solid var(--border-input);border-left:none;">
+                <div class="d-flex gap-2 align-items-center">
+                    <div class="input-group input-group-lg flex-grow-1" style="border-radius:12px;overflow:hidden;box-shadow:var(--card-shadow);">
+                        <span class="input-group-text" style="background:var(--bg-input);border:1.5px solid var(--border-input);border-right:none;border-radius:12px 0 0 12px;">
+                            <i class="fa-solid fa-search" style="color:var(--text-muted);"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre o código..." autofocus
+                               style="border-radius:0 12px 12px 0;border:1.5px solid var(--border-input);border-left:none;">
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Vista" style="flex-shrink:0;">
+                        <button id="btnViewFull" type="button" class="btn btn-sm active"
+                                title="Vista completa"
+                                style="background:var(--bg-card);border:1.5px solid var(--border-input);color:var(--text-primary);border-radius:10px 0 0 10px;padding:10px 12px;">
+                            <i class="fa-solid fa-th-large"></i>
+                        </button>
+                        <button id="btnViewSimple" type="button" class="btn btn-sm"
+                                title="Vista simple (sin imágenes)"
+                                style="background:var(--bg-card);border:1.5px solid var(--border-input);border-left:none;color:var(--text-primary);border-radius:0 10px 10px 0;padding:10px 12px;">
+                            <i class="fa-solid fa-list"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -2275,5 +2320,46 @@
             });
         } catch(e) {}
     });
+
+    // ── Toggle vista simple / completa ────────────────────────────────────
+    (function() {
+        const STORAGE_KEY = 'pos_view_mode';
+        const container   = document.getElementById('productsContainer');
+        const btnFull     = document.getElementById('btnViewFull');
+        const btnSimple   = document.getElementById('btnViewSimple');
+
+        function applyMode(mode) {
+            if (mode === 'simple') {
+                container.classList.add('pos-view-simple');
+                btnFull.classList.remove('active');
+                btnSimple.classList.add('active');
+                btnSimple.style.background = 'var(--color-primary)';
+                btnSimple.style.color      = '#fff';
+                btnFull.style.background   = 'var(--bg-card)';
+                btnFull.style.color        = 'var(--text-primary)';
+            } else {
+                container.classList.remove('pos-view-simple');
+                btnSimple.classList.remove('active');
+                btnFull.classList.add('active');
+                btnFull.style.background   = 'var(--color-primary)';
+                btnFull.style.color        = '#fff';
+                btnSimple.style.background = 'var(--bg-card)';
+                btnSimple.style.color      = 'var(--text-primary)';
+            }
+        }
+
+        btnFull.addEventListener('click', function() {
+            localStorage.setItem(STORAGE_KEY, 'full');
+            applyMode('full');
+        });
+
+        btnSimple.addEventListener('click', function() {
+            localStorage.setItem(STORAGE_KEY, 'simple');
+            applyMode('simple');
+        });
+
+        // Aplicar preferencia guardada al cargar
+        applyMode(localStorage.getItem(STORAGE_KEY) || 'full');
+    })();
 </script>
 @endpush

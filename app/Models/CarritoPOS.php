@@ -12,7 +12,15 @@ class CarritoPOS extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $guarded = [];
+    protected $fillable = [
+        'id',
+        'user_id',
+        'nombre',
+        'items',
+        'metodo_pago',
+        'dinero_recibido',
+        'vuelto',
+    ];
 
     protected $casts = [
         'items' => 'array',
