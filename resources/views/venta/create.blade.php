@@ -1866,6 +1866,8 @@
             document.getElementById('vuelto_display').value = '';
             document.getElementById('btnPay').disabled = true;
         }
+        // Persistir montos de pago en BD
+        if (typeof persistCarts === 'function') persistCarts();
     }
 
     function toggleMobileCart() {
@@ -1893,6 +1895,7 @@
         pagarEfectivo();
         renderCart();
         renderCartTabs();
+        persistCarts();
         document.getElementById('searchInput').focus();
     }
 
@@ -2236,7 +2239,16 @@
                 'Accept': 'application/json'
             },
             body: JSON.stringify({ carts: carts })
-        }).catch(function() {}); // Silencioso — localStorage es el fallback
+        }).then(function(response) {
+            if (!response.ok) {
+                console.warn('[CarritoPOS] Sync HTTP error:', response.status);
+                window._syncFailures = (window._syncFailures || 0) + 1;
+            } else {
+                window._syncFailures = 0;
+            }
+        }).catch(function() {
+            window._syncFailures = (window._syncFailures || 0) + 1;
+        }); // localStorage actúa como fallback automático
     }
 
     function syncDeleteCartFromServer(uuid) {
@@ -2351,6 +2363,7 @@
         loadCartPaymentState();
         renderCartTabs();
         loadCartName();
+        persistCarts(); // Guardar nuevo carrito en BD inmediatamente
         setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
     }
 
@@ -2386,7 +2399,7 @@
     function updateCartName(value) {
         carts[activeCartIndex].name = value;
         renderCartTabs();
-        persistCartsDebounced();
+        persistCarts(); // Inmediato: nombre también se persiste sin debounce
     }
 
     function loadCartName() {
