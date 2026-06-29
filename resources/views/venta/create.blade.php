@@ -829,38 +829,124 @@
     .order-item:last-child { border-bottom: none; }
 
     /* ── Pago dividido ── */
-    #splitPayPanel {
-        background: var(--bg-primary);
-        border: 1.5px solid var(--border-color);
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        animation: slideIn 0.2s ease;
+    /* ── Modal pago dividido ── */
+    #modalSplitPay .modal-header {
+        background: linear-gradient(135deg, var(--bg-sidebar) 0%, #1e293b 100%);
+        color: #fff;
+        border-bottom: none;
+        border-radius: 16px 16px 0 0;
+        padding: 18px 24px 14px;
     }
-    .split-method-row {
+    #modalSplitPay .modal-content {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    #modalSplitPay .modal-body {
+        padding: 20px 24px 8px;
+        background: var(--bg-primary);
+    }
+    #modalSplitPay .modal-footer {
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        padding: 14px 24px;
+    }
+    .split-total-display {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2rem;
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: -1px;
+    }
+    .split-method-card {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        background: var(--bg-card);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .split-method-card:focus-within {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-subtle);
+    }
+    .split-method-card-header {
         display: flex;
         align-items: center;
-        gap: 6px;
-        margin-bottom: 6px;
+        gap: 10px;
+        margin-bottom: 8px;
     }
-    .split-method-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        width: 72px;
-        flex-shrink: 0;
-        color: var(--text-muted);
+    .split-method-card-title {
+        font-size: 0.85rem;
+        font-weight: 800;
         text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-primary);
     }
-    .split-method-input {
-        flex: 1;
+    .split-method-card-input {
+        font-family: 'JetBrains Mono', monospace !important;
+        font-weight: 800 !important;
+        font-size: 1.4rem !important;
+        text-align: right;
+        border: none !important;
+        border-bottom: 2px solid var(--border-color) !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: var(--text-primary) !important;
+        padding: 4px 0 !important;
+        width: 100%;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    .split-method-card-input:focus {
+        border-bottom-color: var(--color-primary) !important;
+        box-shadow: none !important;
+    }
+    .split-progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--border-color);
+        overflow: hidden;
+        margin: 12px 0 6px;
+    }
+    .split-progress-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--color-success), #22c55e);
+        transition: width 0.3s ease;
+        width: 0%;
+    }
+    .split-summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+    }
+    .split-summary-row .val {
         font-family: 'JetBrains Mono', monospace;
         font-weight: 700;
-        font-size: 0.88rem;
-        padding: 5px 8px !important;
-        min-height: unset !important;
-        height: 32px;
-        text-align: right;
+        color: var(--text-primary);
     }
+    .split-summary-row.pending .val { color: #ef4444; }
+    .split-summary-row.ok .val { color: var(--color-success); }
+    #btnConfirmSplit {
+        font-size: 1rem;
+        font-weight: 800;
+        padding: 12px 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--color-success) 0%, #16a34a 100%);
+        border: none;
+        color: #fff;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(76,175,125,0.3);
+    }
+    #btnConfirmSplit:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(76,175,125,0.4);
+    }
+    #btnConfirmSplit:disabled { opacity: 0.45; cursor: not-allowed; }
     .split-remaining {
         font-size: 0.78rem;
         font-weight: 700;
@@ -1090,34 +1176,6 @@
                             </span>
                         </div>
                     </div>
-                    <!-- Panel pago dividido -->
-                    <div id="splitPayPanel" style="display:none;">
-                        <div class="split-method-row">
-                            <span class="split-method-label">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#5C2D91"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                Nequi
-                            </span>
-                            <input type="text" id="splitNequi" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
-                        </div>
-                        <div class="split-method-row">
-                            <span class="split-method-label">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#CC0000"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/></svg>
-                                Daviplata
-                            </span>
-                            <input type="text" id="splitDaviplata" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
-                        </div>
-                        <div class="split-method-row">
-                            <span class="split-method-label">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#1a7340"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/></svg>
-                                Efectivo
-                            </span>
-                            <input type="text" id="splitEfectivo" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <span class="text-muted" style="font-size:0.72rem;">Asignado: <span id="splitAssigned" style="font-family:monospace;font-weight:700;">$0</span></span>
-                            <span class="split-remaining pending" id="splitRemaining">Pendiente: $0</span>
-                        </div>
-                    </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
@@ -1188,6 +1246,76 @@
     </button>
 
     <input type="hidden" name="pagos_mixtos_json" id="inputPagosMixtos">
+
+    <!-- ── Modal Pago Dividido ── -->
+    <div class="modal fade" id="modalSplitPay" tabindex="-1" aria-labelledby="modalSplitPayLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <i class="fa-solid fa-scissors" style="color:var(--color-accent);font-size:1.1rem;"></i>
+                            <h5 class="modal-title mb-0 fw-bold" id="modalSplitPayLabel" style="color:#fff;">Dividir Pago</h5>
+                        </div>
+                        <div class="split-total-display" id="splitModalTotal">$0</div>
+                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:2px;">Total a cobrar</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-auto align-self-start" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Nequi -->
+                    <div class="split-method-card">
+                        <div class="split-method-card-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="7" fill="#5C2D91"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span class="split-method-card-title" style="color:#5C2D91;">Nequi</span>
+                        </div>
+                        <input type="text" id="splitNequi" class="split-method-card-input" placeholder="$ 0" oninput="onSplitInput()" inputmode="numeric">
+                    </div>
+                    <!-- Daviplata -->
+                    <div class="split-method-card">
+                        <div class="split-method-card-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="7" fill="#CC0000"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/></svg>
+                            <span class="split-method-card-title" style="color:#CC0000;">Daviplata</span>
+                        </div>
+                        <input type="text" id="splitDaviplata" class="split-method-card-input" placeholder="$ 0" oninput="onSplitInput()" inputmode="numeric">
+                    </div>
+                    <!-- Efectivo -->
+                    <div class="split-method-card">
+                        <div class="split-method-card-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="7" fill="#1a7340"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/><circle cx="12" cy="12" r="2" fill="#1a7340"/></svg>
+                            <span class="split-method-card-title" style="color:#1a7340;">Efectivo</span>
+                        </div>
+                        <input type="text" id="splitEfectivo" class="split-method-card-input" placeholder="$ 0" oninput="onSplitInput()" inputmode="numeric">
+                    </div>
+
+                    <!-- Barra de progreso -->
+                    <div class="split-progress-bar">
+                        <div class="split-progress-fill" id="splitProgressFill"></div>
+                    </div>
+                    <div class="split-summary-row" id="splitSummaryAssigned">
+                        <span>Asignado</span>
+                        <span class="val" id="splitAssigned">$0</span>
+                    </div>
+                    <div class="split-summary-row pending" id="splitSummaryRemaining">
+                        <span>Pendiente</span>
+                        <span class="val" id="splitRemaining">$0</span>
+                    </div>
+                    <div class="split-summary-row ok" id="splitSummaryVuelto" style="display:none;">
+                        <span>Vuelto (efectivo)</span>
+                        <span class="val" id="splitVueltoDisplay">$0</span>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" onclick="cancelSplitPay()">
+                        <i class="fa-solid fa-times me-1"></i> Cancelar
+                    </button>
+                    <button type="button" id="btnConfirmSplit" onclick="confirmSplitPay()" disabled>
+                        <i class="fa-solid fa-check me-2"></i> Confirmar pago
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Overlay para cerrar el carrito móvil tocando fuera -->
     <div class="mobile-cart-overlay" id="mobileCartOverlay" onclick="toggleMobileCart()"></div>
 </form>
@@ -1902,7 +2030,14 @@
             si.dispatchEvent(new Event('keyup'));
             si.focus();
             // Reset split pay
-            if (typeof splitPayActive !== 'undefined' && splitPayActive) toggleSplitPay();
+            if (typeof splitPayActive !== 'undefined' && splitPayActive) {
+                splitPayActive = false;
+                document.getElementById('btnToggleSplit').classList.remove('active');
+                document.getElementById('inputPagosMixtos').value = '';
+                clearSplitInputs();
+                document.getElementById('smartCashWrapper').style.display = '';
+                pagarEfectivo();
+            }
         })
         .catch(error => {
             console.error('Error procesando venta:', error);
@@ -2469,26 +2604,77 @@
     })();
 
     // ================================================================
-    // PAGO DIVIDIDO (SPLIT PAYMENT)
+    // PAGO DIVIDIDO (SPLIT PAYMENT) — Modal
     // ================================================================
     var splitPayActive = false;
+    var _splitModal = null;
+
+    function getSplitModal() {
+        if (!_splitModal) _splitModal = new bootstrap.Modal(document.getElementById('modalSplitPay'));
+        return _splitModal;
+    }
 
     function toggleSplitPay() {
-        splitPayActive = !splitPayActive;
-        var panel = document.getElementById('splitPayPanel');
-        var btn   = document.getElementById('btnToggleSplit');
-        if (splitPayActive) {
-            panel.style.display = '';
-            btn.classList.add('active');
-            onSplitInput(); // recalculate
-        } else {
-            panel.style.display = 'none';
-            btn.classList.remove('active');
-            // Restore to normal single-method mode
-            clearSplitInputs();
-            pagarEfectivo(); // default back to efectivo
-            document.getElementById('inputPagosMixtos').value = '';
+        var total = parseFloat(document.getElementById('inputTotal').value) || 0;
+        // Mostrar total en el header del modal
+        document.getElementById('splitModalTotal').textContent = '$' + total.toLocaleString('es-CO');
+        clearSplitInputs();
+        onSplitInput();
+        getSplitModal().show();
+        // Focus al primer campo cuando abra
+        document.getElementById('modalSplitPay').addEventListener('shown.bs.modal', function handler() {
+            document.getElementById('splitNequi').focus();
+            this.removeEventListener('shown.bs.modal', handler);
+        });
+    }
+
+    function cancelSplitPay() {
+        // Si se cancela sin haber confirmado, no cambia nada
+        splitPayActive = false;
+        document.getElementById('btnToggleSplit').classList.remove('active');
+    }
+
+    function confirmSplitPay() {
+        var total    = parseFloat(document.getElementById('inputTotal').value) || 0;
+        var nequi    = parseSplitAmount('splitNequi');
+        var davi     = parseSplitAmount('splitDaviplata');
+        var efectivo = parseSplitAmount('splitEfectivo');
+        var asignado = nequi + davi + efectivo;
+
+        var pagos = [];
+        if (nequi > 0)    pagos.push({ metodo: 'NEQUI',    monto: nequi });
+        if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA', monto: davi });
+        if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',  monto: efectivo });
+
+        if (asignado < total || pagos.length < 2) return;
+
+        // Aplicar al formulario
+        splitPayActive = true;
+        document.getElementById('btnToggleSplit').classList.add('active');
+        document.getElementById('selectMetodoPago').value = 'MIXTO';
+        document.getElementById('inputPagosMixtos').value = JSON.stringify(pagos);
+
+        var efectivoNecesario = Math.max(0, total - nequi - davi);
+        var vuelto = Math.max(0, efectivo - efectivoNecesario);
+        document.getElementById('dinero_recibido').value = asignado;
+        document.getElementById('vuelto').value = vuelto;
+
+        // Mostrar vuelto si hay efectivo
+        if (efectivo > 0 && vuelto > 0) {
+            document.getElementById('dinero_recibido_display').value = '$' + asignado.toLocaleString('es-CO');
+            document.getElementById('vuelto_display').value = '$' + vuelto.toLocaleString('es-CO');
         }
+
+        // Badge
+        var partes = pagos.map(function(p) { return p.metodo; }).join(' + ');
+        document.getElementById('paymentBadge').innerHTML = '<i class="fa-solid fa-scissors me-1"></i> ' + partes;
+        document.getElementById('paymentBadge').className = 'badge';
+        document.getElementById('paymentBadge').style.background = 'linear-gradient(90deg,#5C2D91,#CC0000)';
+        document.getElementById('efectivoCampos').style.display = efectivo > 0 ? '' : 'none';
+        document.getElementById('smartCashWrapper').style.display = 'none';
+
+        document.getElementById('btnPay').disabled = false;
+        getSplitModal().hide();
     }
 
     function clearSplitInputs() {
@@ -2498,81 +2684,69 @@
     }
 
     function parseSplitAmount(id) {
-        var val = document.getElementById(id).value.replace(/[^0-9]/g, '');
+        var val = (document.getElementById(id).value || '').replace(/[^0-9]/g, '');
         return val ? parseInt(val, 10) : 0;
     }
 
-    function formatSplitDisplay(num) {
-        return '$' + num.toLocaleString('es-CO');
-    }
-
     function onSplitInput() {
-        if (!splitPayActive) return;
-        var total = parseFloat(document.getElementById('inputTotal').value) || 0;
+        var total    = parseFloat(document.getElementById('inputTotal').value) || 0;
         var nequi    = parseSplitAmount('splitNequi');
         var davi     = parseSplitAmount('splitDaviplata');
         var efectivo = parseSplitAmount('splitEfectivo');
         var asignado = nequi + davi + efectivo;
-        var pendiente = total - asignado;
+        var pendiente = Math.max(0, total - asignado);
 
-        document.getElementById('splitAssigned').textContent = formatSplitDisplay(asignado);
+        // Actualizar total en header si cambió
+        document.getElementById('splitModalTotal').textContent = '$' + total.toLocaleString('es-CO');
+        document.getElementById('splitAssigned').textContent = '$' + asignado.toLocaleString('es-CO');
 
         var remEl = document.getElementById('splitRemaining');
+        var summaryRem = document.getElementById('splitSummaryRemaining');
         if (pendiente <= 0) {
-            remEl.textContent = 'Cubierto \u2713';
-            remEl.className = 'split-remaining ok';
+            remEl.textContent = '$0';
+            summaryRem.className = 'split-summary-row ok';
         } else {
-            remEl.textContent = 'Pendiente: ' + formatSplitDisplay(pendiente);
-            remEl.className = 'split-remaining pending';
+            remEl.textContent = '$' + pendiente.toLocaleString('es-CO');
+            summaryRem.className = 'split-summary-row pending';
         }
 
-        // Build pagos array (only methods with amount > 0)
+        // Barra de progreso
+        var pct = total > 0 ? Math.min(100, (asignado / total) * 100) : 0;
+        document.getElementById('splitProgressFill').style.width = pct + '%';
+
+        // Vuelto efectivo
         var pagos = [];
-        if (nequi > 0)    pagos.push({ metodo: 'NEQUI',     monto: nequi });
-        if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA',  monto: davi });
-        if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',   monto: efectivo });
+        if (nequi > 0)    pagos.push({ metodo: 'NEQUI',    monto: nequi });
+        if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA', monto: davi });
+        if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',  monto: efectivo });
 
-        if (asignado >= total && pagos.length >= 2) {
-            // Apply split: set metodo_pago = MIXTO
-            document.getElementById('selectMetodoPago').value = 'MIXTO';
-            document.getElementById('inputPagosMixtos').value = JSON.stringify(pagos);
-
-            // Efectivo vuelto: efectivo portion minus what efectivo needs to cover after digital
+        var vueltoEl = document.getElementById('splitSummaryVuelto');
+        if (asignado > total && efectivo > 0) {
             var efectivoNecesario = Math.max(0, total - nequi - davi);
             var vuelto = Math.max(0, efectivo - efectivoNecesario);
-            document.getElementById('dinero_recibido').value = asignado;
-            document.getElementById('vuelto').value = vuelto;
-
-            // Update paymentBadge
-            var partes = pagos.map(function(p) { return p.metodo; }).join('+');
-            document.getElementById('paymentBadge').innerHTML =
-                '<i class="fa-solid fa-scissors me-1"></i> ' + partes;
-            document.getElementById('paymentBadge').className = 'badge';
-            document.getElementById('paymentBadge').style.background = 'linear-gradient(90deg,#5C2D91,#CC0000)';
-
-            document.getElementById('btnPay').disabled = false;
-        } else if (asignado >= total && pagos.length === 1) {
-            // Single method — not a split, revert to normal
-            var metodo = pagos[0].metodo;
-            document.getElementById('selectMetodoPago').value = metodo;
-            document.getElementById('inputPagosMixtos').value = '';
-            document.getElementById('dinero_recibido').value = asignado;
-            document.getElementById('vuelto').value = Math.max(0, asignado - total);
+            if (vuelto > 0) {
+                document.getElementById('splitVueltoDisplay').textContent = '$' + vuelto.toLocaleString('es-CO');
+                vueltoEl.style.display = '';
+            } else {
+                vueltoEl.style.display = 'none';
+            }
         } else {
-            // Not fully covered yet
-            document.getElementById('btnPay').disabled = true;
-            document.getElementById('inputPagosMixtos').value = '';
+            vueltoEl.style.display = 'none';
         }
+
+        // Habilitar confirmar solo si cubierto y al menos 2 métodos
+        document.getElementById('btnConfirmSplit').disabled = !(asignado >= total && pagos.length >= 2);
     }
 
-    // Re-run split calculation when cart total changes
+    // Si el modal se cierra con X sin confirmar, limpiamos el estado del botón
     document.addEventListener('DOMContentLoaded', function() {
-        var totalInput = document.getElementById('inputTotal');
-        if (totalInput) {
-            var observer = new MutationObserver(function() {
-                if (splitPayActive) onSplitInput();
+        var modalEl = document.getElementById('modalSplitPay');
+        if (modalEl) {
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                if (!splitPayActive) {
+                    document.getElementById('btnToggleSplit').classList.remove('active');
+                }
             });
-            observer.observe(totalInput, { attributes: true, attributeFilter: ['value'] });
         }
     });
 </script>
