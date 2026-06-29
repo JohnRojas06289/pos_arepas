@@ -148,9 +148,12 @@
     }
 
     .product-name {
-        font-size: 0.92rem;
-        font-weight: 600;
+        font-size: 0.95rem;
+        font-weight: 700;
         color: var(--text-primary);
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.3;
     }
 
     /* Items del carrito */
@@ -919,7 +922,7 @@
                         </div>
                         <div class="card-body p-2 text-center">
                             <div class="product-price">{{$empresa->moneda->simbolo ?? '$'}} {{ number_format($item->precio ?? 0, 0, ',', '.') }}</div>
-                            <h6 class="card-title mb-1 text-truncate product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
+                            <h6 class="card-title mb-1 product-name" title="{{$item->nombre}}">{{$item->nombre}}</h6>
                             <small class="text-{{ $item->cantidad > 5 ? 'success' : ($item->cantidad > 0 ? 'warning' : 'danger') }} d-block stock-display" style="font-size: 0.7rem;">
                                 Stock: <span class="stock-count">{{$item->cantidad}}</span>
                             </small>
@@ -1021,23 +1024,23 @@
                     <div class="row g-1 mb-2">
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:var(--color-secondary);color:#fff;border-color:var(--color-secondary);font-size:0.72rem;"
+                                style="background:#5C2D91;color:#fff;border-color:#5C2D91;font-size:0.72rem;"
                                 onclick="pagarCon('NEQUI')">
-                                <i class="fas fa-mobile-alt me-1"></i>NEQUI
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>NEQUI
                             </button>
                         </div>
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:var(--color-primary);color:#fff;border-color:var(--color-primary);font-size:0.72rem;"
+                                style="background:#CC0000;color:#fff;border-color:#CC0000;font-size:0.72rem;"
                                 onclick="pagarCon('DAVIPLATA')">
-                                <i class="fas fa-university me-1"></i>DAVIPLATA
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/><path d="M9 12L11.5 14.5L16 9.5" stroke="#CC0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>DAVIPLATA
                             </button>
                         </div>
                         <div class="col-4">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:var(--color-success);color:#fff;border-color:var(--color-success);font-size:0.72rem;"
+                                style="background:#1a7340;color:#fff;border-color:#1a7340;font-size:0.72rem;"
                                 onclick="pagarEfectivo()">
-                                <i class="fas fa-money-bill me-1"></i>EFECTIVO
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/><circle cx="12" cy="12" r="2.5" fill="#1a7340"/><path d="M6 12h.5M17.5 12H18" stroke="#1a7340" stroke-width="1.5" stroke-linecap="round"/></svg>EFECTIVO
                             </button>
                         </div>
                     </div>
@@ -1796,7 +1799,10 @@
             // Restaurar botón
             btnPay.disabled = true; // Sigue disabled porque el carrito está vacío ahora
             btnPay.innerHTML = originalBtnHtml;
-            document.getElementById('searchInput').focus();
+            var si = document.getElementById('searchInput');
+            si.value = '';
+            si.dispatchEvent(new Event('keyup'));
+            si.focus();
         })
         .catch(error => {
             console.error('Error procesando venta:', error);
