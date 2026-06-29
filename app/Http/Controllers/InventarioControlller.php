@@ -398,4 +398,65 @@ class InventarioControlller extends Controller
             return redirect()->route('inventario.index')->with('error', 'Ups, algo falló');
         }
     }
+
+    /**
+     * Sincronizar inventario.cantidad con el último saldo del Kardex.
+     * Acepta un producto_id específico o sincroniza todas las divergencias.
+     */
+    public function sincronizarKardex(Request $request): JsonResponse
+    {
+        try {
+            $productoId = $request->input('producto_id'); // null = todos
+
+            // Obtener últimos saldos de Kardex por producto
+            $query = DB::table('kardex as k1')
+                ->select('k1.producto_id', 'k1.saldo')
+                ->whereRaw('k1.id = (SELECT k2.id FROM kardex k2 WHERE k2.producto_id = k1.producto_id ORDER BY k2.created_at DESC, k2.id DESC LIMIT 1)');
+
+            if ($productoId) {
+                $query->where('k1.producto_id', $productoId);
+            }
+
+            $kardexSaldos = $query->get()->keyBy('producto_id');
+
+            if ($kardexSaldos->isEmpty()) {
+                return response()->json(['error' => 'No se encontraron registros en Kardex para sincronizar.'], 422);
+            }
+
+            $actualizados = 0;
+            DB::beginTransaction();
+
+            foreach ($kardexSaldos as $pid => $kardex) {
+                $rows = Inventario::where('producto_id', $pid)
+                    ->update(['cantidad' => $kardex->saldo]);
+
+                if ($rows === 0) {
+                    // No existe registro de inventario — crearlo
+                    Inventario::create([
+                        'producto_id' => $pid,
+                        'cantidad'    => $kardex->saldo,
+                    ]);
+                }
+                $actualizados++;
+            }
+
+            DB::commit();
+
+            ActivityLogService::log(
+                'Sincronización Kardex → Inventario',
+                'Inventario',
+                ['productos_actualizados' => $actualizados, 'producto_id' => $productoId ?? 'todos']
+            );
+
+            return response()->json([
+                'success'      => true,
+                'actualizados' => $actualizados,
+                'message'      => "Se sincronizaron {$actualizados} producto(s) correctamente.",
+            ]);
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al sincronizar Kardex → Inventario', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error al sincronizar: ' . $e->getMessage()], 500);
+        }
+    }
 }

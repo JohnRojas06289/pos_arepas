@@ -64,6 +64,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::get('inventario/compras-detalle/{producto}', [InventarioControlller::class, 'comprasDetalle'])
         ->name('inventario.compras-detalle');
     Route::resource('inventario', InventarioControlller::class)->except('show');
+    Route::post('inventario/sincronizar-kardex', [InventarioControlller::class, 'sincronizarKardex'])
+        ->name('inventario.sincronizar-kardex');
     Route::resource('kardex', KardexController::class)->only('index');
 
     // ── Personas ──────────────────────────────────────────────────────────

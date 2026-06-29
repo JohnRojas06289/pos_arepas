@@ -119,37 +119,51 @@
         <div class="d-flex align-items-start gap-3 flex-wrap">
             <i class="fas fa-exclamation-triangle fa-lg mt-1" style="color:var(--color-warning,#f59e0b);flex-shrink:0;"></i>
             <div class="flex-grow-1">
-                <strong>{{ $divergencias->count() }} {{ $divergencias->count() === 1 ? 'producto tiene' : 'productos tienen' }} inventario desincronizado</strong>
-                <p class="mb-2 small text-muted">El stock en la tabla de inventario no coincide con el último saldo del Kardex. Esto puede causar que los números cambien según cómo se consulte.</p>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                    <strong>{{ $divergencias->count() }} {{ $divergencias->count() === 1 ? 'producto tiene' : 'productos tienen' }} inventario desincronizado</strong>
+                    <button type="button" class="btn btn-warning btn-sm fw-bold" onclick="sincronizarTodos()"
+                            id="btnSyncTodos" title="Actualizar todos los stocks al saldo del Kardex">
+                        <i class="fas fa-sync-alt me-1"></i> Sincronizar todos
+                    </button>
+                </div>
+                <p class="mb-2 small text-muted">El stock en inventario no coincide con el último saldo del Kardex. Puedes corregir producto por producto o todos de una vez.</p>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0" style="font-size:0.82rem;max-width:600px;">
+                    <table class="table table-sm table-bordered mb-0" style="font-size:0.82rem;">
                         <thead class="table-warning">
                             <tr>
                                 <th>Producto</th>
-                                <th class="text-center">Stock en Inventario</th>
-                                <th class="text-center">Saldo en Kardex</th>
+                                <th class="text-center">Stock Actual</th>
+                                <th class="text-center">Saldo Kardex</th>
                                 <th class="text-center">Diferencia</th>
+                                <th class="text-center">Acción</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="divTbody">
                             @foreach($divergencias as $div)
                             @php
                                 $prod = $productos->firstWhere('id', $div->producto_id);
                                 $diff = $div->inv_cantidad - $div->kardex_saldo;
                             @endphp
-                            <tr>
-                                <td>{{ $prod?->nombre ?? $div->producto_id }}</td>
+                            <tr id="divRow-{{ $div->producto_id }}">
+                                <td class="fw-semibold">{{ $prod?->nombre ?? $div->producto_id }}</td>
                                 <td class="text-center fw-bold">{{ $div->inv_cantidad }}</td>
-                                <td class="text-center fw-bold">{{ $div->kardex_saldo }}</td>
-                                <td class="text-center {{ $diff > 0 ? 'text-success' : 'text-danger' }}">
+                                <td class="text-center fw-bold text-primary">{{ $div->kardex_saldo }}</td>
+                                <td class="text-center fw-bold {{ $diff > 0 ? 'text-success' : 'text-danger' }}">
                                     {{ $diff > 0 ? '+' : '' }}{{ $diff }}
+                                </td>
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary fw-bold"
+                                            onclick="sincronizarProducto('{{ $div->producto_id }}', this)"
+                                            title="Actualizar stock a {{ $div->kardex_saldo }}">
+                                        <i class="fas fa-sync-alt me-1"></i>Actualizar a {{ $div->kardex_saldo }}
+                                    </button>
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                <small class="text-muted mt-1 d-block">Para corregir: reinicialice el inventario de cada producto afectado desde la pantalla de Productos.</small>
             </div>
             <button type="button" class="btn-close" onclick="document.getElementById('alertaDivergencias').remove()" aria-label="Cerrar"></button>
         </div>
@@ -199,7 +213,6 @@
                         <th>Vendidos</th>
                         <th>Comprados</th>
                         @if(!request('fecha'))
-                        <th>Fecha de Vencimiento</th>
                         <th>Acciones</th>
                         @endif
                     </tr>
@@ -240,7 +253,6 @@
                         </td>
 
                         @if(!request('fecha'))
-                        <td>{{ $item->inventario?->fecha_vencimiento_format ?? 'N/A' }}</td>
                         <td>
                             <div class="btn-group" role="group">
                                 @if($item->inventario && $item->inventario->id)
@@ -613,6 +625,83 @@
                 document.getElementById('comprasDetalleLoading').innerHTML =
                     '<div class="text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Error al cargar. Intente de nuevo.</p></div>';
             });
+    }
+
+    // ── Sincronización Kardex → Inventario ──────────────────────────────────
+
+    function sincronizarProducto(productoId, btn) {
+        var original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+
+        fetch('{{ route("inventario.sincronizar-kardex") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ producto_id: productoId })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var row = document.getElementById('divRow-' + productoId);
+                if (row) {
+                    row.style.transition = 'opacity 0.4s ease';
+                    row.style.opacity = '0';
+                    setTimeout(function() {
+                        row.remove();
+                        // Si no quedan filas, ocultar toda la alerta
+                        if (!document.querySelector('#divTbody tr')) {
+                            document.getElementById('alertaDivergencias').remove();
+                            // Actualizar badge en la tabla principal recargando
+                            location.reload();
+                        }
+                    }, 400);
+                }
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = original;
+                alert('Error: ' + (data.error || 'No se pudo sincronizar'));
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = original;
+            alert('Error de red. Intente de nuevo.');
+        });
+    }
+
+    function sincronizarTodos() {
+        var btn = document.getElementById('btnSyncTodos');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sincronizando...';
+
+        fetch('{{ route("inventario.sincronizar-kardex") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({})
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                location.reload();
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Sincronizar todos';
+                alert('Error: ' + (data.error || 'No se pudo sincronizar'));
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Sincronizar todos';
+            alert('Error de red. Intente de nuevo.');
+        });
     }
 </script>
 @endpush
