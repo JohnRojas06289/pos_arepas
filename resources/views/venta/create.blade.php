@@ -827,6 +827,69 @@
         display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
     .order-item:last-child { border-bottom: none; }
+
+    /* ── Pago dividido ── */
+    #splitPayPanel {
+        background: var(--bg-primary);
+        border: 1.5px solid var(--border-color);
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        animation: slideIn 0.2s ease;
+    }
+    .split-method-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+    .split-method-label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        width: 72px;
+        flex-shrink: 0;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+    .split-method-input {
+        flex: 1;
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 5px 8px !important;
+        min-height: unset !important;
+        height: 32px;
+        text-align: right;
+    }
+    .split-remaining {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-align: right;
+    }
+    .split-remaining.ok { color: var(--color-success); }
+    .split-remaining.pending { color: #ef4444; }
+    #btnToggleSplit {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1.5px dashed var(--border-color);
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    #btnToggleSplit:hover, #btnToggleSplit.active {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        background: var(--color-primary-subtle);
+    }
+    #btnToggleSplit.active {
+        background: var(--color-primary);
+        color: #fff;
+        border-style: solid;
+    }
 </style>
 <script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 @endpush
@@ -966,6 +1029,7 @@
                     @foreach($optionsMetodoPago as $op)
                         <option value="{{ $op->value }}" {{ $loop->first ? 'selected' : '' }}>{{ $op->value }}</option>
                     @endforeach
+                    <option value="MIXTO">MIXTO</option>
                 </select>
             </div>
 
@@ -1017,9 +1081,42 @@
                 <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <label class="form-label small text-muted mb-0">Método de Pago:</label>
-                        <span id="paymentBadge" class="badge bg-success" style="font-size:0.8rem;">
-                            <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
-                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" id="btnToggleSplit" onclick="toggleSplitPay()" title="Dividir pago entre varios métodos">
+                                <i class="fa-solid fa-scissors me-1"></i>Dividir
+                            </button>
+                            <span id="paymentBadge" class="badge bg-success" style="font-size:0.8rem;">
+                                <i class="fa-solid fa-money-bill me-1"></i> EFECTIVO
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Panel pago dividido -->
+                    <div id="splitPayPanel" style="display:none;">
+                        <div class="split-method-row">
+                            <span class="split-method-label">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#5C2D91"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Nequi
+                            </span>
+                            <input type="text" id="splitNequi" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
+                        </div>
+                        <div class="split-method-row">
+                            <span class="split-method-label">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#CC0000"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/></svg>
+                                Daviplata
+                            </span>
+                            <input type="text" id="splitDaviplata" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
+                        </div>
+                        <div class="split-method-row">
+                            <span class="split-method-label">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px"><rect width="24" height="24" rx="6" fill="#1a7340"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/></svg>
+                                Efectivo
+                            </span>
+                            <input type="text" id="splitEfectivo" class="form-control split-method-input" placeholder="0" oninput="onSplitInput()" inputmode="numeric">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="text-muted" style="font-size:0.72rem;">Asignado: <span id="splitAssigned" style="font-family:monospace;font-weight:700;">$0</span></span>
+                            <span class="split-remaining pending" id="splitRemaining">Pendiente: $0</span>
+                        </div>
                     </div>
                     <div class="row g-1 mb-2">
                         <div class="col-4">
@@ -1090,6 +1187,7 @@
         <span class="badge" id="cartCountMobile">0</span>
     </button>
 
+    <input type="hidden" name="pagos_mixtos_json" id="inputPagosMixtos">
     <!-- Overlay para cerrar el carrito móvil tocando fuera -->
     <div class="mobile-cart-overlay" id="mobileCartOverlay" onclick="toggleMobileCart()"></div>
 </form>
@@ -1803,6 +1901,8 @@
             si.value = '';
             si.dispatchEvent(new Event('keyup'));
             si.focus();
+            // Reset split pay
+            if (typeof splitPayActive !== 'undefined' && splitPayActive) toggleSplitPay();
         })
         .catch(error => {
             console.error('Error procesando venta:', error);
@@ -2367,5 +2467,113 @@
         // Aplicar preferencia guardada al cargar
         applyMode(localStorage.getItem(STORAGE_KEY) || 'full');
     })();
+
+    // ================================================================
+    // PAGO DIVIDIDO (SPLIT PAYMENT)
+    // ================================================================
+    var splitPayActive = false;
+
+    function toggleSplitPay() {
+        splitPayActive = !splitPayActive;
+        var panel = document.getElementById('splitPayPanel');
+        var btn   = document.getElementById('btnToggleSplit');
+        if (splitPayActive) {
+            panel.style.display = '';
+            btn.classList.add('active');
+            onSplitInput(); // recalculate
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+            // Restore to normal single-method mode
+            clearSplitInputs();
+            pagarEfectivo(); // default back to efectivo
+            document.getElementById('inputPagosMixtos').value = '';
+        }
+    }
+
+    function clearSplitInputs() {
+        ['splitNequi','splitDaviplata','splitEfectivo'].forEach(function(id) {
+            document.getElementById(id).value = '';
+        });
+    }
+
+    function parseSplitAmount(id) {
+        var val = document.getElementById(id).value.replace(/[^0-9]/g, '');
+        return val ? parseInt(val, 10) : 0;
+    }
+
+    function formatSplitDisplay(num) {
+        return '$' + num.toLocaleString('es-CO');
+    }
+
+    function onSplitInput() {
+        if (!splitPayActive) return;
+        var total = parseFloat(document.getElementById('inputTotal').value) || 0;
+        var nequi    = parseSplitAmount('splitNequi');
+        var davi     = parseSplitAmount('splitDaviplata');
+        var efectivo = parseSplitAmount('splitEfectivo');
+        var asignado = nequi + davi + efectivo;
+        var pendiente = total - asignado;
+
+        document.getElementById('splitAssigned').textContent = formatSplitDisplay(asignado);
+
+        var remEl = document.getElementById('splitRemaining');
+        if (pendiente <= 0) {
+            remEl.textContent = 'Cubierto \u2713';
+            remEl.className = 'split-remaining ok';
+        } else {
+            remEl.textContent = 'Pendiente: ' + formatSplitDisplay(pendiente);
+            remEl.className = 'split-remaining pending';
+        }
+
+        // Build pagos array (only methods with amount > 0)
+        var pagos = [];
+        if (nequi > 0)    pagos.push({ metodo: 'NEQUI',     monto: nequi });
+        if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA',  monto: davi });
+        if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',   monto: efectivo });
+
+        if (asignado >= total && pagos.length >= 2) {
+            // Apply split: set metodo_pago = MIXTO
+            document.getElementById('selectMetodoPago').value = 'MIXTO';
+            document.getElementById('inputPagosMixtos').value = JSON.stringify(pagos);
+
+            // Efectivo vuelto: efectivo portion minus what efectivo needs to cover after digital
+            var efectivoNecesario = Math.max(0, total - nequi - davi);
+            var vuelto = Math.max(0, efectivo - efectivoNecesario);
+            document.getElementById('dinero_recibido').value = asignado;
+            document.getElementById('vuelto').value = vuelto;
+
+            // Update paymentBadge
+            var partes = pagos.map(function(p) { return p.metodo; }).join('+');
+            document.getElementById('paymentBadge').innerHTML =
+                '<i class="fa-solid fa-scissors me-1"></i> ' + partes;
+            document.getElementById('paymentBadge').className = 'badge';
+            document.getElementById('paymentBadge').style.background = 'linear-gradient(90deg,#5C2D91,#CC0000)';
+
+            document.getElementById('btnPay').disabled = false;
+        } else if (asignado >= total && pagos.length === 1) {
+            // Single method — not a split, revert to normal
+            var metodo = pagos[0].metodo;
+            document.getElementById('selectMetodoPago').value = metodo;
+            document.getElementById('inputPagosMixtos').value = '';
+            document.getElementById('dinero_recibido').value = asignado;
+            document.getElementById('vuelto').value = Math.max(0, asignado - total);
+        } else {
+            // Not fully covered yet
+            document.getElementById('btnPay').disabled = true;
+            document.getElementById('inputPagosMixtos').value = '';
+        }
+    }
+
+    // Re-run split calculation when cart total changes
+    document.addEventListener('DOMContentLoaded', function() {
+        var totalInput = document.getElementById('inputTotal');
+        if (totalInput) {
+            var observer = new MutationObserver(function() {
+                if (splitPayActive) onSplitInput();
+            });
+            observer.observe(totalInput, { attributes: true, attributeFilter: ['value'] });
+        }
+    });
 </script>
 @endpush

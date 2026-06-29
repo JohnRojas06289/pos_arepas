@@ -114,6 +114,7 @@ class ventaController extends Controller
         $optionsMetodoPago = array_values(array_filter(
             MetodoPagoEnum::cases(),
             fn (MetodoPagoEnum $metodo) => $metodo !== MetodoPagoEnum::Fiado
+                && $metodo !== MetodoPagoEnum::Mixto
         ));
 
         return view('venta.create', compact(
@@ -144,6 +145,10 @@ class ventaController extends Controller
             'monto_recibido',
             'vuelto_entregado',
         ]);
+
+        if ($ventaData['metodo_pago'] === 'MIXTO' && $request->filled('pagos_mixtos_json')) {
+            $ventaData['pagos_mixtos'] = json_decode($request->input('pagos_mixtos_json'), true);
+        }
 
         try {
             $venta = null;

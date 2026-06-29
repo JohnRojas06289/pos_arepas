@@ -9,4 +9,5 @@ enum MetodoPagoEnum: string
     case Nequi = 'NEQUI';
     case Daviplata = 'DAVIPLATA';
     case Fiado = 'FIADO';
+    case Mixto = 'MIXTO';
 }

@@ -29,13 +29,15 @@ class Venta extends Model
         'vuelto_entregado',
         'pagado',
         'saldo_pendiente', // New column
-        'revertida'
+        'revertida',
+        'pagos_mixtos',
     ];
 
     protected $casts = [
         'pagado'          => 'integer',
         'revertida'       => 'integer',
         'saldo_pendiente' => 'decimal:2',
+        'pagos_mixtos'    => 'array',
     ];
 
     public function caja(): BelongsTo
