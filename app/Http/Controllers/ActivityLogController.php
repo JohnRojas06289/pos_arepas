@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MetodoPagoEnum;
+use App\Enums\TipoTransaccionEnum;
 use App\Models\ActivityLog;
 use App\Models\Cliente;
 use App\Models\Compra;
+use App\Models\Inventario;
+use App\Models\Kardex;
+use App\Models\Movimiento;
 use App\Models\Producto;
 use App\Models\Venta;
 use App\Services\ActivityLogService;
@@ -193,7 +197,7 @@ class ActivityLogController extends Controller
                 return redirect()->back()->with('error', 'No se puede editar: venta no vinculada directamente');
             }
 
-            $venta = Venta::findOrFail($ventaId);
+            $venta = Venta::with('productos')->findOrFail($ventaId);
 
             $validated = $request->validate([
                 'metodo_pago'              => 'required|string',
@@ -206,18 +210,83 @@ class ActivityLogController extends Controller
 
             DB::beginTransaction();
 
+            // ── Capturar cantidades ANTES del sync ───────────────────────────
+            $oldQtys = $venta->productos->keyBy('id')
+                ->map(fn($p) => (int) $p->pivot->cantidad);
+
+            // ── Aplicar sync de productos ────────────────────────────────────
             $syncData = [];
             foreach ($validated['productos'] as $prod) {
                 $syncData[$prod['producto_id']] = [
-                    'cantidad'    => $prod['cantidad'],
+                    'cantidad'     => $prod['cantidad'],
                     'precio_venta' => $prod['precio_venta'],
                 ];
             }
             $venta->productos()->sync($syncData);
 
+            // ── Calcular nuevo total ─────────────────────────────────────────
             $nuevoTotal = collect($validated['productos'])
                 ->sum(fn($p) => $p['cantidad'] * $p['precio_venta']);
 
+            // ── Ajustar Inventario y Kardex por diferencias de cantidad ──────
+            $newQtys = collect($validated['productos'])
+                ->keyBy('producto_id')
+                ->map(fn($p) => (int) $p['cantidad']);
+
+            $allIds = $oldQtys->keys()->merge($newQtys->keys())->unique();
+            $kardexModel = new Kardex();
+
+            foreach ($allIds as $pid) {
+                $oldQty = $oldQtys->get($pid, 0);
+                $newQty = $newQtys->get($pid, 0);
+                $diff   = $oldQty - $newQty; // >0 = devolver stock, <0 = quitar más
+
+                if ($diff === 0) continue;
+
+                $inventario = Inventario::where('producto_id', $pid)->first();
+                if (!$inventario) continue;
+
+                if ($diff > 0) {
+                    $inventario->increment('cantidad', $diff);
+                } else {
+                    $inventario->decrement('cantidad', abs($diff));
+                }
+
+                $ultimoKardex = Kardex::where('producto_id', $pid)->latest('id')->first();
+                $kardexModel->crearRegistro(
+                    [
+                        'producto_id'    => $pid,
+                        'venta_id'       => $venta->id,
+                        'cantidad'       => abs($diff),
+                        'costo_unitario' => $ultimoKardex?->costo_unitario ?? 0,
+                    ],
+                    $diff > 0 ? TipoTransaccionEnum::Reversa : TipoTransaccionEnum::Venta
+                );
+            }
+
+            // ── Actualizar Movimiento de caja y recalcular saldo ─────────────
+            $movimiento = Movimiento::where('descripcion', 'Venta n° ' . $venta->numero_comprobante)->first();
+            $caja = null;
+            if ($movimiento) {
+                $caja = $movimiento->caja;
+                $movimiento->monto       = $nuevoTotal;
+                $movimiento->metodo_pago = $validated['metodo_pago'];
+                $movimiento->save();
+
+                if ($caja) {
+                    $totales = Movimiento::where('caja_id', $caja->id)
+                        ->selectRaw("
+                            SUM(CASE WHEN tipo = 'VENTA' THEN monto ELSE 0 END) AS total_venta,
+                            SUM(CASE WHEN tipo = 'RETIRO' THEN monto ELSE 0 END) AS total_retiro
+                        ")->first();
+                    $caja->saldo_final = $caja->saldo_inicial
+                        + ($totales->total_venta  ?? 0)
+                        - ($totales->total_retiro ?? 0);
+                    $caja->saveQuietly();
+                }
+            }
+
+            // ── Actualizar Venta ─────────────────────────────────────────────
             $venta->update([
                 'metodo_pago' => $validated['metodo_pago'],
                 'cliente_id'  => $validated['cliente_id'],
@@ -229,16 +298,17 @@ class ActivityLogController extends Controller
                 'venta_id'           => $venta->id,
                 'numero_comprobante' => $venta->numero_comprobante,
                 'cambios'            => [
-                    'metodo_pago' => $validated['metodo_pago'],
-                    'cliente_id'  => $validated['cliente_id'],
-                    'nuevo_total' => $nuevoTotal,
-                    'productos'   => count($validated['productos']),
+                    'metodo_pago'          => $validated['metodo_pago'],
+                    'cliente_id'           => $validated['cliente_id'],
+                    'nuevo_total'          => $nuevoTotal,
+                    'productos'            => count($validated['productos']),
+                    'inventario_ajustado'  => $allIds->count(),
                 ],
             ]);
 
             DB::commit();
 
-            return redirect()->route('activityLog.show', $logId)->with('success', 'Venta actualizada correctamente');
+            return redirect()->route('activityLog.show', $logId)->with('success', 'Venta actualizada correctamente. Inventario y saldo de caja sincronizados.');
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error('Error al editar venta desde log', ['error' => $e->getMessage()]);
