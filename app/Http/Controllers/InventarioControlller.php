@@ -452,6 +452,7 @@ class InventarioControlller extends Controller
                 'success'      => true,
                 'actualizados' => $actualizados,
                 'message'      => "Se sincronizaron {$actualizados} producto(s) correctamente.",
+                'saldos'       => $kardexSaldos->map(fn($k) => $k->saldo)->toArray(),
             ]);
         } catch (Throwable $e) {
             DB::rollBack();

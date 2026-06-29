@@ -219,10 +219,10 @@
                 </thead>
                 <tbody>
                     @foreach ($productos as $item)
-                    <tr>
+                    <tr data-producto-id="{{ $item->id }}">
                         <td>{{ $item->codigo }}</td>
                         <td>{{ $item->nombre }}{{ $item->presentacione ? ' - Presentación: ' . $item->presentacione->sigla : '' }}</td>
-                        <td>{{ $item->inventario->cantidad ?? 0 }}</td>
+                        <td class="stock-cell">{{ $item->inventario->cantidad ?? 0 }}</td>
 
                         {{-- Vendidos --}}
                         <td class="vendidos-cell">
@@ -629,6 +629,19 @@
 
     // ── Sincronización Kardex → Inventario ──────────────────────────────────
 
+    function actualizarStockEnTabla(productoId, nuevoSaldo) {
+        var fila = document.querySelector('tr[data-producto-id="' + productoId + '"]');
+        if (!fila) return;
+        var celda = fila.querySelector('.stock-cell');
+        if (!celda) return;
+        var anterior = celda.textContent.trim();
+        celda.textContent = nuevoSaldo;
+        celda.style.transition = 'background 0.5s ease';
+        celda.style.background = '#d1fae5';
+        celda.style.fontWeight = '800';
+        setTimeout(function() { celda.style.background = ''; }, 1500);
+    }
+
     function sincronizarProducto(productoId, btn) {
         var original = btn.innerHTML;
         btn.disabled = true;
@@ -646,17 +659,19 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
+                // Actualizar celda en la tabla principal
+                var nuevoSaldo = data.saldos[productoId];
+                if (nuevoSaldo !== undefined) actualizarStockEnTabla(productoId, nuevoSaldo);
+
+                // Quitar fila de la alerta
                 var row = document.getElementById('divRow-' + productoId);
                 if (row) {
                     row.style.transition = 'opacity 0.4s ease';
                     row.style.opacity = '0';
                     setTimeout(function() {
                         row.remove();
-                        // Si no quedan filas, ocultar toda la alerta
                         if (!document.querySelector('#divTbody tr')) {
                             document.getElementById('alertaDivergencias').remove();
-                            // Actualizar badge en la tabla principal recargando
-                            location.reload();
                         }
                     }, 400);
                 }
@@ -690,7 +705,18 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                location.reload();
+                // Actualizar todas las celdas de stock en la tabla
+                var saldos = data.saldos || {};
+                Object.keys(saldos).forEach(function(pid) {
+                    actualizarStockEnTabla(pid, saldos[pid]);
+                });
+                // Quitar alerta completa
+                var alerta = document.getElementById('alertaDivergencias');
+                if (alerta) {
+                    alerta.style.transition = 'opacity 0.5s ease';
+                    alerta.style.opacity = '0';
+                    setTimeout(function() { alerta.remove(); }, 500);
+                }
             } else {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Sincronizar todos';
