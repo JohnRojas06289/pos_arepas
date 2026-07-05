@@ -211,44 +211,24 @@ class GastoController extends Controller
 
         $apiKey = config('services.gemini.api_key');
         if (!$apiKey) {
-            return response()->json(['error' => 'La IA no está configurada. Verifica GEMINI_API_KEY.'], 503);
+            return response()->json(['error' => '⚠️ La IA no está configurada. Verifica GEMINI_API_KEY en Heroku.'], 503);
         }
-
-        $productos = Producto::where('estado', 1)
-            ->orderBy('nombre')
-            ->get(['id', 'nombre'])
-            ->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre]);
-
-        $listaProductos = $productos->toJson(JSON_UNESCAPED_UNICODE);
 
         $file     = $request->file('imagen');
         $mimeType = $file->getMimeType();
         $base64   = base64_encode(file_get_contents($file->getRealPath()));
 
-        $prompt = <<<PROMPT
-Eres un sistema experto en lectura de facturas y tiquetes de compra de tiendas y distribuidoras.
-
-Analiza la imagen de esta factura y extrae TODOS los productos con sus cantidades y precios unitarios.
-
-Tengo estos productos registrados en mi sistema (JSON array de {id, nombre}):
-{$listaProductos}
-
-Instrucciones:
-1. Para cada línea de producto en la factura, intenta hacer match con un producto del sistema por similitud de nombre (ignora mayúsculas, tildes, abreviaciones, presentaciones como "x500g", "Lt", etc.).
-2. Si hay match, pon el id UUID correspondiente. Si no hay match, pon null.
-3. "cantidad" = unidades compradas (número entero o decimal, nunca null, mínimo 1).
-4. "precio_unitario" = precio por unidad (divide el total de la línea entre la cantidad si es necesario).
-5. No inventes productos que no estén en la imagen.
-6. Si un campo no se puede leer claramente, usa 0 para precios numéricos y 1 para cantidades.
-
-Responde ÚNICAMENTE con JSON válido sin markdown ni explicaciones adicionales:
-{"productos":[{"id":"uuid-o-null","nombre_factura":"nombre en la factura","nombre_sistema":"nombre en el sistema o null","cantidad":2,"precio_unitario":1500}]}
-PROMPT;
+        // Prompt minimalista — solo extrae de la imagen, sin lista de productos
+        $prompt = 'Analiza esta factura o tiquete de compra. Extrae TODOS los productos con cantidad y precio unitario. '
+            . 'Si el precio en la factura es el total de la línea, divídelo entre la cantidad para obtener el precio unitario. '
+            . 'No inventes productos que no estén en la imagen. '
+            . 'Responde ÚNICAMENTE con JSON válido sin markdown: '
+            . '{"productos":[{"nombre":"nombre del producto","cantidad":2,"precio_unitario":1500}]}';
 
         try {
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apiKey;
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
 
-            $response = Http::timeout(25)->post($url, [
+            $response = Http::timeout(20)->post($url, [
                 'contents' => [[
                     'parts' => [
                         ['text' => $prompt],
@@ -262,34 +242,60 @@ PROMPT;
             ]);
 
             if (!$response->successful()) {
-                Log::error('Gemini scan-factura error', [
-                    'status' => $response->status(),
-                    'body'   => substr($response->body(), 0, 500),
-                ]);
-                return response()->json(['error' => 'Error al procesar la imagen con IA (código ' . $response->status() . ').'], 500);
+                Log::error('Gemini scan-factura error', ['status' => $response->status(), 'body' => substr($response->body(), 0, 500)]);
+                return response()->json(['error' => '❌ Error de la IA (código ' . $response->status() . '). Intenta nuevamente.'], 500);
             }
 
             $body = $response->json();
             $text = $body['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
             if (!$text) {
-                return response()->json(['error' => 'La IA no pudo extraer información de la imagen.'], 422);
+                return response()->json(['error' => '❌ La IA no pudo leer la imagen. Intenta con una foto más clara y bien iluminada.'], 422);
             }
 
-            // Limpiar posible markdown residual
             $text = preg_replace('/```json\s*|\s*```/', '', trim($text));
             $data = json_decode($text, true);
 
             if (json_last_error() !== JSON_ERROR_NONE || empty($data['productos'])) {
-                Log::warning('Gemini scan-factura JSON inválido', ['text' => substr($text, 0, 300)]);
-                return response()->json(['error' => 'No se encontraron productos en la imagen. Intenta con una foto más clara.'], 422);
+                return response()->json(['error' => '❌ No se detectaron productos. Asegúrate de que la factura sea legible.'], 422);
             }
 
-            return response()->json(['productos' => $data['productos']]);
+            // Hacer match con productos del sistema en PHP
+            $sistemaProdutos = Producto::where('estado', 1)->get(['id', 'nombre']);
+
+            $resultado = array_map(function ($p) use ($sistemaProdutos) {
+                $nombreFactura = $p['nombre'] ?? '';
+                $mejorId       = null;
+                $mejorNombre   = null;
+                $mejorScore    = 0;
+
+                foreach ($sistemaProdutos as $sp) {
+                    similar_text(
+                        mb_strtolower($nombreFactura),
+                        mb_strtolower($sp->nombre),
+                        $pct
+                    );
+                    if ($pct > $mejorScore) {
+                        $mejorScore  = $pct;
+                        $mejorId     = $sp->id;
+                        $mejorNombre = $sp->nombre;
+                    }
+                }
+
+                return [
+                    'id'             => $mejorScore >= 50 ? $mejorId : null,
+                    'nombre_factura' => $nombreFactura,
+                    'nombre_sistema' => $mejorScore >= 50 ? $mejorNombre : null,
+                    'cantidad'       => (float) ($p['cantidad'] ?? 1),
+                    'precio_unitario'=> (float) ($p['precio_unitario'] ?? 0),
+                ];
+            }, $data['productos']);
+
+            return response()->json(['productos' => $resultado]);
 
         } catch (Throwable $e) {
             Log::error('Error scan-factura', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Error interno al procesar la imagen.'], 500);
+            return response()->json(['error' => '❌ Error interno: ' . $e->getMessage()], 500);
         }
     }
 
