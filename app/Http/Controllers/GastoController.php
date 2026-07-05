@@ -226,7 +226,7 @@ class GastoController extends Controller
             . '{"productos":[{"nombre":"nombre del producto","cantidad":2,"precio_unitario":1500}]}';
 
         try {
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apiKey;
 
             $response = Http::timeout(20)->post($url, [
                 'contents' => [[
