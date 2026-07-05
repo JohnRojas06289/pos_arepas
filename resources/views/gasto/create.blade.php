@@ -299,36 +299,44 @@
                 {{-- Paso 2: Analizando --}}
                 <div id="scanner-step-loading" style="display:none;" class="text-center py-4">
                     <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem;"></div>
-                    <p class="fw-semibold">Analizando factura con IA...</p>
-                    <small class="text-muted">Esto puede tomar unos segundos</small>
+                    <p class="fw-semibold mb-1">Analizando factura con IA...</p>
+                    <small id="scanner-loading-detail" class="text-muted">Comprimiendo imagen...</small>
                 </div>
 
                 {{-- Paso 3: Resultados --}}
                 <div id="scanner-step-results" style="display:none;">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <h6 class="mb-0"><i class="fas fa-list-check me-1"></i> Productos detectados</h6>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-nueva-imagen">
                             <i class="fas fa-redo me-1"></i> Escanear otra
                         </button>
                     </div>
-                    <p class="text-muted small mb-2">Revisa y corrige los datos antes de agregar al surtido.</p>
+                    <p class="text-muted small mb-2">Revisa y corrige antes de agregar al surtido.</p>
                     <div id="scanner-error-alert" class="alert alert-danger d-none py-2"></div>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered align-middle mb-2">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width:36px;"><input type="checkbox" id="scanner-check-all" checked></th>
-                                    <th>Producto en factura</th>
-                                    <th>Producto en sistema</th>
-                                    <th class="text-center" style="width:80px;">Cant.</th>
-                                    <th class="text-end" style="width:110px;">Precio unit.</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scanner-tbody"></tbody>
-                        </table>
+
+                    {{-- Desktop: tabla --}}
+                    <div class="d-none d-md-block">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered align-middle mb-2">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:36px;"><input type="checkbox" id="scanner-check-all" checked></th>
+                                        <th>En factura</th>
+                                        <th>Producto del sistema</th>
+                                        <th class="text-center" style="width:75px;">Cant.</th>
+                                        <th class="text-end" style="width:105px;">Precio unit.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scanner-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div class="d-flex gap-2 justify-content-end mt-2">
-                        <button type="button" class="btn btn-success" id="btn-agregar-seleccionados">
+
+                    {{-- Mobile: cards --}}
+                    <div class="d-md-none" id="scanner-cards"></div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-3">
+                        <button type="button" class="btn btn-success w-100" id="btn-agregar-seleccionados">
                             <i class="fas fa-cart-plus me-1"></i> Agregar seleccionados al surtido
                         </button>
                     </div>
@@ -500,19 +508,19 @@
 (function () {
     'use strict';
 
-    var modalEl        = document.getElementById('modalScanner');
-    var modal          = new bootstrap.Modal(modalEl);
-    var stepUpload     = document.getElementById('scanner-step-upload');
-    var stepLoading    = document.getElementById('scanner-step-loading');
-    var stepResults    = document.getElementById('scanner-step-results');
-    var previewCont    = document.getElementById('scanner-preview-container');
-    var previewImg     = document.getElementById('scanner-preview');
-    var scannerTbody   = document.getElementById('scanner-tbody');
-    var errorAlert     = document.getElementById('scanner-error-alert');
-    var checkAll       = document.getElementById('scanner-check-all');
+    var modalEl       = document.getElementById('modalScanner');
+    var modal         = new bootstrap.Modal(modalEl);
+    var stepUpload    = document.getElementById('scanner-step-upload');
+    var stepLoading   = document.getElementById('scanner-step-loading');
+    var stepResults   = document.getElementById('scanner-step-results');
+    var previewCont   = document.getElementById('scanner-preview-container');
+    var previewImg    = document.getElementById('scanner-preview');
+    var scannerTbody  = document.getElementById('scanner-tbody');
+    var scannerCards  = document.getElementById('scanner-cards');
+    var errorAlert    = document.getElementById('scanner-error-alert');
+    var loadingDetail = document.getElementById('scanner-loading-detail');
 
     var productosDelSistema = @json($productos->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre_completo ?? $p->nombre]));
-
     var selectedFile = null;
 
     document.getElementById('btn-abrir-scanner').addEventListener('click', function () {
@@ -525,149 +533,194 @@
             var file = e.target.files[0];
             if (!file) return;
             selectedFile = file;
-            var reader = new FileReader();
-            reader.onload = function (ev) {
-                previewImg.src = ev.target.result;
-                previewCont.style.display = '';
-            };
-            reader.readAsDataURL(file);
+            previewImg.src = URL.createObjectURL(file);
+            previewCont.style.display = '';
         });
     });
 
-    document.getElementById('btn-cambiar-imagen').addEventListener('click', function () {
-        resetScanner();
-    });
-
-    document.getElementById('btn-nueva-imagen').addEventListener('click', function () {
-        resetScanner();
-    });
+    document.getElementById('btn-cambiar-imagen').addEventListener('click', resetScanner);
+    document.getElementById('btn-nueva-imagen').addEventListener('click', resetScanner);
 
     document.getElementById('btn-analizar').addEventListener('click', function () {
         if (!selectedFile) return;
         mostrarPaso('loading');
+        loadingDetail.textContent = 'Comprimiendo imagen...';
 
-        var formData = new FormData();
-        formData.append('imagen', selectedFile);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        comprimirImagen(selectedFile, 1024, 0.82)
+            .then(function (blob) {
+                loadingDetail.textContent = 'Enviando a la IA... (puede tardar ~10 seg)';
 
-        var controller = new AbortController();
-        var timeoutId  = setTimeout(function () { controller.abort(); }, 28000);
+                var formData = new FormData();
+                formData.append('imagen', blob, 'factura.jpg');
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
-        fetch('{{ route("gastos.scan-factura") }}', {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
-        })
-        .then(function (res) {
-            clearTimeout(timeoutId);
-            if (!res.ok) return res.json().then(function (d) { throw new Error(d.error || 'Error ' + res.status); });
-            return res.json();
-        })
-        .then(function (data) {
-            if (data.error) { mostrarPaso('upload'); mostrarError(data.error); return; }
-            renderResultados(data.productos || []);
-            mostrarPaso('results');
-        })
-        .catch(function (err) {
-            clearTimeout(timeoutId);
-            mostrarPaso('upload');
-            var msg = err.name === 'AbortError'
-                ? 'La solicitud tardó demasiado. Intenta con una imagen más pequeña o de mejor calidad.'
-                : 'Error al procesar la imagen: ' + (err.message || 'intenta nuevamente.');
-            mostrarError(msg);
-        });
+                var controller = new AbortController();
+                var timeoutId  = setTimeout(function () { controller.abort(); }, 27000);
+
+                return fetch('{{ route("gastos.scan-factura") }}', {
+                    method: 'POST',
+                    body: formData,
+                    signal: controller.signal,
+                })
+                .then(function (res) {
+                    clearTimeout(timeoutId);
+                    return res.json().then(function (d) {
+                        if (!res.ok) throw new Error(d.error || 'Error del servidor (' + res.status + ')');
+                        return d;
+                    });
+                });
+            })
+            .then(function (data) {
+                if (data.error) { mostrarPaso('upload'); mostrarError(data.error); return; }
+                renderResultados(data.productos || []);
+                mostrarPaso('results');
+            })
+            .catch(function (err) {
+                mostrarPaso('upload');
+                var msg;
+                if (err.name === 'AbortError') {
+                    msg = '⏱ La IA tardó demasiado en responder. Intenta con una foto más clara y bien iluminada, o reduce el tamaño de la imagen.';
+                } else if (err.message && err.message.includes('503')) {
+                    msg = '⚠️ El servicio de IA no está disponible en este momento. Verifica que GEMINI_API_KEY esté configurada en Heroku.';
+                } else {
+                    msg = '❌ ' + (err.message || 'Error desconocido. Intenta nuevamente.');
+                }
+                mostrarError(msg);
+            });
     });
 
-    checkAll.addEventListener('change', function () {
-        document.querySelectorAll('.scanner-row-check').forEach(function (cb) {
-            cb.checked = checkAll.checked;
-        });
+    document.getElementById('scanner-check-all') && document.getElementById('scanner-check-all').addEventListener('change', function () {
+        document.querySelectorAll('.scanner-row-check').forEach(function (cb) { cb.checked = this.checked; }, this);
     });
 
     document.getElementById('btn-agregar-seleccionados').addEventListener('click', function () {
-        var filas = document.querySelectorAll('#scanner-tbody tr');
-        var agregados = 0;
-
-        filas.forEach(function (tr) {
-            var cb = tr.querySelector('.scanner-row-check');
-            if (!cb || !cb.checked) return;
-
-            var select     = tr.querySelector('.scanner-select-producto');
-            var inputCant  = tr.querySelector('.scanner-input-cant');
-            var inputPrecio= tr.querySelector('.scanner-input-precio');
-
-            var productoId = select ? select.value : '';
-            var cantidad   = parseFloat(inputCant.value) || 0;
-            var precio     = parseFloat(inputPrecio.value) || 0;
-            var nombre     = select && select.value
-                ? (select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : tr.querySelector('.scanner-nombre-factura').textContent)
-                : tr.querySelector('.scanner-nombre-factura').textContent;
-
-            if (!productoId || cantidad < 1) return;
-
-            // Agregar al carrito principal usando la función global
-            window.surtidoAgregarProducto({
-                id: productoId,
-                nombre: nombre,
-                cantidad: cantidad,
-                precioTotal: precio * cantidad,
-                vencimiento: '',
-            });
-            agregados++;
-        });
-
-        if (agregados > 0) {
-            modal.hide();
-        } else {
-            mostrarError('Selecciona al menos un producto con cantidad válida y producto del sistema asignado.');
+        var items = recolectarSeleccionados();
+        if (items.length === 0) {
+            mostrarError('⚠️ Selecciona al menos un producto con cantidad ≥ 1 y producto del sistema asignado.');
+            return;
         }
+        items.forEach(function (item) { window.surtidoAgregarProducto(item); });
+        modal.hide();
     });
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function comprimirImagen(file, maxPx, quality) {
+        return new Promise(function (resolve) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var img = new Image();
+                img.onload = function () {
+                    var w = img.width, h = img.height;
+                    if (w > maxPx || h > maxPx) {
+                        var ratio = Math.min(maxPx / w, maxPx / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+                    var canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(function (blob) { resolve(blob); }, 'image/jpeg', quality);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function buildSelectHtml(selectedId) {
+        return '<select class="form-select form-select-sm scanner-select-producto">' +
+            '<option value="">-- Sin asignar --</option>' +
+            productosDelSistema.map(function (sp) {
+                return '<option value="' + escHtml(sp.id) + '"' + (sp.id === selectedId ? ' selected' : '') + '>' + escHtml(sp.nombre) + '</option>';
+            }).join('') +
+            '</select>';
+    }
 
     function renderResultados(productos) {
         scannerTbody.innerHTML = '';
+        scannerCards.innerHTML = '';
         errorAlert.classList.add('d-none');
 
         if (productos.length === 0) {
-            scannerTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No se detectaron productos.</td></tr>';
+            scannerTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No se detectaron productos en la imagen.</td></tr>';
+            scannerCards.innerHTML = '<p class="text-muted text-center">No se detectaron productos.</p>';
             return;
         }
 
-        var selectOptions = productosDelSistema.map(function (p) {
-            return '<option value="' + escHtml(p.id) + '">' + escHtml(p.nombre) + '</option>';
-        }).join('');
+        productos.forEach(function (p, idx) {
+            var sid = p.id || '';
 
-        productos.forEach(function (p) {
+            // Fila desktop
             var tr = document.createElement('tr');
-
-            var selectedId = p.id || '';
-            var selectHtml = '<select class="form-select form-select-sm scanner-select-producto">' +
-                '<option value="">-- Sin asignar --</option>' +
-                productosDelSistema.map(function (sp) {
-                    var sel = sp.id === selectedId ? ' selected' : '';
-                    return '<option value="' + escHtml(sp.id) + '"' + sel + '>' + escHtml(sp.nombre) + '</option>';
-                }).join('') +
-                '</select>';
-
+            tr.dataset.idx = idx;
             tr.innerHTML =
                 '<td class="text-center"><input type="checkbox" class="scanner-row-check" checked></td>' +
-                '<td><span class="scanner-nombre-factura small">' + escHtml(p.nombre_factura || '') + '</span></td>' +
-                '<td>' + selectHtml + '</td>' +
+                '<td><small class="scanner-nombre-factura text-muted">' + escHtml(p.nombre_factura || '') + '</small></td>' +
+                '<td>' + buildSelectHtml(sid) + '</td>' +
                 '<td><input type="number" class="form-control form-control-sm scanner-input-cant text-center" value="' + (p.cantidad || 1) + '" min="1" step="1"></td>' +
                 '<td><input type="number" class="form-control form-control-sm scanner-input-precio text-end" value="' + (p.precio_unitario || 0) + '" min="0" step="1"></td>';
-
             scannerTbody.appendChild(tr);
+
+            // Card móvil
+            var card = document.createElement('div');
+            card.className = 'card mb-2';
+            card.dataset.idx = idx;
+            card.innerHTML =
+                '<div class="card-body py-2 px-3">' +
+                    '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                        '<small class="text-muted scanner-nombre-factura">' + escHtml(p.nombre_factura || '') + '</small>' +
+                        '<input type="checkbox" class="scanner-row-check ms-2 flex-shrink-0" checked>' +
+                    '</div>' +
+                    '<div class="mb-2">' + buildSelectHtml(sid) + '</div>' +
+                    '<div class="row g-2">' +
+                        '<div class="col-6">' +
+                            '<label class="form-label form-label-sm mb-1">Cantidad</label>' +
+                            '<input type="number" class="form-control form-control-sm scanner-input-cant" value="' + (p.cantidad || 1) + '" min="1" step="1">' +
+                        '</div>' +
+                        '<div class="col-6">' +
+                            '<label class="form-label form-label-sm mb-1">Precio unit.</label>' +
+                            '<input type="number" class="form-control form-control-sm scanner-input-precio" value="' + (p.precio_unitario || 0) + '" min="0" step="1">' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            scannerCards.appendChild(card);
         });
     }
 
+    function recolectarSeleccionados() {
+        var items = [];
+        // Tomar del contenedor visible según viewport
+        var isMobile = window.innerWidth < 768;
+        var contenedor = isMobile ? scannerCards : scannerTbody;
+        contenedor.querySelectorAll(isMobile ? '.card' : 'tr').forEach(function (el) {
+            var cb     = el.querySelector('.scanner-row-check');
+            if (!cb || !cb.checked) return;
+            var sel    = el.querySelector('.scanner-select-producto');
+            var cant   = el.querySelector('.scanner-input-cant');
+            var precio = el.querySelector('.scanner-input-precio');
+            var pid    = sel ? sel.value : '';
+            var qty    = parseFloat(cant ? cant.value : 0) || 0;
+            var prc    = parseFloat(precio ? precio.value : 0) || 0;
+            var nombre = sel && sel.value && sel.options[sel.selectedIndex]
+                ? sel.options[sel.selectedIndex].text
+                : (el.querySelector('.scanner-nombre-factura') || {}).textContent || '';
+            if (!pid || qty < 1) return;
+            items.push({ id: pid, nombre: nombre, cantidad: qty, precioTotal: prc * qty, vencimiento: '' });
+        });
+        return items;
+    }
+
     function mostrarPaso(paso) {
-        stepUpload.style.display  = paso === 'upload'   ? '' : 'none';
-        stepLoading.style.display = paso === 'loading'  ? '' : 'none';
-        stepResults.style.display = paso === 'results'  ? '' : 'none';
+        stepUpload.style.display  = paso === 'upload'  ? '' : 'none';
+        stepLoading.style.display = paso === 'loading' ? '' : 'none';
+        stepResults.style.display = paso === 'results' ? '' : 'none';
     }
 
     function mostrarError(msg) {
-        errorAlert.textContent = msg;
+        errorAlert.innerHTML = msg;
         errorAlert.classList.remove('d-none');
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function resetScanner() {
