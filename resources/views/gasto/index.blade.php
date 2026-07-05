@@ -86,6 +86,7 @@
                             <th>Fecha</th>
                             <th>Categoría</th>
                             <th>Descripción</th>
+                            <th class="text-center">Cantidad</th>
                             <th class="d-none d-md-table-cell">Items</th>
                             <th class="d-none d-md-table-cell">Método</th>
                             <th class="text-end">Monto</th>
@@ -110,6 +111,13 @@
                                 {{ $gasto->descripcion }}
                                 @if ($gasto->notas)
                                 <small class="text-muted d-block">{{ Str::limit($gasto->notas, 40) }}</small>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if ($gasto->compra && $gasto->compra->productos->isNotEmpty())
+                                    <span class="fw-semibold">{{ $gasto->compra->productos->sum('pivot.cantidad') }}</span>
+                                @else
+                                    <span class="text-muted">—</span>
                                 @endif
                             </td>
                             <td class="d-none d-md-table-cell">
@@ -170,7 +178,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No hay gastos registrados.</td>
+                            <td colspan="8" class="text-center text-muted py-4">No hay gastos registrados.</td>
                         </tr>
                         @endforelse
                     </tbody>
