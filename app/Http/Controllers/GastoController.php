@@ -246,9 +246,9 @@ Responde ÚNICAMENTE con JSON válido sin markdown ni explicaciones adicionales:
 PROMPT;
 
         try {
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=' . $apiKey;
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apiKey;
 
-            $response = Http::timeout(45)->post($url, [
+            $response = Http::timeout(25)->post($url, [
                 'contents' => [[
                     'parts' => [
                         ['text' => $prompt],

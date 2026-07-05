@@ -550,23 +550,31 @@
         formData.append('imagen', selectedFile);
         formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 
+        var controller = new AbortController();
+        var timeoutId  = setTimeout(function () { controller.abort(); }, 28000);
+
         fetch('{{ route("gastos.scan-factura") }}', {
             method: 'POST',
             body: formData,
+            signal: controller.signal,
         })
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+            clearTimeout(timeoutId);
+            if (!res.ok) return res.json().then(function (d) { throw new Error(d.error || 'Error ' + res.status); });
+            return res.json();
+        })
         .then(function (data) {
-            if (data.error) {
-                mostrarPaso('upload');
-                mostrarError(data.error);
-                return;
-            }
+            if (data.error) { mostrarPaso('upload'); mostrarError(data.error); return; }
             renderResultados(data.productos || []);
             mostrarPaso('results');
         })
-        .catch(function () {
+        .catch(function (err) {
+            clearTimeout(timeoutId);
             mostrarPaso('upload');
-            mostrarError('Error de red al procesar la imagen. Intenta nuevamente.');
+            var msg = err.name === 'AbortError'
+                ? 'La solicitud tardó demasiado. Intenta con una imagen más pequeña o de mejor calidad.'
+                : 'Error al procesar la imagen: ' + (err.message || 'intenta nuevamente.');
+            mostrarError(msg);
         });
     });
 
