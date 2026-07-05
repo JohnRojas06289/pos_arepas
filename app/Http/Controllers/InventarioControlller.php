@@ -400,6 +400,58 @@ class InventarioControlller extends Controller
     }
 
     /**
+     * Ajuste manual de stock desde la tabla de inventario (AJAX).
+     */
+    public function ajustarStock(Request $request, Kardex $kardex): JsonResponse
+    {
+        $request->validate([
+            'producto_id'    => 'required|exists:productos,id',
+            'nueva_cantidad' => 'required|integer|min:0',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $inventario = Inventario::firstOrCreate(
+                ['producto_id' => $request->producto_id],
+                ['cantidad' => 0]
+            );
+
+            $cantidadAnterior = (int) $inventario->cantidad;
+            $nuevaCantidad    = (int) $request->nueva_cantidad;
+
+            if ($nuevaCantidad !== $cantidadAnterior) {
+                $costoUnitario = Kardex::where('producto_id', $request->producto_id)
+                    ->latest('id')
+                    ->value('costo_unitario') ?? 0;
+
+                $kardex->crearRegistro(
+                    [
+                        'producto_id'    => $request->producto_id,
+                        'cantidad'       => $nuevaCantidad,
+                        'costo_unitario' => $costoUnitario,
+                    ],
+                    TipoTransaccionEnum::Apertura
+                );
+
+                $inventario->update(['cantidad' => $nuevaCantidad]);
+            }
+
+            DB::commit();
+            ActivityLogService::log('Ajuste manual de stock', 'Inventario', [
+                'producto_id'       => $request->producto_id,
+                'cantidad_anterior' => $cantidadAnterior,
+                'nueva_cantidad'    => $nuevaCantidad,
+            ]);
+
+            return response()->json(['cantidad' => $nuevaCantidad]);
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al ajustar stock', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error al actualizar el stock'], 500);
+        }
+    }
+
+    /**
      * Sincronizar inventario.cantidad con el último saldo del Kardex.
      * Acepta un producto_id específico o sincroniza todas las divergencias.
      */

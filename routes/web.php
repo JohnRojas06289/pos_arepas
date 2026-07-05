@@ -63,6 +63,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
         ->name('inventario.ventas-detalle');
     Route::get('inventario/compras-detalle/{producto}', [InventarioControlller::class, 'comprasDetalle'])
         ->name('inventario.compras-detalle');
+    Route::post('inventario/ajustar-stock', [InventarioControlller::class, 'ajustarStock'])->name('inventario.ajustar-stock');
     Route::resource('inventario', InventarioControlller::class)->except('show');
     Route::post('inventario/sincronizar-kardex', [InventarioControlller::class, 'sincronizarKardex'])
         ->name('inventario.sincronizar-kardex');

@@ -142,8 +142,8 @@
                                             <select id="s_producto_id" class="form-select">
                                                 <option value="">Seleccionar...</option>
                                                 @foreach ($productos as $prod)
-                                                <option value="{{ $prod->id }}" data-nombre="{{ $prod->nombre }}">
-                                                    {{ $prod->nombre_completo }}
+                                                <option value="{{ $prod->id }}" data-nombre="{{ $prod->nombre }}{{ $prod->presentacione ? ' - ' . $prod->presentacione->sigla : '' }}">
+                                                    {{ $prod->nombre }}{{ $prod->presentacione ? ' - ' . $prod->presentacione->sigla : '' }}
                                                 </option>
                                                 @endforeach
                                             </select>
@@ -153,15 +153,18 @@
                                             <input type="number" id="s_cantidad" class="form-control" min="1" step="1" placeholder="0">
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label">Precio total</label>
+                                            <label class="form-label">Precio unit.</label>
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" id="s_precio" class="form-control" min="0" step="1" placeholder="0">
                                             </div>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label">Vencimiento</label>
-                                            <input type="date" id="s_vencimiento" class="form-control">
+                                            <label class="form-label">Subtotal</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="text" id="s_subtotal" class="form-control bg-light" readonly placeholder="0">
+                                            </div>
                                         </div>
                                         <div class="col-md-1 d-flex align-items-end">
                                             <button type="button" id="s_btn_agregar" class="btn btn-success w-100">
@@ -178,8 +181,8 @@
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th class="text-center" style="width:80px">Cant.</th>
-                                                    <th class="text-end" style="width:120px">Precio Unit.</th>
-                                                    <th class="text-center" style="width:110px">Vencimiento</th>
+                                                    <th class="text-end" style="width:110px">Precio Unit.</th>
+                                                    <th class="text-end" style="width:110px">Subtotal</th>
                                                     <th style="width:50px"></th>
                                                 </tr>
                                             </thead>
@@ -324,7 +327,7 @@
                                         <th>En factura</th>
                                         <th>Producto del sistema</th>
                                         <th class="text-center" style="width:75px;">Cant.</th>
-                                        <th class="text-end" style="width:105px;">Precio unit.</th>
+                                        <th class="text-end" style="width:105px;">Precio total</th>
                                     </tr>
                                 </thead>
                                 <tbody id="scanner-tbody"></tbody>
@@ -364,7 +367,7 @@
     var tomSelect      = new TomSelect('#s_producto_id', { placeholder: 'Buscar producto...', allowEmptyOption: true });
     var sCantidad      = document.getElementById('s_cantidad');
     var sPrecio        = document.getElementById('s_precio');
-    var sVencimiento   = document.getElementById('s_vencimiento');
+    var sSubtotal      = document.getElementById('s_subtotal');
     var sBtnAgregar    = document.getElementById('s_btn_agregar');
     var sTbody         = document.getElementById('s_tbody');
     var sEmptyRow      = document.getElementById('s_empty_row');
@@ -436,7 +439,7 @@
                     '<td>' + escapeHtml(p.nombre) + '</td>' +
                     '<td class="text-center">' + p.cantidad + '</td>' +
                     '<td class="text-end">' + formatCOP(p.cantidad > 0 ? p.precioTotal / p.cantidad : 0) + '</td>' +
-                    '<td class="text-center">' + (p.vencimiento || '—') + '</td>' +
+                    '<td class="text-end">' + formatCOP(p.precioTotal) + '</td>' +
                     '<td class="text-center">' +
                         '<button type="button" class="btn btn-sm btn-outline-danger" data-remove="' + idx + '">' +
                             '<i class="fas fa-times"></i>' +
@@ -472,11 +475,19 @@
         renderTable();
     };
 
+    function actualizarSubtotal() {
+        var c = parseFloat(sCantidad.value);
+        var p = parseFloat(sPrecio.value);
+        sSubtotal.value = (!isNaN(c) && !isNaN(p) && c > 0 && p >= 0) ? Math.round(c * p).toLocaleString('es-CO') : '';
+    }
+
+    sCantidad.addEventListener('input', actualizarSubtotal);
+    sPrecio.addEventListener('input', actualizarSubtotal);
+
     sBtnAgregar.addEventListener('click', function () {
         var productoId = sProductoId.value;
         var cantidad   = parseFloat(sCantidad.value);
         var precio     = parseFloat(sPrecio.value);
-        var venc       = sVencimiento.value;
         var opt        = sProductoId.options[sProductoId.selectedIndex];
         var nombre     = opt ? (opt.dataset.nombre || opt.text).trim() : '';
 
@@ -484,12 +495,12 @@
         if (!cantidad || cantidad < 1) { showAlert('Ingresa una cantidad válida (mínimo 1).'); return; }
         if (isNaN(precio) || precio < 0) { showAlert('Ingresa un precio válido.'); return; }
 
-        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precioTotal: precio, vencimiento: venc });
+        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precioTotal: precio * cantidad, vencimiento: '' });
         renderTable();
 
         sCantidad.value    = '';
         sPrecio.value      = '';
-        sVencimiento.value = '';
+        sSubtotal.value    = '';
         tomSelect.clear();
     });
 
@@ -520,8 +531,9 @@
     var errorAlert    = document.getElementById('scanner-error-alert');
     var loadingDetail = document.getElementById('scanner-loading-detail');
 
-    var productosDelSistema = @json($productos->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre_completo ?? $p->nombre]));
+    var productosDelSistema = @json($productos->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre . ($p->presentacione?->sigla ? ' - ' . $p->presentacione->sigla : '')]));
     var selectedFile = null;
+    var scannerTomSelects = [];
 
     document.getElementById('btn-abrir-scanner').addEventListener('click', function () {
         resetScanner();
@@ -648,6 +660,9 @@
             return;
         }
 
+        scannerTomSelects.forEach(function(ts) { try { ts.destroy(); } catch(e) {} });
+        scannerTomSelects = [];
+
         productos.forEach(function (p, idx) {
             var sid = p.id || '';
 
@@ -659,7 +674,7 @@
                 '<td><small class="scanner-nombre-factura text-muted">' + escHtml(p.nombre_factura || '') + '</small></td>' +
                 '<td>' + buildSelectHtml(sid) + '</td>' +
                 '<td><input type="number" class="form-control form-control-sm scanner-input-cant text-center" value="' + (p.cantidad || 1) + '" min="1" step="1"></td>' +
-                '<td><input type="number" class="form-control form-control-sm scanner-input-precio text-end" value="' + (p.precio_unitario || 0) + '" min="0" step="1"></td>';
+                '<td><input type="number" class="form-control form-control-sm scanner-input-precio text-end" value="' + (p.precio_total || 0) + '" min="0" step="1"></td>';
             scannerTbody.appendChild(tr);
 
             // Card móvil
@@ -679,12 +694,21 @@
                             '<input type="number" class="form-control form-control-sm scanner-input-cant" value="' + (p.cantidad || 1) + '" min="1" step="1">' +
                         '</div>' +
                         '<div class="col-6">' +
-                            '<label class="form-label form-label-sm mb-1">Precio unit.</label>' +
-                            '<input type="number" class="form-control form-control-sm scanner-input-precio" value="' + (p.precio_unitario || 0) + '" min="0" step="1">' +
+                            '<label class="form-label form-label-sm mb-1">Precio total</label>' +
+                            '<input type="number" class="form-control form-control-sm scanner-input-precio" value="' + (p.precio_total || 0) + '" min="0" step="1">' +
                         '</div>' +
                     '</div>' +
                 '</div>';
             scannerCards.appendChild(card);
+        });
+
+        // Inicializar TomSelect en cada select del scanner para búsqueda
+        document.querySelectorAll('.scanner-select-producto').forEach(function(sel) {
+            scannerTomSelects.push(new TomSelect(sel, {
+                placeholder: 'Buscar producto...',
+                allowEmptyOption: true,
+                maxOptions: null,
+            }));
         });
     }
 
@@ -706,7 +730,7 @@
                 ? sel.options[sel.selectedIndex].text
                 : (el.querySelector('.scanner-nombre-factura') || {}).textContent || '';
             if (!pid || qty < 1) return;
-            items.push({ id: pid, nombre: nombre, cantidad: qty, precioTotal: prc * qty, vencimiento: '' });
+            items.push({ id: pid, nombre: nombre, cantidad: qty, precioTotal: prc, vencimiento: '' });
         });
         return items;
     }
@@ -724,6 +748,8 @@
     }
 
     function resetScanner() {
+        scannerTomSelects.forEach(function(ts) { try { ts.destroy(); } catch(e) {} });
+        scannerTomSelects = [];
         selectedFile = null;
         previewImg.src = '';
         previewCont.style.display = 'none';

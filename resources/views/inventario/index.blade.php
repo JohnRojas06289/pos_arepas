@@ -222,7 +222,23 @@
                     <tr data-producto-id="{{ $item->id }}">
                         <td>{{ $item->codigo }}</td>
                         <td>{{ $item->nombre }}{{ $item->presentacione ? ' - Presentación: ' . $item->presentacione->sigla : '' }}</td>
-                        <td class="stock-cell">{{ $item->inventario->cantidad ?? 0 }}</td>
+                        <td class="stock-cell" data-current="{{ $item->inventario->cantidad ?? 0 }}">
+                            <div class="d-flex align-items-center gap-1 stock-display-mode">
+                                <span class="stock-valor">{{ $item->inventario->cantidad ?? 0 }}</span>
+                                @if(!request('fecha'))
+                                <button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-editar-stock ms-1" title="Editar stock">
+                                    <i class="fas fa-pencil-alt fa-xs"></i>
+                                </button>
+                                @endif
+                            </div>
+                            @if(!request('fecha'))
+                            <div class="stock-edit-mode d-none align-items-center gap-1">
+                                <input type="number" class="form-control form-control-sm stock-input" value="{{ $item->inventario->cantidad ?? 0 }}" min="0" step="1" style="width:75px">
+                                <button type="button" class="btn btn-success btn-sm btn-guardar-stock px-2" title="Guardar"><i class="fas fa-check fa-xs"></i></button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm btn-cancelar-stock px-2" title="Cancelar"><i class="fas fa-times fa-xs"></i></button>
+                            </div>
+                            @endif
+                        </td>
 
                         {{-- Vendidos --}}
                         <td class="vendidos-cell">
@@ -634,13 +650,90 @@
         if (!fila) return;
         var celda = fila.querySelector('.stock-cell');
         if (!celda) return;
-        var anterior = celda.textContent.trim();
-        celda.textContent = nuevoSaldo;
+        var valorSpan = celda.querySelector('.stock-valor');
+        if (valorSpan) {
+            valorSpan.textContent = nuevoSaldo;
+        } else {
+            celda.textContent = nuevoSaldo;
+        }
+        celda.dataset.current = nuevoSaldo;
+        var input = celda.querySelector('.stock-input');
+        if (input) input.value = nuevoSaldo;
         celda.style.transition = 'background 0.5s ease';
         celda.style.background = '#d1fae5';
         celda.style.fontWeight = '800';
-        setTimeout(function() { celda.style.background = ''; }, 1500);
+        setTimeout(function() { celda.style.background = ''; celda.style.fontWeight = ''; }, 1500);
     }
+
+    // ── Ajuste manual de stock ──────────────────────────────────────────────
+    document.querySelectorAll('.btn-editar-stock').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var td = this.closest('td.stock-cell');
+            td.querySelector('.stock-display-mode').classList.add('d-none');
+            var editMode = td.querySelector('.stock-edit-mode');
+            editMode.classList.remove('d-none');
+            editMode.classList.add('d-flex');
+            td.querySelector('.stock-input').focus();
+        });
+    });
+
+    document.querySelectorAll('.btn-cancelar-stock').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var td = this.closest('td.stock-cell');
+            td.querySelector('.stock-input').value = td.dataset.current;
+            td.querySelector('.stock-display-mode').classList.remove('d-none');
+            var editMode = td.querySelector('.stock-edit-mode');
+            editMode.classList.add('d-none');
+            editMode.classList.remove('d-flex');
+        });
+    });
+
+    document.querySelectorAll('.btn-guardar-stock').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var td   = this.closest('td.stock-cell');
+            var tr   = td.closest('tr');
+            var productoId   = tr.dataset.productoId;
+            var nuevaCantidad = parseInt(td.querySelector('.stock-input').value);
+            if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
+                td.querySelector('.stock-input').classList.add('is-invalid');
+                setTimeout(function() { td.querySelector('.stock-input').classList.remove('is-invalid'); }, 2000);
+                return;
+            }
+            var savebtn = this;
+            savebtn.disabled = true;
+            savebtn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:.75rem;height:.75rem;"></span>';
+
+            fetch('{{ route("inventario.ajustar-stock") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ producto_id: productoId, nueva_cantidad: nuevaCantidad })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                savebtn.disabled = false;
+                savebtn.innerHTML = '<i class="fas fa-check fa-xs"></i>';
+                if (data.error) {
+                    td.querySelector('.stock-input').classList.add('is-invalid');
+                    setTimeout(function() { td.querySelector('.stock-input').classList.remove('is-invalid'); }, 3000);
+                    return;
+                }
+                actualizarStockEnTabla(tr.dataset.productoId, data.cantidad);
+                td.querySelector('.stock-display-mode').classList.remove('d-none');
+                var editMode = td.querySelector('.stock-edit-mode');
+                editMode.classList.add('d-none');
+                editMode.classList.remove('d-flex');
+            })
+            .catch(function() {
+                savebtn.disabled = false;
+                savebtn.innerHTML = '<i class="fas fa-check fa-xs"></i>';
+                alert('Error de red. Intente de nuevo.');
+            });
+        });
+    });
 
     function sincronizarProducto(productoId, btn) {
         var original = btn.innerHTML;

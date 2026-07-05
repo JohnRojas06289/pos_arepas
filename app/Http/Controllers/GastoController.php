@@ -219,11 +219,11 @@ class GastoController extends Controller
         $base64   = base64_encode(file_get_contents($file->getRealPath()));
 
         // Prompt minimalista — solo extrae de la imagen, sin lista de productos
-        $prompt = 'Analiza esta factura o tiquete de compra. Extrae TODOS los productos con cantidad y precio unitario. '
-            . 'Si el precio en la factura es el total de la línea, divídelo entre la cantidad para obtener el precio unitario. '
+        $prompt = 'Analiza esta factura o tiquete de compra. Extrae TODOS los productos con cantidad y precio total de la línea. '
+            . 'El precio_total es el valor que aparece en la columna de total o subtotal de cada producto (cantidad × precio unitario). '
             . 'No inventes productos que no estén en la imagen. '
             . 'Responde ÚNICAMENTE con JSON válido sin markdown: '
-            . '{"productos":[{"nombre":"nombre del producto","cantidad":2,"precio_unitario":1500}]}';
+            . '{"productos":[{"nombre":"nombre del producto","cantidad":2,"precio_total":3000}]}';
 
         try {
             $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $apiKey;
@@ -287,7 +287,7 @@ class GastoController extends Controller
                     'nombre_factura' => $nombreFactura,
                     'nombre_sistema' => $mejorScore >= 50 ? $mejorNombre : null,
                     'cantidad'       => (float) ($p['cantidad'] ?? 1),
-                    'precio_unitario'=> (float) ($p['precio_unitario'] ?? 0),
+                    'precio_total'   => (float) ($p['precio_total'] ?? 0),
                 ];
             }, $data['productos']);
 
