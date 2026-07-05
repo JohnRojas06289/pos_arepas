@@ -24,6 +24,11 @@ class Gasto extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function compra(): BelongsTo
+    {
+        return $this->belongsTo(Compra::class);
+    }
+
     public function getFechaFormateadaAttribute(): string
     {
         return Carbon::parse($this->fecha)->format('d-m-Y');

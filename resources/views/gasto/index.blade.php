@@ -13,6 +13,8 @@
         #tablaGastos { font-size: .82rem; }
         #tablaGastos td, #tablaGastos th { padding: .35rem .4rem; }
     }
+    .items-resumen { font-size: .78rem; color: var(--bs-secondary); max-width: 180px; }
+    .items-resumen .badge-qty { font-size: .7rem; }
 </style>
 @endpush
 
@@ -84,6 +86,7 @@
                             <th>Fecha</th>
                             <th>Categoría</th>
                             <th>Descripción</th>
+                            <th class="d-none d-md-table-cell">Items</th>
                             <th class="d-none d-md-table-cell">Método</th>
                             <th class="text-end">Monto</th>
                             <th></th>
@@ -110,6 +113,18 @@
                                 @endif
                             </td>
                             <td class="d-none d-md-table-cell">
+                                @if ($gasto->compra && $gasto->compra->productos->isNotEmpty())
+                                    <div class="items-resumen">
+                                        <span class="badge bg-secondary badge-qty me-1">{{ $gasto->compra->productos->count() }} items</span>
+                                        <span class="text-muted">
+                                            {{ $gasto->compra->productos->take(2)->pluck('nombre')->implode(', ') }}{{ $gasto->compra->productos->count() > 2 ? '...' : '' }}
+                                        </span>
+                                    </div>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td class="d-none d-md-table-cell">
                                 {{ $gasto->metodo_pago ?? '—' }}
                             </td>
                             <td class="text-end fw-semibold text-danger">
@@ -117,6 +132,22 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-1">
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-primary btn-ver-detalle"
+                                        title="Ver detalle"
+                                        data-id="{{ $gasto->id }}"
+                                        data-fecha="{{ $gasto->fecha_formateada }}"
+                                        data-dia="{{ \Carbon\Carbon::parse($gasto->fecha)->locale('es_CO')->isoFormat('dddd D [de] MMMM YYYY') }}"
+                                        data-categoria="{{ $gasto->categoria->label() }}"
+                                        data-categoria-color="{{ $gasto->categoria->color() }}"
+                                        data-descripcion="{{ $gasto->descripcion ?? '—' }}"
+                                        data-metodo="{{ $gasto->metodo_pago ?? '—' }}"
+                                        data-monto="{{ number_format($gasto->monto, 0, ',', '.') }}"
+                                        data-notas="{{ $gasto->notas ?? '' }}"
+                                        data-comprobante="{{ $gasto->comprobante_path ? Storage::url($gasto->comprobante_path) : '' }}"
+                                        data-productos="{{ $gasto->compra ? $gasto->compra->productos->map(fn($p) => ['nombre' => $p->nombre, 'cantidad' => $p->pivot->cantidad, 'precio' => $p->pivot->precio_compra, 'subtotal' => $p->pivot->cantidad * $p->pivot->precio_compra])->toJson() : '[]' }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                     @if ($gasto->comprobante_path)
                                     <a href="{{ Storage::url($gasto->comprobante_path) }}"
                                         target="_blank"
@@ -139,7 +170,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">No hay gastos registrados.</td>
+                            <td colspan="7" class="text-center text-muted py-4">No hay gastos registrados.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -148,6 +179,90 @@
             <div id="sinResultados" class="text-center text-muted py-4" style="display:none;">
                 <i class="fas fa-search fa-2x mb-2"></i>
                 <p>No hay gastos en este período o categoría.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Detalle Gasto --}}
+<div class="modal fade" id="modalDetalleGasto" tabindex="-1" aria-labelledby="modalDetalleGastoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetalleGastoLabel">
+                    <i class="fas fa-receipt me-2"></i> Detalle del Gasto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{-- Fecha y categoría --}}
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <div id="detalleDia" class="fw-semibold text-capitalize"></div>
+                        <small id="detalleFecha" class="text-muted"></small>
+                    </div>
+                    <span id="detalleCategoriaBadge" class="badge fs-6"></span>
+                </div>
+
+                <hr class="my-2">
+
+                {{-- Info principal --}}
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6">
+                        <small class="text-muted d-block">Descripción</small>
+                        <span id="detalleDescripcion" class="fw-medium"></span>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <small class="text-muted d-block">Método de pago</small>
+                        <span id="detalleMetodo"></span>
+                    </div>
+                    <div class="col-6 col-sm-3 text-sm-end">
+                        <small class="text-muted d-block">Monto total</small>
+                        <span id="detalleMonto" class="fw-bold text-danger fs-5"></span>
+                    </div>
+                </div>
+
+                {{-- Notas --}}
+                <div id="detalleNotasRow" class="mb-3" style="display:none;">
+                    <small class="text-muted d-block">Notas</small>
+                    <p id="detalleNotas" class="mb-0 fst-italic text-secondary"></p>
+                </div>
+
+                {{-- Comprobante --}}
+                <div id="detalleComprobanteRow" class="mb-3" style="display:none;">
+                    <small class="text-muted d-block mb-1">Comprobante</small>
+                    <a id="detalleComprobanteLink" href="#" target="_blank" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-paperclip me-1"></i> Ver comprobante
+                    </a>
+                </div>
+
+                {{-- Tabla de productos (SURTIDO) --}}
+                <div id="detalleProductosSection" style="display:none;">
+                    <hr class="my-3">
+                    <h6 class="mb-2"><i class="fas fa-boxes me-1"></i> Productos comprados</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-end">Precio unitario</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalleProductosTbody"></tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="3" class="text-end">Total</td>
+                                    <td class="text-end text-danger" id="detalleProductosTotal"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -207,5 +322,67 @@ function aplicarFiltros() {
 
     document.getElementById('sinResultados').style.display = visibles === 0 ? 'block' : 'none';
 }
+
+// Modal detalle
+document.querySelectorAll('.btn-ver-detalle').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const d = this.dataset;
+
+        document.getElementById('detalleDia').textContent         = d.dia;
+        document.getElementById('detalleFecha').textContent       = d.fecha;
+        document.getElementById('detalleDescripcion').textContent = d.descripcion;
+        document.getElementById('detalleMetodo').textContent      = d.metodo;
+        document.getElementById('detalleMonto').textContent       = '$' + d.monto;
+
+        const badge = document.getElementById('detalleCategoriaBadge');
+        badge.className = 'badge fs-6 text-bg-' + d.categoriaColor;
+        badge.textContent = d.categoria;
+
+        const notasRow = document.getElementById('detalleNotasRow');
+        if (d.notas && d.notas.trim() !== '') {
+            document.getElementById('detalleNotas').textContent = d.notas;
+            notasRow.style.display = '';
+        } else {
+            notasRow.style.display = 'none';
+        }
+
+        const comprobanteRow = document.getElementById('detalleComprobanteRow');
+        if (d.comprobante && d.comprobante.trim() !== '') {
+            document.getElementById('detalleComprobanteLink').href = d.comprobante;
+            comprobanteRow.style.display = '';
+        } else {
+            comprobanteRow.style.display = 'none';
+        }
+
+        const productosSection = document.getElementById('detalleProductosSection');
+        const tbody = document.getElementById('detalleProductosTbody');
+        const totalEl = document.getElementById('detalleProductosTotal');
+
+        let productos = [];
+        try { productos = JSON.parse(d.productos || '[]'); } catch (e) { productos = []; }
+
+        if (productos.length > 0) {
+            tbody.innerHTML = '';
+            let total = 0;
+            productos.forEach(p => {
+                total += parseFloat(p.subtotal) || 0;
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td>${p.nombre}</td>
+                        <td class="text-center">${p.cantidad}</td>
+                        <td class="text-end">$${Number(p.precio).toLocaleString('es-CO')}</td>
+                        <td class="text-end">$${Number(p.subtotal).toLocaleString('es-CO')}</td>
+                    </tr>
+                `);
+            });
+            totalEl.textContent = '$' + total.toLocaleString('es-CO');
+            productosSection.style.display = '';
+        } else {
+            productosSection.style.display = 'none';
+        }
+
+        new bootstrap.Modal(document.getElementById('modalDetalleGasto')).show();
+    });
+});
 </script>
 @endpush

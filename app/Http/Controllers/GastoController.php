@@ -33,6 +33,7 @@ class GastoController extends Controller
     public function index(): View
     {
         $gastos = Gasto::where('user_id', Auth::id())
+            ->with(['compra.productos'])
             ->orderByDesc('fecha')
             ->orderByDesc('created_at')
             ->get();
@@ -182,6 +183,7 @@ class GastoController extends Controller
                 'fecha'       => $request->fecha,
                 'metodo_pago' => $request->metodo_pago,
                 'notas'       => $request->notas,
+                'compra_id'   => $compra->id,
             ]);
 
             DB::commit();
