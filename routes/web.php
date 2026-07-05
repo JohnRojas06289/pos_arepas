@@ -75,7 +75,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('proveedores', proveedorController::class)->except('show');
     Route::resource('empleados', EmpleadoController::class)->except('show');
 
-    // ── Gastos ────────────────────────────────────────────────────────────
+    // ─�� Gastos ────────────────────────────────────────────────────────────
+    Route::post('gastos/scan-factura', [GastoController::class, 'scanFactura'])->name('gastos.scan-factura');
     Route::resource('gastos', GastoController::class)->only('index', 'create', 'store', 'destroy');
 
     // ── Ventas ────────────────────────────────────────────────────────────

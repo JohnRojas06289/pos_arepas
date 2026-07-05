@@ -12,10 +12,12 @@ use App\Models\Proveedore;
 use App\Services\ActivityLogService;
 use App\Services\ComprobanteService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -198,6 +200,96 @@ class GastoController extends Controller
             DB::rollBack();
             Log::error('Error al registrar surtido', ['error' => $e->getMessage()]);
             return redirect()->back()->withInput()->with('error', 'Ups, algo falló al guardar el surtido');
+        }
+    }
+
+    public function scanFactura(Request $request): JsonResponse
+    {
+        $request->validate([
+            'imagen' => 'required|file|mimes:jpg,jpeg,png,webp|max:10240',
+        ]);
+
+        $apiKey = config('services.gemini.api_key');
+        if (!$apiKey) {
+            return response()->json(['error' => 'La IA no está configurada. Verifica GEMINI_API_KEY.'], 503);
+        }
+
+        $productos = Producto::where('estado', 1)
+            ->orderBy('nombre')
+            ->get(['id', 'nombre'])
+            ->map(fn($p) => ['id' => $p->id, 'nombre' => $p->nombre]);
+
+        $listaProductos = $productos->toJson(JSON_UNESCAPED_UNICODE);
+
+        $file     = $request->file('imagen');
+        $mimeType = $file->getMimeType();
+        $base64   = base64_encode(file_get_contents($file->getRealPath()));
+
+        $prompt = <<<PROMPT
+Eres un sistema experto en lectura de facturas y tiquetes de compra de tiendas y distribuidoras.
+
+Analiza la imagen de esta factura y extrae TODOS los productos con sus cantidades y precios unitarios.
+
+Tengo estos productos registrados en mi sistema (JSON array de {id, nombre}):
+{$listaProductos}
+
+Instrucciones:
+1. Para cada línea de producto en la factura, intenta hacer match con un producto del sistema por similitud de nombre (ignora mayúsculas, tildes, abreviaciones, presentaciones como "x500g", "Lt", etc.).
+2. Si hay match, pon el id UUID correspondiente. Si no hay match, pon null.
+3. "cantidad" = unidades compradas (número entero o decimal, nunca null, mínimo 1).
+4. "precio_unitario" = precio por unidad (divide el total de la línea entre la cantidad si es necesario).
+5. No inventes productos que no estén en la imagen.
+6. Si un campo no se puede leer claramente, usa 0 para precios numéricos y 1 para cantidades.
+
+Responde ÚNICAMENTE con JSON válido sin markdown ni explicaciones adicionales:
+{"productos":[{"id":"uuid-o-null","nombre_factura":"nombre en la factura","nombre_sistema":"nombre en el sistema o null","cantidad":2,"precio_unitario":1500}]}
+PROMPT;
+
+        try {
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=' . $apiKey;
+
+            $response = Http::timeout(45)->post($url, [
+                'contents' => [[
+                    'parts' => [
+                        ['text' => $prompt],
+                        ['inline_data' => ['mime_type' => $mimeType, 'data' => $base64]],
+                    ],
+                ]],
+                'generationConfig' => [
+                    'temperature'      => 0.1,
+                    'responseMimeType' => 'application/json',
+                ],
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Gemini scan-factura error', [
+                    'status' => $response->status(),
+                    'body'   => substr($response->body(), 0, 500),
+                ]);
+                return response()->json(['error' => 'Error al procesar la imagen con IA (código ' . $response->status() . ').'], 500);
+            }
+
+            $body = $response->json();
+            $text = $body['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+            if (!$text) {
+                return response()->json(['error' => 'La IA no pudo extraer información de la imagen.'], 422);
+            }
+
+            // Limpiar posible markdown residual
+            $text = preg_replace('/```json\s*|\s*```/', '', trim($text));
+            $data = json_decode($text, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE || empty($data['productos'])) {
+                Log::warning('Gemini scan-factura JSON inválido', ['text' => substr($text, 0, 300)]);
+                return response()->json(['error' => 'No se encontraron productos en la imagen. Intenta con una foto más clara.'], 422);
+            }
+
+            return response()->json(['productos' => $data['productos']]);
+
+        } catch (Throwable $e) {
+            Log::error('Error scan-factura', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Error interno al procesar la imagen.'], 500);
         }
     }
 
