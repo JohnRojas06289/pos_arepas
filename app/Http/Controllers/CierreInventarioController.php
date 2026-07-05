@@ -62,64 +62,77 @@ class CierreInventarioController extends Controller
             ];
         }
 
+        DB::beginTransaction();
         try {
-            DB::transaction(function () use ($caja, $items, $kardex) {
-                CierreInventario::create([
-                    'caja_id' => $caja->id,
-                    'user_id' => auth()->id(),
-                    'items'   => $items,
-                ]);
+            CierreInventario::create([
+                'caja_id' => $caja->id,
+                'user_id' => auth()->id(),
+                'items'   => $items,
+            ]);
 
-                foreach ($items as $item) {
-                    if ($item['cantidad_fisica'] === null) {
-                        continue;
-                    }
+            $contados  = 0;
+            $ajustados = 0;
 
-                    $inventario = Inventario::firstOrCreate(
-                        ['producto_id' => $item['producto_id']],
-                        ['cantidad' => 0]
-                    );
-
-                    $cantidadAnterior = (int) $inventario->cantidad;
-                    $nuevaCantidad    = (int) $item['cantidad_fisica'];
-
-                    // Solo actualizar si la cantidad realmente cambió
-                    if ($nuevaCantidad !== $cantidadAnterior) {
-                        $costoUnitario = Kardex::where('producto_id', $item['producto_id'])
-                            ->latest('id')
-                            ->value('costo_unitario') ?? 0;
-
-                        // Registrar ajuste en Kardex para mantener consistencia
-                        $kardex->crearRegistro(
-                            [
-                                'producto_id'    => $item['producto_id'],
-                                'cantidad'       => $nuevaCantidad,
-                                'costo_unitario' => $costoUnitario,
-                            ],
-                            TipoTransaccionEnum::Apertura
-                        );
-
-                        $inventario->update(['cantidad' => $nuevaCantidad]);
-                    }
+            foreach ($items as $item) {
+                if ($item['cantidad_fisica'] === null) {
+                    continue;
                 }
-            });
 
-            $contados = count(array_filter($items, fn($i) => $i['cantidad_fisica'] !== null));
-            $ajustados = count(array_filter($items, fn($i) => $i['cantidad_fisica'] !== null && $i['diferencia'] !== 0));
+                $contados++;
+                $nuevaCantidad = (int) $item['cantidad_fisica'];
+
+                // Buscar o crear registro de inventario
+                $inventario = Inventario::where('producto_id', $item['producto_id'])->first();
+
+                if ($inventario) {
+                    $cantidadAnterior = (int) $inventario->cantidad;
+                    // Actualizar siempre que el usuario haya ingresado un conteo
+                    DB::table('inventario')
+                        ->where('producto_id', $item['producto_id'])
+                        ->update(['cantidad' => $nuevaCantidad]);
+                } else {
+                    $cantidadAnterior = 0;
+                    Inventario::create([
+                        'producto_id' => $item['producto_id'],
+                        'cantidad'    => $nuevaCantidad,
+                    ]);
+                }
+
+                // Registrar en Kardex para mantener el saldo sincronizado
+                $costoUnitario = Kardex::where('producto_id', $item['producto_id'])
+                    ->latest('id')
+                    ->value('costo_unitario') ?? 0;
+
+                $kardex->crearRegistro(
+                    [
+                        'producto_id'    => $item['producto_id'],
+                        'cantidad'       => $nuevaCantidad,
+                        'costo_unitario' => $costoUnitario,
+                    ],
+                    TipoTransaccionEnum::Apertura
+                );
+
+                if ($nuevaCantidad !== $cantidadAnterior) {
+                    $ajustados++;
+                }
+            }
+
+            DB::commit();
 
             ActivityLogService::log('Cierre de inventario', 'Inventario', [
-                'caja_id'  => $caja->id,
-                'contados' => $contados,
+                'caja_id'   => $caja->id,
+                'contados'  => $contados,
                 'ajustados' => $ajustados,
             ]);
 
             return redirect()->route('cajas.index')
                 ->with('success', "Cierre guardado. {$contados} productos contados, {$ajustados} ajustados.");
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error('Error al guardar cierre de inventario', ['error' => $e->getMessage()]);
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Ups, algo falló al guardar el cierre. Intenta de nuevo.');
+                ->with('error', 'Ups, algo falló al guardar el cierre: ' . $e->getMessage());
         }
     }
 
