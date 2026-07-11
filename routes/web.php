@@ -28,6 +28,7 @@ use App\Http\Controllers\ventaController;
 use App\Http\Controllers\CierreInventarioController;
 use App\Http\Controllers\CarritoPOSController;
 use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -130,7 +131,16 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
 
     // ── Agente IA ─────────────────────────────────────────────────────────
     Route::post('/agente-ia/chat', [AgenteIAController::class, 'chat'])->name('agente-ia.chat');
+
+    // ── Catálogo Público ──────────────────────────────────────────────────
+    Route::post('productos/{producto}/toggle-catalogo', [ProductoController::class, 'toggleCatalogo'])
+        ->name('productos.toggle-catalogo');
 });
+
+// ── Sitio Público ─────────────────────────────────────────────────────────
+Route::get('/catalogo', [PublicController::class, 'collection'])->name('collection');
+Route::get('/nosotros', [PublicController::class, 'about'])->name('about');
+Route::get('/contacto', [PublicController::class, 'contact'])->name('contact');
 
 Route::get('/login', [loginController::class, 'index'])->name('login.index');
 Route::post('/login', [loginController::class, 'login'])->name('login.login');

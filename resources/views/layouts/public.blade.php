@@ -14,6 +14,7 @@
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Custom CSS -->
     <link href="{{ asset('css/bajocero.css') }}" rel="stylesheet" />
+    @stack('css')
     <script>
         // Init Theme
         const savedTheme = localStorage.getItem('theme') || 'dark';
@@ -53,7 +54,7 @@
                     <li class="nav-item ms-3">
                         <a href="#" class="position-relative text-white">
                             <i class="fas fa-shopping-bag fa-lg"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;" id="cartCountNav">
                                 0
                             </span>
                         </a>
@@ -118,6 +119,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('js')
     
     <script>
         const themeToggleBtn = document.getElementById('themeToggle');

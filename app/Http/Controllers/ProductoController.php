@@ -285,6 +285,12 @@ class ProductoController extends Controller
         }
     }
 
+    public function toggleCatalogo(Producto $producto): RedirectResponse
+    {
+        $producto->update(['en_catalogo' => !$producto->en_catalogo]);
+        return back();
+    }
+
     // ── Helpers privados ──────────────────────────────────────────────────
 
     /**

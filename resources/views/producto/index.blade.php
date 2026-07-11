@@ -172,6 +172,15 @@
                 </button>
                 @endcan
 
+                <form action="{{ route('productos.toggle-catalogo', $item) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit"
+                            class="btn btn-sm {{ $item->en_catalogo ? 'btn-outline-success' : 'btn-outline-secondary' }}"
+                            title="{{ $item->en_catalogo ? 'Visible en catálogo (clic para ocultar)' : 'Oculto en catálogo (clic para mostrar)' }}">
+                        <i class="fas fa-store{{ $item->en_catalogo ? '' : '-slash' }}"></i>
+                    </button>
+                </form>
+
                 @can('editar-producto')
                 <a href="{{route('productos.edit',['producto' => $item])}}">
                     <button class="btn btn-sm btn-outline-warning" title="Editar">

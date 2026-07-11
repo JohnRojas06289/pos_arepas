@@ -22,6 +22,7 @@ class Producto extends Model
         'descripcion',
         'img_path',
         'estado',
+        'en_catalogo',
         'precio',
         'marca_id',
         'presentacione_id',

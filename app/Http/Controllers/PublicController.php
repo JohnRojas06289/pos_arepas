@@ -22,32 +22,18 @@ class PublicController extends Controller
 
     public function collection(Request $request)
     {
-        $query = Producto::with(['categoria', 'marca', 'presentacione']);
+        $productos = Producto::with(['categoria.caracteristica'])
+            ->where('en_catalogo', 1)
+            ->get();
 
-        // Filter by Category
-        if ($request->has('categoria') && $request->categoria != 'all') {
-            $query->whereHas('categoria', function ($q) use ($request) {
-                $q->where('nombre', $request->categoria);
-            });
-        }
+        $categorias = $productos
+            ->map(fn($p) => $p->categoria?->caracteristica?->nombre)
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
-        // Filter by Brand
-        if ($request->has('marca') && $request->marca != 'all') {
-            $query->whereHas('marca', function ($q) use ($request) {
-                $q->where('nombre', $request->marca);
-            });
-        }
-
-        // Search
-        if ($request->has('search')) {
-            $query->where('nombre', 'like', '%' . $request->search . '%');
-        }
-
-        $products = $query->paginate(12);
-        $categorias = Categoria::all();
-        $marcas = Marca::all();
-
-        return view('public.collection', compact('products', 'categorias', 'marcas'));
+        return view('public.collection', compact('productos', 'categorias'));
     }
 
     public function show($id)
