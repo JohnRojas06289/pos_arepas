@@ -1,23 +1,23 @@
 :root {
     /* Default Dark Theme */
-    --primary-color: #00f2ff; /* Cyan Neon */
-    --secondary-color: #000000; /* Black */
-    --accent-color: #1a1a1a; /* Dark Gray */
+    --primary-color: #f97316; /* Naranja cálido */
+    --secondary-color: #0f0a00; /* Negro cálido */
+    --accent-color: #1a0e00; /* Marrón oscuro */
     --text-color: #ffffff;
-    --text-muted: #b3b3b3;
-    --success-color: #00ff9d;
-    --card-bg: #1a1a1a;
-    --card-border: #333;
-    --navbar-bg: rgba(0, 0, 0, 0.9);
-    --footer-bg: #000;
-    --input-bg: #1a1a1a;
+    --text-muted: #b3a89a;
+    --success-color: #22c55e;
+    --card-bg: #1a1208;
+    --card-border: #3a2a18;
+    --navbar-bg: rgba(15, 10, 0, 0.95);
+    --footer-bg: #0a0600;
+    --input-bg: #1a1208;
     --card-shadow: none;
 }
 
 [data-theme="light"] {
-    /* Light Theme Overrides - Softer & Premium */
-    --primary-color: #008c95; /* Premium Teal (Readable on light) */
-    --secondary-color: #eef2f5; /* Soft Blue-Gray (Anti-glare) */
+    /* Light Theme Overrides */
+    --primary-color: #ea580c; /* Naranja intenso legible */
+    --secondary-color: #fff8f2; /* Crema cálido */
     --accent-color: #ffffff;
     --text-color: #2c3e50; /* Deep Blue-Gray Text */
     --text-muted: #64748b;
@@ -125,7 +125,7 @@ body {
 .btn-neon:hover {
     background-color: var(--primary-color);
     color: var(--accent-color);
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
 }
 
 /* Product Card */
@@ -142,7 +142,7 @@ body {
 .product-card:hover {
     transform: translateY(-5px);
     border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.2);
 }
 
 .product-card img {

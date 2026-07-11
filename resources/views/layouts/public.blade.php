@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="Bajo Cero - Estilo Urbano" />
-    <meta name="author" content="Bajo Cero" />
-    <title>@yield('title', 'Bajo Cero | Estilo Urbano')</title>
+    <meta name="description" content="Arepas Boyacenses - El sabor de siempre" />
+    <meta name="author" content="Arepas Boyacenses" />
+    <title>@yield('title', 'Arepas Boyacenses')</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
@@ -27,7 +27,7 @@
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container-fluid px-5">
             <a class="navbar-brand" href="{{ route('home') }}">
-                Bajo<span style="color: var(--text-color);">Cero</span>
+                🫓 Arepas<span style="color: var(--text-color); font-weight: 400"> Boyacenses</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
                 <i class="fas fa-bars" style="color: var(--primary-color);"></i>
@@ -72,8 +72,8 @@
         <div class="container px-5">
             <div class="row gx-5">
                 <div class="col-lg-4 mb-5 mb-lg-0">
-                    <div class="footer-heading">Bajo Cero</div>
-                    <p class="text-muted mb-4">Redefiniendo el estilo urbano. Prendas diseñadas para quienes no temen destacar. Calidad premium, diseño exclusivo.</p>
+                    <div class="footer-heading">🫓 Arepas Boyacenses</div>
+                    <p class="text-muted mb-4">El sabor auténtico de Boyacá en cada mordida. Arepas artesanales hechas con amor y tradición.</p>
                     <div class="d-flex gap-3">
                         <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
                         <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
@@ -113,7 +113,7 @@
     </footer>
 
     <!-- Whatsapp Floating Button -->
-    <a href="https://wa.me/573001234567" target="_blank" style="position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; text-align: center; line-height: 60px; font-size: 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+    <a href="https://wa.me/573212335821" target="_blank" style="position: fixed; bottom: 20px; right: 20px; background-color: #25d366; color: white; width: 60px; height: 60px; border-radius: 50%; text-align: center; line-height: 60px; font-size: 30px; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
         <i class="fab fa-whatsapp"></i>
     </a>
 

@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Catálogo | Bajo Cero')
+@section('title', 'Catálogo | Arepas Boyacenses')
 
 @push('css')
 <style>
@@ -165,39 +165,36 @@
     /* ─── Floating Cart Button ───────────────────────── */
     .floating-cart-btn {
         position: fixed;
-        bottom: 90px;
-        right: 20px;
-        width: 58px;
-        height: 58px;
-        border-radius: 50%;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
         background: var(--primary-color);
         color: #000;
         border: none;
-        font-size: 1.4rem;
+        border-radius: 12px 0 0 12px;
+        padding: 16px 12px 16px 16px;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 998;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+        z-index: 1005;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        transition: transform 0.2s;
+        gap: 3px;
+        transition: padding-right 0.2s;
     }
-    .floating-cart-btn:hover { transform: scale(1.08); }
+    .floating-cart-btn:hover { padding-right: 18px; }
     .cart-float-badge {
-        position: absolute;
-        top: -2px; right: -2px;
         background: #dc3545;
         color: white;
-        font-size: 0.62rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        min-width: 18px;
-        height: 18px;
+        min-width: 20px;
+        height: 20px;
         border-radius: 999px;
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 0 4px;
-        border: 2px solid #000;
     }
 
     /* ─── Offcanvas Cart ─────────────────────────────── */
@@ -362,7 +359,7 @@
         .catalog-name { font-size: 0.82rem; }
         .catalog-price { font-size: 1rem; }
         .btn-add-cart { font-size: 0.78rem; padding: 9px 8px; }
-        .floating-cart-btn { width: 52px; height: 52px; font-size: 1.2rem; bottom: 85px; }
+        .floating-cart-btn { padding: 12px 10px 12px 12px; }
     }
 </style>
 @endpush
@@ -371,8 +368,8 @@
 
 {{-- Hero --}}
 <div class="catalog-hero">
-    <h1>CATÁLOGO</h1>
-    <p>Elige tus productos y pide directo por WhatsApp</p>
+    <h1>🫓 NUESTRO MENÚ</h1>
+    <p>Arma tu pedido y lo recibimos por WhatsApp</p>
     <div class="catalog-divider"></div>
 </div>
 
@@ -471,13 +468,14 @@
 </div>
 
 {{-- Floating Cart Button --}}
-<button class="floating-cart-btn position-relative"
+<button class="floating-cart-btn"
         data-bs-toggle="offcanvas"
         data-bs-target="#cartOffcanvas"
         id="floatingCartBtn"
-        title="Ver carrito">
-    <i class="fas fa-shopping-bag"></i>
+        title="Ver pedido">
+    <i class="fas fa-shopping-bag" style="font-size:1.3rem"></i>
     <span class="cart-float-badge" id="cartBadgeFloat">0</span>
+    <span style="font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; writing-mode:vertical-rl; text-orientation:mixed; margin-top:4px">Pedido</span>
 </button>
 
 @endsection
