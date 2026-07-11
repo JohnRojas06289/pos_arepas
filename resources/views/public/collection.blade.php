@@ -1,4 +1,4 @@
-@extends('layouts.public')
+@extends('layouts.catalogo')
 
 @section('title', 'Catálogo | Arepas Boyacenses')
 
