@@ -201,9 +201,13 @@
     #cartOffcanvas {
         max-width: 400px;
         width: 100%;
-        background: var(--catalog-card-bg, #111);
+        background: #1a0e00 !important;
+        border-left: 1px solid #3a2a18;
     }
-    [data-theme="light"] #cartOffcanvas { background: #f8f9fa; }
+    [data-theme="light"] #cartOffcanvas {
+        background: #ffffff !important;
+        border-left: 1px solid #e5d5c5;
+    }
 
     .cart-item {
         display: flex;
