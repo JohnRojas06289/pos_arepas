@@ -24,6 +24,7 @@ class PublicController extends Controller
     {
         $productos = Producto::with(['categoria.caracteristica'])
             ->where('en_catalogo', 1)
+            ->orderBy('nombre')
             ->get();
 
         $categorias = $productos
