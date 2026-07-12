@@ -562,7 +562,7 @@ function showTransacciones(clienteId, clienteNombre) {
     var tbody = document.getElementById('transaccionesModalBody');
     tbody.innerHTML = '';
     var items = document.getElementById('data_transacciones_' + clienteId).querySelectorAll('.tx-item');
-    var colors = { efectivo:'success', nequi:'info', daviplata:'warning', fiado:'danger', tarjeta:'primary' };
+    var colors = { efectivo:'success', nequi:'info', daviplata:'warning', fiado:'danger', bold:'primary' };
     items.forEach(function(item) {
         var metodo = (item.getAttribute('data-metodo') || '').toLowerCase();
         var tr = document.createElement('tr');

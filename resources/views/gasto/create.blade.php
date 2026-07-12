@@ -160,10 +160,10 @@
                                             </div>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label">Subtotal</label>
+                                            <label class="form-label">Precio total <small class="text-muted fw-normal">(÷ cant.)</small></label>
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
-                                                <input type="text" id="s_subtotal" class="form-control bg-light" readonly placeholder="0">
+                                                <input type="number" id="s_precio_total" class="form-control" min="0" step="1" placeholder="0">
                                             </div>
                                         </div>
                                         <div class="col-md-1 d-flex align-items-end">
@@ -367,7 +367,7 @@
     var tomSelect      = new TomSelect('#s_producto_id', { placeholder: 'Buscar producto...', allowEmptyOption: true });
     var sCantidad      = document.getElementById('s_cantidad');
     var sPrecio        = document.getElementById('s_precio');
-    var sSubtotal      = document.getElementById('s_subtotal');
+    var sPrecioTotal   = document.getElementById('s_precio_total');
     var sBtnAgregar    = document.getElementById('s_btn_agregar');
     var sTbody         = document.getElementById('s_tbody');
     var sEmptyRow      = document.getElementById('s_empty_row');
@@ -475,32 +475,54 @@
         renderTable();
     };
 
-    function actualizarSubtotal() {
+    var lastPriceEdited = 'unit'; // 'unit' | 'total'
+
+    sPrecio.addEventListener('input', function () {
+        lastPriceEdited = 'unit';
         var c = parseFloat(sCantidad.value);
         var p = parseFloat(sPrecio.value);
-        sSubtotal.value = (!isNaN(c) && !isNaN(p) && c > 0 && p >= 0) ? Math.round(c * p).toLocaleString('es-CO') : '';
-    }
+        sPrecioTotal.value = (!isNaN(c) && !isNaN(p) && c > 0 && p >= 0) ? Math.round(c * p) : '';
+    });
 
-    sCantidad.addEventListener('input', actualizarSubtotal);
-    sPrecio.addEventListener('input', actualizarSubtotal);
+    sPrecioTotal.addEventListener('input', function () {
+        lastPriceEdited = 'total';
+        var c = parseFloat(sCantidad.value);
+        var t = parseFloat(sPrecioTotal.value);
+        sPrecio.value = (!isNaN(c) && !isNaN(t) && c > 0 && t >= 0) ? Math.round(t / c) : '';
+    });
+
+    sCantidad.addEventListener('input', function () {
+        var c = parseFloat(sCantidad.value);
+        if (lastPriceEdited === 'unit') {
+            var p = parseFloat(sPrecio.value);
+            sPrecioTotal.value = (!isNaN(c) && !isNaN(p) && c > 0 && p >= 0) ? Math.round(c * p) : '';
+        } else {
+            var t = parseFloat(sPrecioTotal.value);
+            sPrecio.value = (!isNaN(c) && !isNaN(t) && c > 0 && t >= 0) ? Math.round(t / c) : '';
+        }
+    });
 
     sBtnAgregar.addEventListener('click', function () {
-        var productoId = sProductoId.value;
-        var cantidad   = parseFloat(sCantidad.value);
-        var precio     = parseFloat(sPrecio.value);
-        var opt        = sProductoId.options[sProductoId.selectedIndex];
-        var nombre     = opt ? (opt.dataset.nombre || opt.text).trim() : '';
+        var productoId   = sProductoId.value;
+        var cantidad     = parseFloat(sCantidad.value);
+        var precio       = parseFloat(sPrecio.value);
+        var precioTotVal = parseFloat(sPrecioTotal.value);
+        var opt          = sProductoId.options[sProductoId.selectedIndex];
+        var nombre       = opt ? (opt.dataset.nombre || opt.text).trim() : '';
 
-        if (!productoId)           { showAlert('Selecciona un producto.'); return; }
+        if (!productoId)               { showAlert('Selecciona un producto.'); return; }
         if (!cantidad || cantidad < 1) { showAlert('Ingresa una cantidad válida (mínimo 1).'); return; }
-        if (isNaN(precio) || precio < 0) { showAlert('Ingresa un precio válido.'); return; }
+        if (isNaN(precio) && isNaN(precioTotVal)) { showAlert('Ingresa un precio unitario o total.'); return; }
 
-        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precioTotal: precio * cantidad, vencimiento: '' });
+        var precioFinal = !isNaN(precioTotVal) && precioTotVal >= 0 ? precioTotVal : precio * cantidad;
+
+        productos.push({ id: productoId, nombre: nombre, cantidad: cantidad, precioTotal: precioFinal, vencimiento: '' });
         renderTable();
 
-        sCantidad.value    = '';
-        sPrecio.value      = '';
-        sSubtotal.value    = '';
+        sCantidad.value      = '';
+        sPrecio.value        = '';
+        sPrecioTotal.value   = '';
+        lastPriceEdited      = 'unit';
         tomSelect.clear();
     });
 

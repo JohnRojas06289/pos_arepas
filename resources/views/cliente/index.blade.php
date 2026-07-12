@@ -154,7 +154,7 @@
                                 <label for="metodo-{{$item->id}}" class="form-label">Método de Pago</label>
                                 <select class="form-select" name="metodo_pago" id="metodo-{{$item->id}}" required>
                                     <option value="EFECTIVO">Efectivo</option>
-                                    <option value="TARJETA">Tarjeta</option>
+                                    <option value="BOLD">Bold</option>
                                     <option value="NEQUI">Nequi</option>
                                     <option value="DAVIPLATA">Daviplata</option>
                                 </select>

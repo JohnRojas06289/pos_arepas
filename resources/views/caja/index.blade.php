@@ -280,7 +280,7 @@ const METODO_CONFIG = {
     EFECTIVO:  { label: 'Efectivo',  color: 'success' },
     NEQUI:     { label: 'Nequi',     color: 'primary' },
     DAVIPLATA: { label: 'Daviplata', color: 'warning' },
-    TARJETA:   { label: 'Tarjeta',   color: 'info'    },
+    BOLD:      { label: 'Bold',      color: 'warning' },
     FIADO:     { label: 'Fiado',     color: 'secondary' },
 };
 

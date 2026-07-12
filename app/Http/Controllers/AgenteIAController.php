@@ -205,7 +205,7 @@ Hoy es: {$diaActual} (EXTRACT DOW = {$diaSemana} donde 0=Domingo, 1=Lunes ... 6=
 === TABLAS DE NEGOCIO ===
 
 ventas (id uuid PK, cliente_id uuid nullable FK clientes, user_id uuid FK users,
-        numero_comprobante varchar, metodo_pago [EFECTIVO|TARJETA],
+        numero_comprobante varchar, metodo_pago [EFECTIVO|BOLD|NEQUI|DAVIPLATA],
         fecha_hora timestamp, subtotal decimal, total decimal,
         revertida smallint [0=válida, 1=anulada], created_at)
   IMPORTANTE: Siempre filtra con WHERE revertida = 0 para excluir ventas anuladas.
@@ -219,7 +219,7 @@ productos (id uuid PK, codigo varchar, nombre varchar, precio decimal,
            presentacione_id uuid FK presentaciones, created_at)
 
 compras (id uuid PK, user_id uuid, proveedore_id uuid FK proveedores,
-         numero_comprobante varchar nullable, metodo_pago [EFECTIVO|TARJETA],
+         numero_comprobante varchar nullable, metodo_pago [EFECTIVO|BOLD|NEQUI|DAVIPLATA],
          fecha_hora timestamp, subtotal decimal, total decimal, created_at)
 
 compra_producto (id uuid PK, compra_id uuid FK compras, producto_id uuid FK productos,
@@ -244,7 +244,7 @@ cajas (id uuid PK, nombre varchar, fecha_hora_apertura timestamp,
        user_id uuid, created_at)
 
 movimientos (id uuid PK, tipo [VENTA|RETIRO], descripcion varchar,
-             monto decimal, metodo_pago [EFECTIVO|TARJETA],
+             monto decimal, metodo_pago [EFECTIVO|BOLD|NEQUI|DAVIPLATA],
              caja_id uuid FK cajas, created_at)
 
 categorias (id uuid PK, caracteristica_id uuid FK caracteristicas)

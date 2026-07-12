@@ -98,6 +98,48 @@
         border-radius: 3px;
     }
 
+    /* ── Category sidebar toggle ── */
+    .category-sidebar-header {
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+    }
+    .category-sidebar-header:hover {
+        background: rgba(255,255,255,0.06);
+    }
+    .category-sidebar.compact {
+        flex: 0 0 54px !important;
+        width: 54px !important;
+        max-width: 54px !important;
+        min-width: 54px !important;
+    }
+    .category-sidebar.compact .cat-label {
+        display: none;
+    }
+    .category-sidebar.compact .category-btn {
+        text-align: center;
+        padding: 10px 0;
+    }
+    .category-sidebar.compact .category-btn i {
+        width: auto;
+        margin-right: 0;
+        font-size: 1rem;
+    }
+    .category-sidebar.compact .category-btn:hover,
+    .category-sidebar.compact .category-btn.active {
+        transform: none;
+    }
+    .category-sidebar.compact .cat-sidebar-header-inner {
+        justify-content: center !important;
+    }
+    .category-sidebar.compact .cat-sidebar-title,
+    .category-sidebar.compact .cat-toggle-icon {
+        display: none;
+    }
+    .category-sidebar.compact .cat-header-icon {
+        margin-right: 0 !important;
+    }
+
     /* Tarjetas de producto mejoradas */
     .product-card {
         cursor: pointer;
@@ -217,7 +259,39 @@
     }
 
     .cart-qty-input {
-        width: 72px;
+        width: 48px;
+        text-align: center;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+
+    .cart-qty-btn {
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
+        flex-shrink: 0;
+        user-select: none;
+    }
+    .cart-qty-btn:hover {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #fff;
+    }
+    .cart-qty-btn.minus:hover {
+        background: #dc3545;
+        border-color: #dc3545;
+        color: #fff;
     }
 
     .cart-item-subtotal {
@@ -986,18 +1060,59 @@
     <div class="row g-0 pos-container">
         
         <!-- Column 1: Categories -->
-        <div class="col-md-2 category-sidebar d-none d-md-block">
-            <div class="p-3 border-bottom" style="border-color:var(--border-sidebar)!important;">
-                <h6 class="m-0" style="color:var(--text-sidebar);font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
-                    <i class="fa-solid fa-layer-group me-2" style="color:var(--color-accent);"></i>Categorías
+        <div class="col-md-2 category-sidebar d-none d-md-block" id="categorySidebar">
+            <div class="p-3 border-bottom category-sidebar-header" onclick="toggleCategorySidebar()" style="border-color:var(--border-sidebar)!important;">
+                <h6 class="m-0 d-flex align-items-center cat-sidebar-header-inner" style="color:var(--text-sidebar);font-weight:700;font-size:0.82rem;text-transform:uppercase;letter-spacing:0.06em;">
+                    <i class="fa-solid fa-layer-group cat-header-icon me-2" style="color:var(--color-accent);"></i>
+                    <span class="cat-sidebar-title">Categorías</span>
+                    <i class="fa-solid fa-chevron-left cat-toggle-icon ms-auto" style="color:var(--text-muted);font-size:0.7rem;"></i>
                 </h6>
             </div>
-            <button type="button" class="category-btn active" onclick="filterCategory('all', this)">
-                <i class="fa-solid fa-border-all"></i> Todo
+            <button type="button" class="category-btn active" title="Todo" onclick="filterCategory('all', this)">
+                <i class="fa-solid fa-border-all"></i><span class="cat-label"> Todo</span>
             </button>
+            @php
+            $catIconMap = [
+                'arepa'     => 'fa-bread-slice',
+                'bebida'    => 'fa-mug-hot',
+                'jugo'      => 'fa-glass-water',
+                'agua'      => 'fa-droplet',
+                'gaseosa'   => 'fa-bottle-water',
+                'cafe'      => 'fa-mug-saucer',
+                'café'      => 'fa-mug-saucer',
+                'combo'     => 'fa-utensils',
+                'postre'    => 'fa-cake-candles',
+                'snack'     => 'fa-cookie',
+                'empanada'  => 'fa-circle-half-stroke',
+                'chicha'    => 'fa-wine-glass',
+                'pan'       => 'fa-bread-slice',
+                'sopa'      => 'fa-bowl-food',
+                'caldo'     => 'fa-bowl-food',
+                'bandeja'   => 'fa-plate-wheat',
+                'proteina'  => 'fa-drumstick-bite',
+                'proteína'  => 'fa-drumstick-bite',
+                'carne'     => 'fa-drumstick-bite',
+                'pollo'     => 'fa-drumstick-bite',
+                'cerdo'     => 'fa-drumstick-bite',
+                'fruta'     => 'fa-apple-whole',
+                'ensalada'  => 'fa-leaf',
+                'vegetal'   => 'fa-carrot',
+                'dulce'     => 'fa-candy-cane',
+                'helado'    => 'fa-ice-cream',
+                'otro'      => 'fa-ellipsis',
+                'varios'    => 'fa-ellipsis',
+            ];
+            @endphp
             @foreach ($categorias as $cat)
-            <button type="button" class="category-btn" onclick="filterCategory('{{$cat->id}}', this)">
-                <i class="fa-solid fa-tag"></i> {{$cat->caracteristica->nombre}}
+            @php
+            $catNameLower = strtolower($cat->caracteristica->nombre);
+            $catIcon = 'fa-tag';
+            foreach ($catIconMap as $keyword => $icon) {
+                if (str_contains($catNameLower, $keyword)) { $catIcon = $icon; break; }
+            }
+            @endphp
+            <button type="button" class="category-btn" title="{{ $cat->caracteristica->nombre }}" onclick="filterCategory('{{$cat->id}}', this)">
+                <i class="fa-solid {{ $catIcon }}"></i><span class="cat-label"> {{$cat->caracteristica->nombre}}</span>
             </button>
             @endforeach
         </div>
@@ -1115,6 +1230,7 @@
                     @foreach($optionsMetodoPago as $op)
                         <option value="{{ $op->value }}" {{ $loop->first ? 'selected' : '' }}>{{ $op->value }}</option>
                     @endforeach
+                    <option value="BOLD">BOLD</option>
                     <option value="MIXTO">MIXTO</option>
                 </select>
             </div>
@@ -1177,25 +1293,32 @@
                         </div>
                     </div>
                     <div class="row g-1 mb-2">
-                        <div class="col-4">
+                        <div class="col-3">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:#5C2D91;color:#fff;border-color:#5C2D91;font-size:0.72rem;"
+                                style="background:#5C2D91;color:#fff;border-color:#5C2D91;font-size:0.68rem;"
                                 onclick="pagarCon('NEQUI')">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>NEQUI
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M6 17V7l4.5 7V7M13.5 7v10l4.5-7v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>NEQUI
                             </button>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:#CC0000;color:#fff;border-color:#CC0000;font-size:0.72rem;"
+                                style="background:#CC0000;color:#fff;border-color:#CC0000;font-size:0.68rem;"
                                 onclick="pagarCon('DAVIPLATA')">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/><path d="M9 12L11.5 14.5L16 9.5" stroke="#CC0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>DAVIPLATA
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><path d="M12 3L21 8.5V15.5L12 21L3 15.5V8.5L12 3Z" fill="white" fill-opacity="0.9"/><path d="M9 12L11.5 14.5L16 9.5" stroke="#CC0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>DAVI
                             </button>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
-                                style="background:#1a7340;color:#fff;border-color:#1a7340;font-size:0.72rem;"
+                                style="background:#FF6B00;color:#fff;border-color:#FF6B00;font-size:0.68rem;"
+                                onclick="pagarCon('BOLD')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><text x="4" y="17" font-size="13" font-weight="900" fill="white" font-family="Arial">B</text></svg>BOLD
+                            </button>
+                        </div>
+                        <div class="col-3">
+                            <button type="button" class="btn btn-sm w-100 smart-cash-btn fw-bold"
+                                style="background:#1a7340;color:#fff;border-color:#1a7340;font-size:0.68rem;"
                                 onclick="pagarEfectivo()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:3px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/><circle cx="12" cy="12" r="2.5" fill="#1a7340"/><path d="M6 12h.5M17.5 12H18" stroke="#1a7340" stroke-width="1.5" stroke-linecap="round"/></svg>EFECTIVO
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:2px;margin-bottom:1px"><rect width="24" height="24" rx="6" fill="white" fill-opacity="0.2"/><rect x="3" y="7" width="18" height="10" rx="2" fill="white" fill-opacity="0.9"/><circle cx="12" cy="12" r="2.5" fill="#1a7340"/><path d="M6 12h.5M17.5 12H18" stroke="#1a7340" stroke-width="1.5" stroke-linecap="round"/></svg>EFECT.
                             </button>
                         </div>
                     </div>
@@ -1285,6 +1408,14 @@
                             <span class="split-method-card-title" style="color:#CC0000;">Daviplata</span>
                         </div>
                         <input type="text" id="splitDaviplata" class="split-method-card-input" placeholder="$ 0" oninput="onSplitInput()" inputmode="numeric">
+                    </div>
+                    <!-- Bold -->
+                    <div class="split-method-card">
+                        <div class="split-method-card-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="24" rx="7" fill="#FF6B00"/><text x="5" y="18" font-size="14" font-weight="900" fill="white" font-family="Arial">B</text></svg>
+                            <span class="split-method-card-title" style="color:#FF6B00;">Bold</span>
+                        </div>
+                        <input type="text" id="splitBold" class="split-method-card-input" placeholder="$ 0" oninput="onSplitInput()" inputmode="numeric">
                     </div>
                     <!-- Efectivo -->
                     <div class="split-method-card">
@@ -1583,6 +1714,31 @@
         });
     });
 
+    // ── Category sidebar toggle ──
+    function toggleCategorySidebar() {
+        var sidebar = document.getElementById('categorySidebar');
+        var isCompact = sidebar.classList.toggle('compact');
+        var chevron = sidebar.querySelector('.cat-toggle-icon');
+        if (chevron) {
+            chevron.className = isCompact
+                ? 'fa-solid fa-chevron-right cat-toggle-icon ms-auto'
+                : 'fa-solid fa-chevron-left cat-toggle-icon ms-auto';
+        }
+        localStorage.setItem('pos_cat_compact', isCompact ? '1' : '0');
+    }
+
+    // Restaurar estado al cargar
+    (function() {
+        if (localStorage.getItem('pos_cat_compact') === '1') {
+            var sidebar = document.getElementById('categorySidebar');
+            if (sidebar) {
+                sidebar.classList.add('compact');
+                var chevron = sidebar.querySelector('.cat-toggle-icon');
+                if (chevron) chevron.className = 'fa-solid fa-chevron-right cat-toggle-icon ms-auto';
+            }
+        }
+    })();
+
     function filterCategory(catId, btn) {
         var buttons = document.querySelectorAll('.category-btn');
         buttons.forEach(function(b) { b.classList.remove('active'); });
@@ -1667,6 +1823,44 @@
             playSound(600, 0.1);
             renderCart();
         }
+    }
+
+    function cartQtyDecrement(id, maxStock) {
+        var item = cart.find(function(i) { return i.id === id; });
+        if (!item) return;
+        if (item.cantidad <= 1) {
+            cart = cart.filter(function(i) { return i.id !== id; });
+            playSound(400, 0.15);
+            renderCart();
+            renderCartTabs();
+        } else {
+            item.cantidad--;
+            recalculateItem(item);
+            playSound(600, 0.08);
+            renderCart();
+        }
+    }
+
+    function cartQtyIncrement(id, maxStock) {
+        var item = cart.find(function(i) { return i.id === id; });
+        if (!item) return;
+        if (maxStock > 0 && item.cantidad >= maxStock) {
+            playSound(200, 0.2);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock insuficiente',
+                text: 'No hay más unidades disponibles',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1800
+            });
+            return;
+        }
+        item.cantidad++;
+        recalculateItem(item);
+        playSound(600, 0.08);
+        renderCart();
     }
 
     function updatePriceManual(id, newPrice) {
@@ -1767,13 +1961,15 @@
                         '<div class="cart-item-controls">' +
                             '<div class="cart-item-field">' +
                                 '<label>Cantidad</label>' +
-                                '<div class="d-flex align-items-center gap-2">' +
+                                '<div class="d-flex align-items-center gap-1">' +
+                                    '<button type="button" class="cart-qty-btn minus" tabindex="-1" onclick="cartQtyDecrement(\'' + item.id + '\', ' + item.stock + ')">−</button>' +
                                     '<input type="number" class="form-control form-control-sm cart-qty-input" ' +
                                         'value="' + item.cantidad + '" ' +
                                         'min="1" ' +
                                         'onchange="updateQuantityManual(\'' + item.id + '\', this.value, ' + item.stock + ')" ' +
                                         'onclick="this.select()">' +
-                                    '<small class="text-muted">' + item.sigla + '</small>' +
+                                    '<button type="button" class="cart-qty-btn plus" tabindex="-1" onclick="cartQtyIncrement(\'' + item.id + '\', ' + item.stock + ')">+</button>' +
+                                    '<small class="text-muted ms-1">' + item.sigla + '</small>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="cart-item-field">' +
@@ -1930,6 +2126,11 @@
             badge.style.backgroundColor = '';
             badge.style.color = '';
             badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
+        } else if (type === 'BOLD') {
+            badge.className = 'badge';
+            badge.style.backgroundColor = '#FF6B00';
+            badge.style.color = '#fff';
+            badge.innerHTML = '<i class="fa-solid fa-bolt me-1"></i> BOLD';
         }
         document.getElementById('efectivoCampos').style.display = 'none';
         document.getElementById('smartCashWrapper').style.display = 'none';
@@ -2328,11 +2529,16 @@
                 badge.style.backgroundColor = '#230836';
                 badge.style.color = '#fff';
                 badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> NEQUI';
-            } else {
+            } else if (c.metodoPago === 'DAVIPLATA') {
                 badge.className = 'badge bg-danger';
                 badge.style.backgroundColor = '';
                 badge.style.color = '';
                 badge.innerHTML = '<i class="fa-solid fa-mobile-screen me-1"></i> DAVIPLATA';
+            } else if (c.metodoPago === 'BOLD') {
+                badge.className = 'badge';
+                badge.style.backgroundColor = '#FF6B00';
+                badge.style.color = '#fff';
+                badge.innerHTML = '<i class="fa-solid fa-bolt me-1"></i> BOLD';
             }
             document.getElementById('efectivoCampos').style.display = 'none';
             document.getElementById('smartCashWrapper').style.display = 'none';
@@ -2658,12 +2864,14 @@
         var total    = parseFloat(document.getElementById('inputTotal').value) || 0;
         var nequi    = parseSplitAmount('splitNequi');
         var davi     = parseSplitAmount('splitDaviplata');
+        var bold     = parseSplitAmount('splitBold');
         var efectivo = parseSplitAmount('splitEfectivo');
-        var asignado = nequi + davi + efectivo;
+        var asignado = nequi + davi + bold + efectivo;
 
         var pagos = [];
         if (nequi > 0)    pagos.push({ metodo: 'NEQUI',    monto: nequi });
         if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA', monto: davi });
+        if (bold > 0)     pagos.push({ metodo: 'BOLD',      monto: bold });
         if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',  monto: efectivo });
 
         if (asignado < total || pagos.length < 2) return;
@@ -2674,7 +2882,7 @@
         document.getElementById('selectMetodoPago').value = 'MIXTO';
         document.getElementById('inputPagosMixtos').value = JSON.stringify(pagos);
 
-        var efectivoNecesario = Math.max(0, total - nequi - davi);
+        var efectivoNecesario = Math.max(0, total - nequi - davi - bold);
         var vuelto = Math.max(0, efectivo - efectivoNecesario);
         document.getElementById('dinero_recibido').value = asignado;
         document.getElementById('vuelto').value = vuelto;
@@ -2698,7 +2906,7 @@
     }
 
     function clearSplitInputs() {
-        ['splitNequi','splitDaviplata','splitEfectivo'].forEach(function(id) {
+        ['splitNequi','splitDaviplata','splitBold','splitEfectivo'].forEach(function(id) {
             document.getElementById(id).value = '';
         });
     }
@@ -2712,8 +2920,9 @@
         var total    = parseFloat(document.getElementById('inputTotal').value) || 0;
         var nequi    = parseSplitAmount('splitNequi');
         var davi     = parseSplitAmount('splitDaviplata');
+        var bold     = parseSplitAmount('splitBold');
         var efectivo = parseSplitAmount('splitEfectivo');
-        var asignado = nequi + davi + efectivo;
+        var asignado = nequi + davi + bold + efectivo;
         var pendiente = Math.max(0, total - asignado);
 
         // Actualizar total en header si cambió
@@ -2738,11 +2947,12 @@
         var pagos = [];
         if (nequi > 0)    pagos.push({ metodo: 'NEQUI',    monto: nequi });
         if (davi > 0)     pagos.push({ metodo: 'DAVIPLATA', monto: davi });
+        if (bold > 0)     pagos.push({ metodo: 'BOLD',      monto: bold });
         if (efectivo > 0) pagos.push({ metodo: 'EFECTIVO',  monto: efectivo });
 
         var vueltoEl = document.getElementById('splitSummaryVuelto');
         if (asignado > total && efectivo > 0) {
-            var efectivoNecesario = Math.max(0, total - nequi - davi);
+            var efectivoNecesario = Math.max(0, total - nequi - davi - bold);
             var vuelto = Math.max(0, efectivo - efectivoNecesario);
             if (vuelto > 0) {
                 document.getElementById('splitVueltoDisplay').textContent = '$' + vuelto.toLocaleString('es-CO');
