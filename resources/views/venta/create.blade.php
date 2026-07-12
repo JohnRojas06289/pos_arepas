@@ -259,10 +259,10 @@
     }
 
     .cart-qty-input {
-        width: 48px;
+        width: 58px;
         text-align: center;
-        padding-left: 4px;
-        padding-right: 4px;
+        padding-left: 6px;
+        padding-right: 6px;
     }
 
     .cart-qty-btn {
