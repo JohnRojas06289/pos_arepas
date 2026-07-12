@@ -140,6 +140,12 @@
         margin-right: 0 !important;
     }
 
+    /* Más productos por fila cuando el sidebar está compacto */
+    #productsContainer.cat-compact .product-item {
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+
     /* Tarjetas de producto mejoradas */
     .product-card {
         cursor: pointer;
@@ -1717,7 +1723,9 @@
     // ── Category sidebar toggle ──
     function toggleCategorySidebar() {
         var sidebar = document.getElementById('categorySidebar');
+        var grid    = document.getElementById('productsContainer');
         var isCompact = sidebar.classList.toggle('compact');
+        if (grid) grid.classList.toggle('cat-compact', isCompact);
         var chevron = sidebar.querySelector('.cat-toggle-icon');
         if (chevron) {
             chevron.className = isCompact
@@ -1731,11 +1739,13 @@
     (function() {
         if (localStorage.getItem('pos_cat_compact') === '1') {
             var sidebar = document.getElementById('categorySidebar');
+            var grid    = document.getElementById('productsContainer');
             if (sidebar) {
                 sidebar.classList.add('compact');
                 var chevron = sidebar.querySelector('.cat-toggle-icon');
                 if (chevron) chevron.className = 'fa-solid fa-chevron-right cat-toggle-icon ms-auto';
             }
+            if (grid) grid.classList.add('cat-compact');
         }
     })();
 
