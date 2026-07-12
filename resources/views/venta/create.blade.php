@@ -142,8 +142,8 @@
 
     /* Más productos por fila cuando el sidebar está compacto */
     #productsContainer.cat-compact .product-item {
-        flex: 0 0 20%;
-        max-width: 20%;
+        flex: 0 0 16.6667%;
+        max-width: 16.6667%;
     }
 
     /* Tarjetas de producto mejoradas */
