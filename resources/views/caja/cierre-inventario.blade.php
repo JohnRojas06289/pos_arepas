@@ -131,7 +131,13 @@
                             @forelse($productos as $index => $producto)
                             @php $sistema = $producto->inventario->cantidad ?? 0; @endphp
                             <tr>
-                                <td class="text-muted">{{ $index + 1 }}</td>
+                                <td class="text-muted">
+                                    {{ $index + 1 }}
+                                    {{-- Hidden fields dentro del <tr> para HTML válido --}}
+                                    <input type="hidden" name="items[{{ $index }}][producto_id]"      value="{{ $producto->id }}">
+                                    <input type="hidden" name="items[{{ $index }}][nombre]"           value="{{ $producto->nombre }}">
+                                    <input type="hidden" name="items[{{ $index }}][cantidad_sistema]" value="{{ $sistema }}">
+                                </td>
                                 <td>{{ $producto->nombre }}</td>
                                 <td class="text-center fw-semibold">{{ $sistema }}</td>
                                 <td class="text-center">
@@ -151,10 +157,6 @@
                                     <span id="badge-{{ $index }}" class="badge badge-diferencia bg-secondary">—</span>
                                 </td>
                             </tr>
-                            {{-- Hidden fields --}}
-                            <input type="hidden" name="items[{{ $index }}][producto_id]"      value="{{ $producto->id }}">
-                            <input type="hidden" name="items[{{ $index }}][nombre]"           value="{{ $producto->nombre }}">
-                            <input type="hidden" name="items[{{ $index }}][cantidad_sistema]" value="{{ $sistema }}">
                             @empty
                             <tr>
                                 <td colspan="5" class="text-center text-muted py-4">
