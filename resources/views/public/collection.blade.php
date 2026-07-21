@@ -483,6 +483,15 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
+                    <label for="orderNombre" class="form-label fw-semibold">
+                        <i class="fas fa-user me-1" style="color: var(--primary-color, #e84393)"></i>
+                        Nombre *
+                    </label>
+                    <input type="text" id="orderNombre" class="form-control"
+                           style="background: var(--bg-input, #2a2a2a); color: var(--text-color, #fff); border-color: var(--catalog-border, #444)"
+                           placeholder="Tu nombre completo">
+                </div>
+                <div class="mb-3">
                     <label for="orderDireccion" class="form-label fw-semibold">
                         <i class="fas fa-map-marker-alt me-1" style="color: var(--primary-color, #e84393)"></i>
                         Dirección o local *
@@ -490,6 +499,23 @@
                     <input type="text" id="orderDireccion" class="form-control"
                            style="background: var(--bg-input, #2a2a2a); color: var(--text-color, #fff); border-color: var(--catalog-border, #444)"
                            placeholder="Ej: Calle 10 # 5-23, Local 3, Barrio Centro…">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        <i class="fas fa-credit-card me-1" style="color: var(--primary-color, #e84393)"></i>
+                        Método de pago *
+                    </label>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <input type="radio" class="btn-check" name="orderPago" id="pagoNequi" value="Nequi">
+                        <label class="btn btn-outline-success btn-sm fw-semibold" for="pagoNequi">Nequi</label>
+
+                        <input type="radio" class="btn-check" name="orderPago" id="pagoDaviplata" value="Daviplata">
+                        <label class="btn btn-outline-danger btn-sm fw-semibold" for="pagoDaviplata">Daviplata</label>
+
+                        <input type="radio" class="btn-check" name="orderPago" id="pagoEfectivo" value="Efectivo">
+                        <label class="btn btn-outline-warning btn-sm fw-semibold" for="pagoEfectivo">Efectivo</label>
+                    </div>
+                    <div id="pagoError" class="text-danger small mt-1" style="display:none">Selecciona un método de pago</div>
                 </div>
                 <div class="mb-2">
                     <label for="orderComentarios" class="form-label fw-semibold">
@@ -583,22 +609,30 @@
             return;
         }
         // Limpiar campos y abrir modal de datos
+        document.getElementById('orderNombre').value = '';
         document.getElementById('orderDireccion').value = '';
         document.getElementById('orderComentarios').value = '';
+        document.querySelectorAll('input[name="orderPago"]').forEach(r => r.checked = false);
+        document.getElementById('pagoError').style.display = 'none';
         const modal = new bootstrap.Modal(document.getElementById('orderInfoModal'));
         modal.show();
     };
 
     window.confirmSendToWhatsApp = function() {
+        const nombre    = document.getElementById('orderNombre').value.trim();
         const direccion = document.getElementById('orderDireccion').value.trim();
-        if (!direccion) {
-            document.getElementById('orderDireccion').focus();
-            document.getElementById('orderDireccion').style.borderColor = '#dc3545';
-            return;
-        }
-        document.getElementById('orderDireccion').style.borderColor = '';
-
+        const pago      = document.querySelector('input[name="orderPago"]:checked')?.value || '';
         const comentarios = document.getElementById('orderComentarios').value.trim();
+
+        let valid = true;
+        document.getElementById('orderNombre').style.borderColor    = nombre    ? '' : '#dc3545';
+        document.getElementById('orderDireccion').style.borderColor = direccion ? '' : '#dc3545';
+        if (!nombre)    { document.getElementById('orderNombre').focus(); valid = false; }
+        if (!direccion) { valid = false; }
+        if (!pago)      { document.getElementById('pagoError').style.display = 'block'; valid = false; }
+        else            { document.getElementById('pagoError').style.display = 'none'; }
+        if (!valid) return;
+
         const cart  = getCart();
         const total = cart.reduce((s, i) => s + i.precio * i.cantidad, 0);
         const lines = cart
@@ -606,7 +640,9 @@
             .join('\n');
 
         let msg = `¡Hola! Quiero hacer este pedido 🛍️\n\n${lines}\n\n💰 Total: ${fmtPrice(total)}`;
-        msg += `\n\n📍 Dirección/Local: ${direccion}`;
+        msg += `\n\n👤 Nombre: ${nombre}`;
+        msg += `\n📍 Dirección/Local: ${direccion}`;
+        msg += `\n💳 Pago: ${pago}`;
         if (comentarios) msg += `\n💬 Comentarios: ${comentarios}`;
         msg += `\n\n¡Gracias!`;
 
