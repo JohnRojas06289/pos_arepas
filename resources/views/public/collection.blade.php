@@ -471,6 +471,46 @@
     </div>
 </div>
 
+{{-- Modal: datos de entrega --}}
+<div class="modal fade" id="orderInfoModal" tabindex="-1" aria-labelledby="orderInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card, #1e1e1e); color: var(--text-color, #fff); border: 1px solid var(--catalog-border, #333)">
+            <div class="modal-header" style="border-bottom: 1px solid var(--catalog-border, #333)">
+                <h5 class="modal-title" id="orderInfoModalLabel" style="font-weight:700">
+                    <i class="fab fa-whatsapp me-2" style="color:#25d366"></i> Datos del pedido
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="orderDireccion" class="form-label fw-semibold">
+                        <i class="fas fa-map-marker-alt me-1" style="color: var(--primary-color, #e84393)"></i>
+                        Dirección o local *
+                    </label>
+                    <input type="text" id="orderDireccion" class="form-control"
+                           style="background: var(--bg-input, #2a2a2a); color: var(--text-color, #fff); border-color: var(--catalog-border, #444)"
+                           placeholder="Ej: Calle 10 # 5-23, Local 3, Barrio Centro…">
+                </div>
+                <div class="mb-2">
+                    <label for="orderComentarios" class="form-label fw-semibold">
+                        <i class="fas fa-comment-dots me-1" style="color: var(--primary-color, #e84393)"></i>
+                        Detalles o comentarios
+                    </label>
+                    <textarea id="orderComentarios" class="form-control" rows="3"
+                              style="background: var(--bg-input, #2a2a2a); color: var(--text-color, #fff); border-color: var(--catalog-border, #444)"
+                              placeholder="Ej: Sin cebolla, entregar después de las 12pm, apartamento 201…"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--catalog-border, #333)">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmSendToWhatsApp()" style="background:#25d366; border-color:#25d366; font-weight:700">
+                    <i class="fab fa-whatsapp me-1"></i> Enviar pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Floating Cart Button --}}
 <button class="floating-cart-btn"
         data-bs-toggle="offcanvas"
@@ -487,7 +527,7 @@
 @push('js')
 <script>
 (function () {
-    const WA_NUMBER = '573212335821';
+    const WA_NUMBER = '573202078858';
     const CART_KEY  = 'catalogo_cart';
 
     /* ─── Helpers ─────────────────────────── */
@@ -542,11 +582,35 @@
             alert('Tu carrito está vacío. Agrega productos antes de pedir.');
             return;
         }
+        // Limpiar campos y abrir modal de datos
+        document.getElementById('orderDireccion').value = '';
+        document.getElementById('orderComentarios').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('orderInfoModal'));
+        modal.show();
+    };
+
+    window.confirmSendToWhatsApp = function() {
+        const direccion = document.getElementById('orderDireccion').value.trim();
+        if (!direccion) {
+            document.getElementById('orderDireccion').focus();
+            document.getElementById('orderDireccion').style.borderColor = '#dc3545';
+            return;
+        }
+        document.getElementById('orderDireccion').style.borderColor = '';
+
+        const comentarios = document.getElementById('orderComentarios').value.trim();
+        const cart  = getCart();
         const total = cart.reduce((s, i) => s + i.precio * i.cantidad, 0);
         const lines = cart
             .map(i => `• ${i.nombre} x${i.cantidad} — ${fmtPrice(i.precio * i.cantidad)}`)
             .join('\n');
-        const msg = `¡Hola! Quiero hacer este pedido 🛍️\n\n${lines}\n\n💰 Total: ${fmtPrice(total)}\n\n¡Gracias!`;
+
+        let msg = `¡Hola! Quiero hacer este pedido 🛍️\n\n${lines}\n\n💰 Total: ${fmtPrice(total)}`;
+        msg += `\n\n📍 Dirección/Local: ${direccion}`;
+        if (comentarios) msg += `\n💬 Comentarios: ${comentarios}`;
+        msg += `\n\n¡Gracias!`;
+
+        bootstrap.Modal.getInstance(document.getElementById('orderInfoModal')).hide();
         window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
