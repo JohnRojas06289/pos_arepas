@@ -93,6 +93,23 @@
         </div>
 
         <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card h-100" style="border-color:rgba(255,107,0,.20);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                        <div class="kpi-label">Bold</div>
+                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($ventasBold, 0, ',', '.') }}</div>
+                        <div class="small fw-semibold" style="color:#FF6B00;">
+                            <i class="fas fa-bolt me-1"></i>Datáfono Bold
+                        </div>
+                    </div>
+                    <div class="kpi-icon ms-3" style="background:rgba(255,107,0,.12);color:#FF6B00;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-4 col-xl">
             <div class="kpi-card danger h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">

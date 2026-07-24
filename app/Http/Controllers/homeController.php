@@ -31,30 +31,29 @@ class homeController extends Controller
             $hoyInicio = Carbon::now()->startOfDay()->format('Y-m-d H:i:s');
             $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
 
-            $ventasHoy = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])->sum('total');
+            $ventasDelDia = Venta::with(['user', 'cliente.persona', 'productos'])
+                ->whereBetween('created_at', [$hoyInicio, $hoyFin])
+                ->get();
 
-            $ventasPorMetodo = Venta::whereBetween('created_at', [$hoyInicio, $hoyFin])
-                ->select('metodo_pago', DB::raw('SUM(total) as total'))
-                ->groupBy('metodo_pago')
-                ->pluck('total', 'metodo_pago');
+            $ventasPorMetodo = $this->calcularTotalesPorMetodo($ventasDelDia);
 
-            $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']  ?? 0;
-            $ventasNequi     = $ventasPorMetodo['NEQUI']     ?? 0;
-            $ventasDaviplata = $ventasPorMetodo['DAVIPLATA'] ?? 0;
+            $ventasHoy       = $ventasPorMetodo['TOTAL']      ?? 0;
+            $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']   ?? 0;
+            $ventasNequi     = $ventasPorMetodo['NEQUI']      ?? 0;
+            $ventasDaviplata = $ventasPorMetodo['DAVIPLATA']  ?? 0;
+            $ventasBold      = $ventasPorMetodo['BOLD']       ?? 0;
 
             $gastosHoy = Gasto::whereDate('fecha', Carbon::today())->sum('monto');
             $totalMenosGastos = $ventasHoy - $gastosHoy;
 
-            $ventasPorCliente = Venta::with(['user', 'cliente.persona', 'productos'])
-                ->whereBetween('created_at', [$hoyInicio, $hoyFin])
-                ->get()
-                ->groupBy('cliente_id');
+            $ventasPorCliente = $ventasDelDia->groupBy('cliente_id');
 
             return view('panel.index', compact(
                 'ventasHoy',
                 'ventasEfectivo',
                 'ventasNequi',
                 'ventasDaviplata',
+                'ventasBold',
                 'gastosHoy',
                 'totalMenosGastos',
                 'ventasPorCliente'
@@ -213,5 +212,62 @@ class homeController extends Controller
             Log::error('Error en Estadísticas', ['error' => $e->getMessage()]);
             return redirect()->route('panel')->with('error', 'Ocurrió un error cargando las estadísticas.');
         }
+    }
+
+    /**
+     * Consolidar ventas por método de pago, incluyendo pagos mixtos.
+     */
+    private function calcularTotalesPorMetodo(iterable $ventas): array
+    {
+        $totales = [
+            'TOTAL' => 0,
+            'EFECTIVO' => 0,
+            'NEQUI' => 0,
+            'DAVIPLATA' => 0,
+            'BOLD' => 0,
+            'FIADO' => 0,
+            'MIXTO' => 0,
+            'OTRO' => 0,
+        ];
+
+        foreach ($ventas as $venta) {
+            $metodoPago = strtoupper((string) ($venta->metodo_pago ?? 'OTRO'));
+            $totalVenta = (float) ($venta->total ?? 0);
+
+            if ($metodoPago === 'MIXTO') {
+                $pagosMixtos = is_array($venta->pagos_mixtos) ? $venta->pagos_mixtos : [];
+                $montoMixtoRegistrado = 0;
+
+                foreach ($pagosMixtos as $pago) {
+                    $metodoMixto = strtoupper((string) ($pago['metodo'] ?? 'OTRO'));
+                    $montoMixto  = (float) ($pago['monto'] ?? 0);
+
+                    if ($montoMixto <= 0) {
+                        continue;
+                    }
+
+                    if (!array_key_exists($metodoMixto, $totales)) {
+                        $totales[$metodoMixto] = 0;
+                    }
+
+                    $totales[$metodoMixto] += $montoMixto;
+                    $montoMixtoRegistrado += $montoMixto;
+                }
+
+                if ($montoMixtoRegistrado > 0) {
+                    $totales['TOTAL'] += $montoMixtoRegistrado;
+                    continue;
+                }
+            }
+
+            if (!array_key_exists($metodoPago, $totales)) {
+                $totales[$metodoPago] = 0;
+            }
+
+            $totales[$metodoPago] += $totalVenta;
+            $totales['TOTAL'] += $totalVenta;
+        }
+
+        return $totales;
     }
 }
