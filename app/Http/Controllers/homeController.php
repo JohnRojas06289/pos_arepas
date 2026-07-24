@@ -32,7 +32,7 @@ class homeController extends Controller
             $hoyFin    = Carbon::now()->endOfDay()->format('Y-m-d H:i:s');
 
             $ventasDelDia = Venta::with(['user', 'cliente.persona', 'productos'])
-                ->whereBetween('created_at', [$hoyInicio, $hoyFin])
+                ->whereBetween('fecha_hora', [$hoyInicio, $hoyFin])
                 ->get();
 
             $ventasPorMetodo = $this->calcularTotalesPorMetodo($ventasDelDia);
@@ -41,6 +41,7 @@ class homeController extends Controller
             $ventasEfectivo  = $ventasPorMetodo['EFECTIVO']   ?? 0;
             $ventasNequi     = $ventasPorMetodo['NEQUI']      ?? 0;
             $ventasDaviplata = $ventasPorMetodo['DAVIPLATA']  ?? 0;
+            $ventasOtro      = $ventasNequi + $ventasDaviplata;
             $ventasBold      = $ventasPorMetodo['BOLD']       ?? 0;
 
             $gastosHoy = Gasto::whereDate('fecha', Carbon::today())->sum('monto');
@@ -51,8 +52,7 @@ class homeController extends Controller
             return view('panel.index', compact(
                 'ventasHoy',
                 'ventasEfectivo',
-                'ventasNequi',
-                'ventasDaviplata',
+                'ventasOtro',
                 'ventasBold',
                 'gastosHoy',
                 'totalMenosGastos',

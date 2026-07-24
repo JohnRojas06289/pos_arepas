@@ -66,28 +66,13 @@
             <div class="kpi-card info h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="flex-grow-1">
-                        <div class="kpi-label">Nequi</div>
-                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($ventasNequi, 0, ',', '.') }}</div>
+                        <div class="kpi-label">Otro</div>
+                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($ventasOtro, 0, ',', '.') }}</div>
                         <div class="small fw-semibold" style="color:var(--color-info);">
-                            <i class="fas fa-mobile-alt me-1"></i>Transferencia
+                            <i class="fas fa-mobile-alt me-1"></i>Nequi + Daviplata
                         </div>
                     </div>
                     <div class="kpi-icon info ms-3"><i class="fas fa-mobile-alt"></i></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-md-4 col-xl">
-            <div class="kpi-card warning h-100">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="flex-grow-1">
-                        <div class="kpi-label">Daviplata</div>
-                        <div class="kpi-value" style="font-size:1.4rem;">${{ number_format($ventasDaviplata, 0, ',', '.') }}</div>
-                        <div class="small fw-semibold" style="color:var(--color-warning);">
-                            <i class="fas fa-university me-1"></i>Transferencia
-                        </div>
-                    </div>
-                    <div class="kpi-icon warning ms-3"><i class="fas fa-university"></i></div>
                 </div>
             </div>
         </div>
@@ -197,7 +182,7 @@
                                 <div id="data_transacciones_{{ $clienteId ? $clienteId : 'general' }}" class="d-none">
                                     @foreach($ventas as $v)
                                     <div class="tx-item"
-                                         data-fecha="{{ \Carbon\Carbon::parse($v->created_at)->format('d/m/Y H:i') }}"
+                                         data-fecha="{{ \Carbon\Carbon::parse($v->fecha_hora ?? $v->created_at)->format('d/m/Y H:i') }}"
                                          data-total="{{ number_format($v->total, 0, ',', '.') }}"
                                          data-vendedor="{{ $v->user?->name ?? 'N/A' }}"
                                          data-metodo="{{ $v->metodo_pago }}"
